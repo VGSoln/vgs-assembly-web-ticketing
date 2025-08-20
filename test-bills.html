@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Bills Page Navigation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .instruction {
+            background: #f0f9ff;
+            border: 2px solid #0284c7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-left: 4px solid #0284c7;
+            border-radius: 4px;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #0284c7;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="instruction">
+        <h1>How to View the Bills Sub-Page</h1>
+        <p>The Bills sub-page is part of the Customer Details page. Follow these steps to access it:</p>
+        
+        <div class="step">
+            <span class="step-number">1</span>
+            Go to <a href="http://localhost:3000" target="_blank">http://localhost:3000</a>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">2</span>
+            In the sidebar on the left, click on <span class="highlight">Customers</span>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">3</span>
+            In the customers list, click the <span class="highlight">View (Eye icon)</span> button on any customer row
+        </div>
+        
+        <div class="step">
+            <span class="step-number">4</span>
+            Once on the Customer Details page, you'll see four tabs:
+            <ul>
+                <li>Customer Profile</li>
+                <li>Rates</li>
+                <li>Payments</li>
+                <li><span class="highlight">Bills</span> (NEW!)</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <span class="step-number">5</span>
+            Click on the <span class="highlight">Bills</span> button to view the Bills sub-page with the duplicated table
+        </div>
+    </div>
+    
+    <div style="background: #e0f2fe; padding: 20px; border-radius: 8px;">
+        <h2>What's on the Bills Page:</h2>
+        <ul>
+            <li>Yellow-themed Customer Bills header card with statistics</li>
+            <li>Recent Bills table with all the same functionality as Payments:</li>
+            <ul>
+                <li>Search across all columns</li>
+                <li>Sort by any column (except Actions)</li>
+                <li>Export to Copy, Print, Excel, CSV, PDF</li>
+                <li>Shows 8 sample bill records</li>
+                <li>Pagination controls</li>
+                <li>Sort indicator in footer</li>
+            </ul>
+        </ul>
+    </div>
+</body>
+</html>

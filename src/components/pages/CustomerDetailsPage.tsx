@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, Home, ChevronLeft, Briefcase, Calendar, Clock, Hash, CreditCard, Droplets, Gauge, FileSpreadsheet, File, Copy, Printer, FileText } from 'lucide-react';
+import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, Home, ChevronLeft, Briefcase, Calendar, Clock, Hash, CreditCard, Droplets, Gauge, FileSpreadsheet, File, Copy, Printer, FileText, Receipt, Eye, Edit2, Trash2, FileDown } from 'lucide-react';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface CustomerDetailsPageProps {
@@ -16,10 +16,16 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
 }) => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'rates' | 'payments'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'rates' | 'payments' | 'bills'>('profile');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  // Bills state
+  const [billSearchTerm, setBillSearchTerm] = useState('');
+  const [billSortColumn, setBillSortColumn] = useState<string | null>(null);
+  const [billSortDirection, setBillSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [billModalOpen, setBillModalOpen] = useState(false);
 
   // Mock customer data - in a real app, this would come from an API
   const customerData = {
@@ -56,6 +62,19 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
     { id: '0525-07-00372-m84agtg3', collector: 'CWSA Admin', type: 'ePayment', date: 'Tue, 11 Mar 2025, 09:29 am', amount: 189.01, created: 'Tue, 11 Mar 2025, 09:29 am', status: 'Paid' },
     { id: '019-32LPKD58', collector: 'Rapheal Kwabena Aboagye', type: 'Cash', date: 'Fri, 21 Feb 2025, 11:58 am', amount: 450.00, created: 'Fri, 21 Feb 2025, 11:58 am', status: 'Paid' },
     { id: '7ff05772-a9fb-406b-b9a1-ac263dbe0718', collector: 'CWSA Admin', type: 'Cash', date: 'Thu, 30 Jan 2025, 12:00 am', amount: 297.00, created: 'Thu, 30 Jan 2025, 12:00 am', status: 'Paid' }
+  ];
+
+  // Bill data
+  const billData = [
+    { period: '202507', description: 'Bill (July 2025)', currentBill: 389.72, status: 'Paid', amountPaid: 251.00, amountDue: 389.48 },
+    { period: '202506', description: 'Bill (June 2025)', currentBill: 280.64, status: 'Paid', amountPaid: 400.00, amountDue: 250.76 },
+    { period: '202505', description: 'Bill (May 2025)', currentBill: 377.60, status: 'Paid', amountPaid: 300.00, amountDue: 370.12 },
+    { period: '202504', description: 'Bill (April 2025)', currentBill: 353.36, status: 'Paid', amountPaid: 600.00, amountDue: 292.52 },
+    { period: '202503', description: 'Bill (March 2025)', currentBill: 510.92, status: 'Paid', amountPaid: 1000.00, amountDue: 539.16 },
+    { period: '202502', description: 'Bill (February 2025)', currentBill: 1032.08, status: 'Paid', amountPaid: 690.00, amountDue: 1028.24 },
+    { period: '202501', description: 'Bill (January 2025)', currentBill: 680.60, status: 'Not Paid', amountPaid: 0.00, amountDue: 686.16 },
+    { period: '202412', description: 'Bill (December 2024)', currentBill: 165.56, status: 'Not Paid', amountPaid: 160.00, amountDue: 5.56 },
+    { period: '202411', description: 'Bill (November 2024)', currentBill: 0.00, status: 'Paid', amountPaid: 0.00, amountDue: 0.00 }
   ];
 
   // Filter payments based on search term
@@ -97,6 +116,47 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
     } else {
       setSortColumn(column);
       setSortDirection('asc');
+    }
+  };
+
+  // Filter bills based on search term
+  const filteredBills = billData.filter(bill => {
+    if (!billSearchTerm) return true;
+    const searchLower = billSearchTerm.toLowerCase();
+    return (
+      bill.period.toLowerCase().includes(searchLower) ||
+      bill.description.toLowerCase().includes(searchLower) ||
+      bill.currentBill.toString().includes(searchLower) ||
+      bill.status.toLowerCase().includes(searchLower) ||
+      bill.amountPaid.toString().includes(searchLower) ||
+      bill.amountDue.toString().includes(searchLower)
+    );
+  });
+
+  // Sort bills
+  const sortedBills = [...filteredBills].sort((a, b) => {
+    if (!billSortColumn) return 0;
+    
+    let aVal: any = a[billSortColumn as keyof typeof a];
+    let bVal: any = b[billSortColumn as keyof typeof b];
+    
+    if (billSortColumn === 'currentBill' || billSortColumn === 'amountPaid' || billSortColumn === 'amountDue') {
+      aVal = parseFloat(aVal);
+      bVal = parseFloat(bVal);
+    }
+    
+    if (aVal < bVal) return billSortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return billSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Handle bill sort
+  const handleBillSort = (column: string) => {
+    if (billSortColumn === column) {
+      setBillSortDirection(billSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setBillSortColumn(column);
+      setBillSortDirection('asc');
     }
   };
 
@@ -150,6 +210,53 @@ Status: ${p.status}
 
   // Generate initials for avatar
   const initials = customerData.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+  // Bill Export functions
+  const exportBillsToCSV = () => {
+    const headers = ['Period', 'Description', 'Current Bill', 'Bill Status', 'Amount Paid', 'Amount Due'];
+    const rows = sortedBills.map(b => [b.period, b.description, `GH₵ ${b.currentBill.toFixed(2)}`, b.status, `GH₵ ${b.amountPaid.toFixed(2)}`, `GH₵ ${b.amountDue.toFixed(2)}`]);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bills_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const exportBillsToPDF = () => {
+    const content = `
+BILLS HISTORY REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+${sortedBills.map(b => `
+Period: ${b.period}
+Description: ${b.description}
+Current Bill: GH₵ ${b.currentBill.toFixed(2)}
+Bill Status: ${b.status}
+Amount Paid: GH₵ ${b.amountPaid.toFixed(2)}
+Amount Due: GH₵ ${b.amountDue.toFixed(2)}
+----------------------------`).join('\n')}
+    `;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bills_${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+  };
+
+  const handleBillCopy = () => {
+    const text = sortedBills.map(b => 
+      `${b.period}\t${b.description}\tGH₵ ${b.currentBill.toFixed(2)}\t${b.status}\tGH₵ ${b.amountPaid.toFixed(2)}\tGH₵ ${b.amountDue.toFixed(2)}`
+    ).join('\n');
+    navigator.clipboard.writeText(text);
+    alert('Bill data copied to clipboard!');
+  };
+
+  const handleBillPrint = () => {
+    window.print();
+  };
 
   const handleLogCall = () => {
     // Handle log customer call
@@ -258,6 +365,17 @@ Status: ${p.status}
               >
                 <CreditCard className="w-3.5 h-3.5 mr-1.5" />
                 Payments
+              </button>
+              <button 
+                onClick={() => setActiveTab('bills')}
+                className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'bills'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <Receipt className="w-3.5 h-3.5 mr-1.5" />
+                Bills
               </button>
             </div>
           </div>
@@ -510,7 +628,7 @@ Status: ${p.status}
                   </div>
                 </div>
               </>
-            ) : (
+            ) : activeTab === 'payments' ? (
               <>
                 {/* Payments Content */}
                 <div className="space-y-5">
@@ -737,7 +855,250 @@ Status: ${p.status}
                   </div>
                 </div>
               </>
-            )}
+            ) : activeTab === 'bills' ? (
+              <>
+                {/* Bills Content */}
+                <div className="space-y-6">
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-6 py-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Receipt className="w-8 h-8 text-yellow-600" />
+                      <h3 className="text-lg font-semibold text-gray-900">Customer Bills</h3>
+                    </div>
+                    <p className="text-gray-600 mb-3">
+                      View and manage all bills for customer {customerData.name}
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                      <div className="bg-white rounded-lg px-4 py-2 border border-yellow-200">
+                        <p className="text-sm text-gray-500 mb-1">Total Bills</p>
+                        <p className="text-2xl font-bold text-gray-900">12</p>
+                      </div>
+                      <div className="bg-white rounded-lg px-4 py-2 border border-yellow-200">
+                        <p className="text-sm text-gray-500 mb-1">Outstanding</p>
+                        <p className="text-2xl font-bold text-red-600">GH₵ 450.00</p>
+                      </div>
+                      <div className="bg-white rounded-lg px-4 py-2 border border-yellow-200">
+                        <p className="text-sm text-gray-500 mb-1">Last Bill Date</p>
+                        <p className="text-2xl font-bold text-gray-900">Nov 2024</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Recent Bills Table */}
+                  <div className="bg-white rounded-lg border border-gray-200">
+                    <h4 className="text-md font-semibold text-gray-900 px-6 pt-6 pb-4">Recent Bills</h4>
+                    
+                    {/* Search and Export Controls */}
+                    <div className="px-6 pb-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">Show</span>
+                          <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="50">50</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="100">100</option>
+                          </select>
+                          <span className="text-sm text-gray-600">entries</span>
+                        </div>
+                        
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="flex items-center gap-2">
+                            <button 
+                              onClick={handleBillCopy}
+                              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                              <Copy className="w-4 h-4" />
+                              Copy
+                            </button>
+                            <button 
+                              onClick={handleBillPrint}
+                              className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                              <Printer className="w-4 h-4" />
+                              Print
+                            </button>
+                            <button 
+                              onClick={exportBillsToCSV}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 flex items-center gap-1.5 transition-colors">
+                              <FileSpreadsheet className="w-4 h-4" />
+                              Excel
+                            </button>
+                            <button 
+                              onClick={exportBillsToCSV}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1.5 transition-colors">
+                              <File className="w-4 h-4" />
+                              CSV
+                            </button>
+                            <button 
+                              onClick={exportBillsToPDF}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 flex items-center gap-1.5 transition-colors">
+                              <FileText className="w-4 h-4" />
+                              PDF
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Search bills..."
+                            value={billSearchTerm}
+                            onChange={(e) => setBillSearchTerm(e.target.value)}
+                            className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-48 bg-white"
+                          />
+                          <svg className="w-4 h-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Bills Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="bg-slate-700">
+                            <th 
+                              className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('period')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Period
+                                {billSortColumn === 'period' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('description')}
+                            >
+                              <div className="flex items-center gap-1">
+                                Description
+                                {billSortColumn === 'description' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="text-right py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('currentBill')}
+                            >
+                              <div className="flex items-center justify-end gap-1">
+                                Current Bill
+                                {billSortColumn === 'currentBill' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="text-center py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('status')}
+                            >
+                              <div className="flex items-center justify-center gap-1">
+                                Bill Status
+                                {billSortColumn === 'status' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="text-right py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('amountPaid')}
+                            >
+                              <div className="flex items-center justify-end gap-1">
+                                Amount Paid
+                                {billSortColumn === 'amountPaid' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="text-right py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                              onClick={() => handleBillSort('amountDue')}
+                            >
+                              <div className="flex items-center justify-end gap-1">
+                                Amount Due
+                                {billSortColumn === 'amountDue' && (
+                                  <span className="text-xs">{billSortDirection === 'asc' ? '▲' : '▼'}</span>
+                                )}
+                              </div>
+                            </th>
+                            <th className="text-center py-3 px-4 text-sm font-medium text-white">Download</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedBills.map((bill, index) => (
+                            <tr key={bill.period} className="border-b border-gray-100 hover:bg-gray-50">
+                              <td className="py-3 px-4 text-sm text-gray-900">{bill.period}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900">{bill.description}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.currentBill.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-center">
+                                <span className={`px-2 py-1 text-xs font-medium ${
+                                  bill.status === 'Paid'
+                                    ? 'text-green-600 font-semibold'
+                                    : 'text-red-600 font-semibold'
+                                }`}>
+                                  {bill.status} {bill.status === 'Paid' ? '✓' : '✗'}
+                                </span>
+                              </td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.amountPaid.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.amountDue.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-center">
+                                <button className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-sm font-medium">
+                                  Bill Issued
+                                  <FileText className="w-3.5 h-3.5 text-red-500" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    {/* Table Footer */}
+                    <div className="bg-slate-700 text-white px-6 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedBills.length}</span> of <span className="font-medium">{sortedBills.length}</span> entries
+                        </div>
+                        {billSortColumn && (
+                          <div className="text-sm text-gray-300">
+                            Sorted by <span className="font-semibold text-white">{
+                              billSortColumn === 'period' ? 'Period' :
+                              billSortColumn === 'description' ? 'Description' :
+                              billSortColumn === 'currentBill' ? 'Current Bill' :
+                              billSortColumn === 'status' ? 'Bill Status' :
+                              billSortColumn === 'amountPaid' ? 'Amount Paid' :
+                              billSortColumn === 'amountDue' ? 'Amount Due' : billSortColumn
+                            }</span>
+                            <span className="ml-1 text-gray-300">
+                              ({billSortDirection === 'asc' ? 'Ascending' : 'Descending'})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Pagination */}
+                    <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200">
+                      <div className="text-sm text-gray-600">
+                        Showing 1 to {sortedBills.length} of {sortedBills.length} results
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed" disabled>
+                          ← Previous
+                        </button>
+                        <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                          1
+                        </button>
+                        <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" disabled>
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
@@ -767,6 +1128,19 @@ Status: ${p.status}
         message="Are you sure you want to send a text notification to this customer?"
         confirmText="Send Notification"
         confirmButtonClass="bg-purple-600 hover:bg-purple-700"
+      />
+
+      <ConfirmationModal
+        isOpen={billModalOpen}
+        onClose={() => setBillModalOpen(false)}
+        onConfirm={() => {
+          console.log('Bill deleted');
+          setBillModalOpen(false);
+        }}
+        title="Delete Bill"
+        message="Are you sure you want to delete this bill?"
+        confirmText="Delete Bill"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
       />
     </div>
   );
