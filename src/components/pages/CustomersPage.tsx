@@ -30,25 +30,35 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
-interface CustomersPageProps {
-  onDetailsView?: (isDetails: boolean) => void;
-}
+interface CustomersPageProps {}
 
-export const CustomersPage: React.FC<CustomersPageProps> = ({ onDetailsView }) => {
+export const CustomersPage: React.FC<CustomersPageProps> = () => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   
-  // Update parent when view changes
+  
+  // Update document title and body attribute based on view
   useEffect(() => {
-    onDetailsView?.(showCustomerDetails);
-  }, [showCustomerDetails, onDetailsView]);
+    if (showCustomerDetails) {
+      document.title = 'CWSA - Customer Detail Information';
+      document.body.setAttribute('data-customer-view', 'details');
+    } else {
+      document.title = 'CWSA - Customer List';
+      document.body.setAttribute('data-customer-view', 'list');
+    }
+    
+    // Cleanup
+    return () => {
+      document.body.removeAttribute('data-customer-view');
+    };
+  }, [showCustomerDetails]);
   
   // Navigation handler for customer details
-  const handleViewCustomerDetails = (customerNumber: string, customerName: string) => {
+  const handleViewCustomerDetails = React.useCallback((customerNumber: string, customerName: string) => {
     setSelectedCustomerId(customerNumber);
     setShowCustomerDetails(true);
-  };
+  }, []);
 
   // Add customer handlers
   const handleAddCustomer = () => {
@@ -346,7 +356,7 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ onDetailsView }) =
   }
 
   // Show CustomerDetailsPage if showCustomerDetails is true
-  if (showCustomerDetails) {
+  if (showCustomerDetails === true) {
     return (
       <CustomerDetailsPage
         customerId={selectedCustomerId}
@@ -600,6 +610,7 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ onDetailsView }) =
                   <td className="px-2 py-2 text-center">
                     <div className="flex flex-col items-center justify-center gap-1">
                       <button 
+                        type="button"
                         onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
                         className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                         title={`View details for ${customer.customerName}`}
@@ -678,6 +689,7 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ onDetailsView }) =
               </div>
               <div className="flex flex-col items-center gap-2">
                 <button 
+                  type="button"
                   onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
                   className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                   title={`View details for ${customer.customerName}`}

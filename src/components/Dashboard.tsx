@@ -309,15 +309,7 @@ const Dashboard = () => {
 
       case 'customers':
       case 'customer-details':
-        return <CustomersPage 
-          onDetailsView={(isDetails) => {
-            if (isDetails && currentPage !== 'customer-details') {
-              setCurrentPage('customer-details');
-            } else if (!isDetails && currentPage !== 'customers') {
-              setCurrentPage('customers');
-            }
-          }}
-        />;
+        return <CustomersPage />;
         
       default:
         return null;
@@ -346,7 +338,8 @@ const Dashboard = () => {
            currentPage === 'collector-locations' || 
            currentPage === 'collector-paths' || 
            currentPage === 'pump-station-locations' || 
-           currentPage === 'storage-tank-locations' ? (
+           currentPage === 'storage-tank-locations' ||
+           currentPage === 'customer-details' ? (
             <>
               <div className="flex-1 overflow-hidden">
                 {renderPageContent()}

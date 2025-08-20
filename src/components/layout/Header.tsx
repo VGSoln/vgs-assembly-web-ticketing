@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, LogOut, ArrowUp } from 'lucide-react';
 import { PageType } from '@/types/dashboard';
 import { AnimatedNumber } from '../charts/AnimatedNumber';
@@ -12,7 +12,25 @@ export const Header: React.FC<HeaderProps> = ({
   currentPage,
   onToggleSidebar
 }) => {
-  const getPageTitle = (page: PageType) => {
+  const [isCustomerDetails, setIsCustomerDetails] = useState(false);
+  
+  // Check for customer details view
+  useEffect(() => {
+    const checkCustomerView = () => {
+      const viewType = document.body.getAttribute('data-customer-view');
+      setIsCustomerDetails(viewType === 'details');
+    };
+    
+    // Initial check
+    checkCustomerView();
+    
+    // Set up observer for attribute changes
+    const observer = new MutationObserver(checkCustomerView);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-customer-view'] });
+    
+    return () => observer.disconnect();
+  }, []);
+  const getPageTitle = (page: PageType, isDetails: boolean = false) => {
     switch (page) {
       case 'performance':
         return 'Performance Overview';
@@ -51,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
       case 'storage-tank-locations':
         return 'Storage Tank Locations';
       case 'customers':
-        return 'Customer List';
+        return isCustomerDetails ? 'Customer Detail Information' : 'Customer List';
       case 'customer-details':
         return 'Customer Detail Information';
       default:
@@ -139,7 +157,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
               {getMainTitle(currentPage)} <span className="text-sm font-normal text-gray-500">
-                {getPageTitle(currentPage)}
+                {getPageTitle(currentPage, isCustomerDetails)}
               </span>
             </h1>
           </div>
