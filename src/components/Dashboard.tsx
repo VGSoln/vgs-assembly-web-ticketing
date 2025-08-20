@@ -308,7 +308,16 @@ const Dashboard = () => {
         return <StorageTankLocationsPage />;
 
       case 'customers':
-        return <CustomersPage />;
+      case 'customer-details':
+        return <CustomersPage 
+          onDetailsView={(isDetails) => {
+            if (isDetails && currentPage !== 'customer-details') {
+              setCurrentPage('customer-details');
+            } else if (!isDetails && currentPage !== 'customers') {
+              setCurrentPage('customers');
+            }
+          }}
+        />;
         
       default:
         return null;

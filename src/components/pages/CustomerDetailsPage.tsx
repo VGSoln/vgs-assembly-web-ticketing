@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Calendar, Clock, Mail, Hash, Home, Navigation, ChevronLeft, Briefcase, CreditCard, Activity } from 'lucide-react';
+import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, Home, ChevronLeft, Briefcase, Calendar, Clock, Hash, CreditCard, Droplets, Gauge } from 'lucide-react';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 
 interface CustomerDetailsPageProps {
@@ -73,7 +73,6 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
                 Back
               </button>
               <div className="border-l border-gray-300 pl-3">
-                <h1 className="text-xl font-bold text-gray-900">Customer Detail Information</h1>
                 <p className="text-sm text-gray-600">Customer ID: #{customerData.customerNumber}</p>
               </div>
             </div>
@@ -95,20 +94,20 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 text-white text-sm rounded-lg hover:bg-cyan-700 transition-colors"
                 >
                   <Phone className="w-3.5 h-3.5" />
-                  Log Call
+                  Log Customer Call
                 </button>
                 <button 
                   onClick={handleNotifyViaText}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
-                  Send SMS
+                  Notify via Text
                 </button>
                 <button 
                   onClick={handleReceivePayment}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  <span className="text-sm font-bold">₵</span>
+                  <span className="text-sm font-medium">₵</span>
                   Receive Payment
                 </button>
               </div>
@@ -139,8 +138,8 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
                 <div className="md:col-span-2">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Name</label>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-gray-700">{initials}</span>
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                      <span className="text-sm font-bold text-white">{initials}</span>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{customerData.name}</p>
@@ -169,6 +168,20 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
                   </p>
                 </div>
               </div>
+
+              {/* Address and Location */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Address</label>
+                  <p className="text-sm font-medium text-gray-900">{customerData.address}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">GPS Coordinates</label>
+                  <p className="text-sm font-medium text-gray-900 font-mono text-xs">
+                    Lat: {customerData.latitude} | Long: {customerData.longitude}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Account Information Section */}
@@ -177,21 +190,13 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
                 <Briefcase className="w-4 h-4 text-blue-500" />
                 Account Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Meter Number */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Customer Number */}
                 <div className="bg-gray-50 rounded-lg p-3">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                    Meter Number
+                    Customer Number
                   </label>
-                  <p className="text-sm font-medium text-gray-900 font-mono">{customerData.meterNumber}</p>
-                </div>
-
-                {/* Meter Type */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                    Meter Type
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{customerData.meterType}</p>
+                  <p className="text-sm font-medium text-gray-900">{customerData.customerNumber}</p>
                 </div>
 
                 {/* Zone */}
@@ -212,56 +217,47 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
               </div>
             </div>
 
-            {/* Location Information Section */}
+            {/* Meter Information Section */}
             <div className="mb-6 pb-6 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-purple-500" />
-                Location Information
+                <Gauge className="w-4 h-4 text-cyan-400" />
+                Meter Information
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-1">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                      Address
-                    </label>
-                    <p className="text-sm font-medium text-gray-900">{customerData.address}</p>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
+                    Meter Number
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">{customerData.meterNumber}</p>
                 </div>
-                <div className="flex gap-4 md:col-span-2">
-                  <div className="flex-1 bg-gray-50 rounded-lg p-3">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                      Latitude
-                    </label>
-                    <p className="text-sm font-medium text-gray-900 font-mono">{customerData.latitude}</p>
-                  </div>
-                  <div className="flex-1 bg-gray-50 rounded-lg p-3">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                      Longitude
-                    </label>
-                    <p className="text-sm font-medium text-gray-900 font-mono">{customerData.longitude}</p>
-                  </div>
+
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
+                    Meter Type
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">{customerData.meterType}</p>
                 </div>
               </div>
             </div>
 
-            {/* Billing Information Section */}
+            {/* Payment Information Section */}
             <div className="mb-6 pb-6 border-b border-gray-200">
               <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-amber-500" />
-                Billing Information
+                Payment Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Account Balance</span>
-                  <span className="text-sm font-medium text-gray-900">GHS {customerData.accountBalance}</span>
+                  <span className="text-sm font-medium text-gray-900">₵{customerData.accountBalance}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Payment Date</span>
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Payment</span>
+                  <span className="text-sm font-medium text-gray-900">₵{customerData.lastPaymentAmount}</span>
+                </div>
+                <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
+                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</span>
                   <span className="text-sm font-medium text-gray-900">{customerData.lastPaymentDate}</span>
-                </div>
-                <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
-                  <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Payment Amount</span>
-                  <span className="text-sm font-medium text-gray-900">GHS {customerData.lastPaymentAmount}</span>
                 </div>
               </div>
             </div>
@@ -269,7 +265,7 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
             {/* Audit Information Section */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <Clock className="w-4 h-4 text-orange-500" />
+                <Clock className="w-4 h-4 text-purple-500" />
                 Audit Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -316,21 +312,27 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
       <ConfirmationModal
         isOpen={paymentModalOpen}
         onClose={() => setPaymentModalOpen(false)}
-        title="Payment Received Successfully"
-        message={`Payment has been recorded for customer ${customerData.name}. A receipt has been generated and sent via SMS to ${customerData.phone}.`}
-        type="success"
-        autoClose={true}
-        autoCloseDelay={10000}
+        onConfirm={() => {
+          console.log('Payment received');
+          setPaymentModalOpen(false);
+        }}
+        title="Receive Payment"
+        message="Are you sure you want to record a payment for this customer?"
+        confirmText="Confirm Payment"
+        confirmButtonClass="bg-green-600 hover:bg-green-700"
       />
 
       <ConfirmationModal
         isOpen={notificationModalOpen}
         onClose={() => setNotificationModalOpen(false)}
-        title="SMS Notification Sent"
-        message={`An SMS notification has been sent to ${customerData.name} at ${customerData.phone}.`}
-        type="success"
-        autoClose={true}
-        autoCloseDelay={10000}
+        onConfirm={() => {
+          console.log('Notification sent');
+          setNotificationModalOpen(false);
+        }}
+        title="Send Text Notification"
+        message="Are you sure you want to send a text notification to this customer?"
+        confirmText="Send Notification"
+        confirmButtonClass="bg-purple-600 hover:bg-purple-700"
       />
     </div>
   );

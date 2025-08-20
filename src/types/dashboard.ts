@@ -58,4 +58,4 @@ export interface ActiveYears {
   [key: number]: boolean;
 }
 
-export type PageType = 'performance' | 'debt' | 'visits' | 'visits-list' | 'pump-stations' | 'storage-tanks' | 'pump-station-meter-readings' | 'storage-tank-meter-readings' | 'customer-meter-readings' | 'staff' | 'staff-details' | 'edit-staff' | 'add-staff' | 'customer-locations' | 'collector-locations' | 'collector-paths' | 'pump-station-locations' | 'storage-tank-locations' | 'customers';
+export type PageType = 'performance' | 'debt' | 'visits' | 'visits-list' | 'pump-stations' | 'storage-tanks' | 'pump-station-meter-readings' | 'storage-tank-meter-readings' | 'customer-meter-readings' | 'staff' | 'staff-details' | 'edit-staff' | 'add-staff' | 'customer-locations' | 'collector-locations' | 'collector-paths' | 'pump-station-locations' | 'storage-tank-locations' | 'customers' | 'customer-details';

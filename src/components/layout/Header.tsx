@@ -52,6 +52,8 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Storage Tank Locations';
       case 'customers':
         return 'Customer List';
+      case 'customer-details':
+        return 'Customer Detail Information';
       default:
         return 'Dashboard';
     }
@@ -96,6 +98,8 @@ export const Header: React.FC<HeaderProps> = ({
       case 'storage-tank-locations':
         return 'GPS';
       case 'customers':
+        return 'Customers';
+      case 'customer-details':
         return 'Customers';
       default:
         return 'Dashboard';

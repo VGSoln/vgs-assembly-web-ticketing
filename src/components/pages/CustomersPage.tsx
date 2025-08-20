@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, Eye, MapPin, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { AddCustomerPage } from './AddCustomerPage';
@@ -30,12 +30,19 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
-interface CustomersPageProps {}
+interface CustomersPageProps {
+  onDetailsView?: (isDetails: boolean) => void;
+}
 
-export const CustomersPage: React.FC<CustomersPageProps> = () => {
+export const CustomersPage: React.FC<CustomersPageProps> = ({ onDetailsView }) => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  
+  // Update parent when view changes
+  useEffect(() => {
+    onDetailsView?.(showCustomerDetails);
+  }, [showCustomerDetails, onDetailsView]);
   
   // Navigation handler for customer details
   const handleViewCustomerDetails = (customerNumber: string, customerName: string) => {
