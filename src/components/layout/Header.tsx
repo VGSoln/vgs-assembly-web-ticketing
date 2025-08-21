@@ -72,6 +72,10 @@ export const Header: React.FC<HeaderProps> = ({
         return isCustomerDetails ? 'Customer Detail Information' : 'Customer List';
       case 'customer-details':
         return 'Customer Detail Information';
+      case 'payments':
+        return 'Payment Transactions';
+      case 'bank-deposits':
+        return 'Bank Deposit Transactions';
       default:
         return 'Dashboard';
     }
@@ -119,6 +123,10 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Customers';
       case 'customer-details':
         return 'Customers';
+      case 'payments':
+        return 'Payments';
+      case 'bank-deposits':
+        return 'Bank Deposits';
       default:
         return 'Dashboard';
     }

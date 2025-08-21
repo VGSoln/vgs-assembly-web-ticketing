@@ -46,8 +46,8 @@ export const menuItems = [
     label: 'Payments', 
     color: 'text-purple-400',
     subItems: [
-      { label: 'Payments' },
-      { label: 'Bank Deposits' }
+      { label: 'Payments', page: 'payments' },
+      { label: 'Bank Deposits', page: 'bank-deposits' }
     ]
   },
   { 

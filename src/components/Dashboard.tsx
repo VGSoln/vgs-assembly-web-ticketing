@@ -7,6 +7,8 @@ import { PerformancePage } from './pages/PerformancePage';
 import { DebtPage } from './pages/DebtPage';
 import { VisitsPage } from './pages/VisitsPage';
 import { VisitsListPage } from './pages/VisitsListPage';
+import { PaymentsListPage } from './pages/PaymentsListPage';
+import { BankDepositsListPage } from './pages/BankDepositsListPage';
 import { PumpStationsPage } from './pages/PumpStationsPage';
 import { StorageTanksPage } from './pages/StorageTanksPage';
 import { PumpStationMeterReadingsPage } from './pages/PumpStationMeterReadingsPage';
@@ -50,6 +52,16 @@ const Dashboard = () => {
   const [selectedVisitsMonth, setSelectedVisitsMonth] = useState('August');
   const [selectedVisitsYear, setSelectedVisitsYear] = useState('2025');
 
+  // Payments state (Payments page)
+  const [paymentsMonthYearPickerOpen, setPaymentsMonthYearPickerOpen] = useState(false);
+  const [selectedPaymentsMonth, setSelectedPaymentsMonth] = useState('August');
+  const [selectedPaymentsYear, setSelectedPaymentsYear] = useState('2025');
+
+  // Bank Deposits state (Bank Deposits page)
+  const [bankDepositsMonthYearPickerOpen, setBankDepositsMonthYearPickerOpen] = useState(false);
+  const [selectedBankDepositsMonth, setSelectedBankDepositsMonth] = useState('August');
+  const [selectedBankDepositsYear, setSelectedBankDepositsYear] = useState('2025');
+
   // Click outside handler for dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -63,13 +75,19 @@ const Dashboard = () => {
       if (visitsMonthYearPickerOpen && !target.closest('.visits-month-year-picker')) {
         setVisitsMonthYearPickerOpen(false);
       }
+      if (paymentsMonthYearPickerOpen && !target.closest('.payments-month-year-picker')) {
+        setPaymentsMonthYearPickerOpen(false);
+      }
+      if (bankDepositsMonthYearPickerOpen && !target.closest('.bank-deposits-month-year-picker')) {
+        setBankDepositsMonthYearPickerOpen(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [dateRangeOpen, monthYearPickerOpen, visitsMonthYearPickerOpen]);
+  }, [dateRangeOpen, monthYearPickerOpen, visitsMonthYearPickerOpen, paymentsMonthYearPickerOpen, bankDepositsMonthYearPickerOpen]);
 
   // Event handlers
   const toggleSubmenu = (menu: string) => {
@@ -193,6 +211,34 @@ const Dashboard = () => {
             onVisitsMonthChange={setSelectedVisitsMonth}
             onVisitsYearChange={setSelectedVisitsYear}
             onVisitsMonthYearApply={handleVisitsMonthYearSelect}
+          />
+        );
+
+      case 'payments':
+        return (
+          <PaymentsListPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+          />
+        );
+
+      case 'bank-deposits':
+        return (
+          <BankDepositsListPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
           />
         );
 

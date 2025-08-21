@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, User, Phone, Mail, MapPin, Calendar, Gauge, Building2, CreditCard, CheckCircle, X } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { CustomerReviewPage } from './CustomerReviewPage';
@@ -28,35 +28,49 @@ interface CustomerFormData {
   initialReading: string;
 }
 
-interface AddCustomerPageProps {
+interface EditCustomerPageProps {
+  customerId?: string;
   onBack?: () => void;
   onSave?: (customerData: CustomerFormData) => void;
 }
 
-export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave }) => {
+export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({ 
+  customerId = '0525-07-00372',
+  onBack, 
+  onSave 
+}) => {
   const [showReview, setShowReview] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // Initialize with existing customer data
   const [formData, setFormData] = useState<CustomerFormData>({
-    firstName: '',
+    firstName: 'ABDALLAH',
     middleName: '',
-    lastName: '',
-    phoneNumber: '',
-    email: '',
-    region: '',
-    zone: '',
-    address: '',
-    city: '',
-    customerType: '',
-    billingCycle: '',
-    meterNumber: '',
-    meterType: '',
-    manufacturer: '',
-    modelNumber: '',
-    installationDate: '',
-    initialReading: ''
+    lastName: 'IBRAHIM',
+    phoneNumber: '0244304995',
+    email: 'abdallah.ibrahim@example.com',
+    region: 'Greater Accra',
+    zone: 'zone4',
+    address: 'BF131 Endive St. Damfa',
+    city: 'Accra',
+    customerType: 'domestic',
+    billingCycle: 'monthly',
+    meterNumber: '200307953',
+    meterType: 'manual',
+    manufacturer: 'Zenner',
+    modelNumber: 'ZN-2021',
+    installationDate: '2024-11-01',
+    initialReading: '0'
   });
 
   const [errors, setErrors] = useState<Partial<CustomerFormData>>({});
+
+  // Load customer data based on customerId
+  useEffect(() => {
+    // In a real app, this would fetch data from an API
+    console.log('Loading customer data for ID:', customerId);
+    // The initial state above simulates loading existing customer data
+  }, [customerId]);
 
   const customerTypeOptions = [
     { value: 'domestic', label: 'Domestic' },
@@ -135,31 +149,9 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
   const handleSuccessModalClose = () => {
     console.log('❌ Closing success modal');
     setShowSuccessModal(false);
-    
-    // Reset form data
-    setFormData({
-      firstName: '',
-      middleName: '',
-      lastName: '',
-      phoneNumber: '',
-      email: '',
-      region: '',
-      zone: '',
-      address: '',
-      city: '',
-      customerType: '',
-      billingCycle: '',
-      meterNumber: '',
-      meterType: '',
-      manufacturer: '',
-      modelNumber: '',
-      installationDate: '',
-      initialReading: ''
-    });
     setShowReview(false);
     onBack?.();
   };
-
 
   // Helper function to format zone display
   const getZoneLabel = (value: string) => {
@@ -191,10 +183,10 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
         {/* Content */}
         <div className="p-6 text-center">
           <h3 className="text-xl font-semibold text-gray-900 mb-3">
-            New Customer Successfully Created
+            Customer Successfully Updated
           </h3>
           <p className="text-gray-600 mb-6">
-            The customer <strong>{formData.firstName} {formData.lastName}</strong> has been successfully added to the system.
+            The customer <strong>{formData.firstName} {formData.lastName}</strong> has been successfully updated in the system.
           </p>
           
           {/* Customer details summary */}
@@ -244,6 +236,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           customerData={formData}
           onBack={() => setShowReview(false)}
           onConfirm={handleConfirmSave}
+          isEditMode={true}
         />
       </>
     );
@@ -269,8 +262,8 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
               Back
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Customer</h1>
-              <p className="text-sm text-gray-500 mt-1">Fill in the customer information below</p>
+              <h1 className="text-2xl font-bold text-gray-900">Edit Customer</h1>
+              <p className="text-sm text-gray-500 mt-1">Update customer information for {customerId}</p>
             </div>
           </div>
         </div>
@@ -298,25 +291,27 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
                     type="text"
                     value={formData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.firstName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-2.5 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                     placeholder="Enter first name"
                   />
-                  {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
+                  {errors.firstName && (
+                    <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+                  )}
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Middle Name
+                  </label>
                   <input
                     type="text"
                     value={formData.middleName}
                     onChange={(e) => handleInputChange('middleName', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter middle name"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter middle name (optional)"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Last Name <span className="text-red-500">*</span>
@@ -325,118 +320,117 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
                     type="text"
                     value={formData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.lastName ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-2.5 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
                     placeholder="Enter last name"
                   />
-                  {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
+                  {errors.lastName && (
+                    <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Contact Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-white" />
-                <h2 className="text-xl font-semibold text-white">Contact Information</h2>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone (Momo) Number <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter phone (Momo) number"
-                  />
-                  {errors.phoneNumber && <p className="text-red-500 text-sm mt-1">{errors.phoneNumber}</p>}
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="tel"
+                      value={formData.phoneNumber}
+                      onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                      placeholder="0240000000"
+                    />
+                  </div>
+                  {errors.phoneNumber && (
+                    <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                  )}
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.email ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="Enter email address"
-                  />
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full pl-10 pr-4 py-2.5 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                      placeholder="email@example.com"
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Location Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 rounded-t-xl">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-20">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-white" />
                 <h2 className="text-xl font-semibold text-white">Location Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Region <span className="text-red-500">*</span>
                   </label>
                   <ModernSelect
+                    placeholder="Select region"
+                    options={businessLevelOptions}
                     value={formData.region}
                     onChange={(value) => handleInputChange('region', value)}
-                    placeholder="Select Business Level"
-                    options={businessLevelOptions}
-                    className="w-full"
                   />
-                  {errors.region && <p className="text-red-500 text-sm mt-1">{errors.region}</p>}
+                  {errors.region && (
+                    <p className="mt-1 text-sm text-red-500">{errors.region}</p>
+                  )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Zone <span className="text-red-500">*</span>
                   </label>
                   <ModernSelect
+                    placeholder="Select zone"
+                    options={zoneOptions}
                     value={formData.zone}
                     onChange={(value) => handleInputChange('zone', value)}
-                    placeholder="Select Zone"
-                    options={zoneOptions}
-                    className="w-full"
                   />
-                  {errors.zone && <p className="text-red-500 text-sm mt-1">{errors.zone}</p>}
+                  {errors.zone && (
+                    <p className="mt-1 text-sm text-red-500">{errors.zone}</p>
+                  )}
                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter address"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter street address"
                   />
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
                   <input
                     type="text"
                     value={formData.city}
                     onChange={(e) => handleInputChange('city', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     placeholder="Enter city"
                   />
                 </div>
@@ -444,42 +438,44 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
             </div>
           </div>
 
-          {/* Customer Type & Billing Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4 rounded-t-xl">
+          {/* Account Information Section */}
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-10">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
-                <Building2 className="w-5 h-5 text-white" />
-                <h2 className="text-xl font-semibold text-white">Customer Type & Billing</h2>
+                <CreditCard className="w-5 h-5 text-white" />
+                <h2 className="text-xl font-semibold text-white">Account Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Customer Type <span className="text-red-500">*</span>
                   </label>
                   <ModernSelect
+                    placeholder="Select customer type"
+                    options={customerTypeOptions}
                     value={formData.customerType}
                     onChange={(value) => handleInputChange('customerType', value)}
-                    placeholder="Select Customer Type"
-                    options={customerTypeOptions}
-                    className="w-full"
                   />
-                  {errors.customerType && <p className="text-red-500 text-sm mt-1">{errors.customerType}</p>}
+                  {errors.customerType && (
+                    <p className="mt-1 text-sm text-red-500">{errors.customerType}</p>
+                  )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Billing Cycle <span className="text-red-500">*</span>
                   </label>
                   <ModernSelect
+                    placeholder="Select billing cycle"
+                    options={billingCycleOptions}
                     value={formData.billingCycle}
                     onChange={(value) => handleInputChange('billingCycle', value)}
-                    placeholder="Select Billing Cycle"
-                    options={billingCycleOptions}
-                    className="w-full"
                   />
-                  {errors.billingCycle && <p className="text-red-500 text-sm mt-1">{errors.billingCycle}</p>}
+                  {errors.billingCycle && (
+                    <p className="mt-1 text-sm text-red-500">{errors.billingCycle}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -493,7 +489,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
                 <h2 className="text-xl font-semibold text-white">Meter Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -503,79 +499,84 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
                     type="text"
                     value={formData.meterNumber}
                     onChange={(e) => handleInputChange('meterNumber', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                      errors.meterNumber ? 'border-red-500' : 'border-gray-300'
-                    }`}
+                    className={`w-full px-4 py-2.5 border ${errors.meterNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors font-mono`}
                     placeholder="Enter meter number"
                   />
-                  {errors.meterNumber && <p className="text-red-500 text-sm mt-1">{errors.meterNumber}</p>}
+                  {errors.meterNumber && (
+                    <p className="mt-1 text-sm text-red-500">{errors.meterNumber}</p>
+                  )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Meter Type <span className="text-red-500">*</span>
                   </label>
                   <ModernSelect
+                    placeholder="Select meter type"
+                    options={meterTypeOptions}
                     value={formData.meterType}
                     onChange={(value) => handleInputChange('meterType', value)}
-                    placeholder="Select Meter Type"
-                    options={meterTypeOptions}
-                    className="w-full"
                   />
-                  {errors.meterType && <p className="text-red-500 text-sm mt-1">{errors.meterType}</p>}
+                  {errors.meterType && (
+                    <p className="mt-1 text-sm text-red-500">{errors.meterType}</p>
+                  )}
                 </div>
-                
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Manufacturer</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Manufacturer
+                  </label>
                   <input
                     type="text"
                     value={formData.manufacturer}
                     onChange={(e) => handleInputChange('manufacturer', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter manufacturer"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="e.g., Zenner, Itron"
                   />
                 </div>
-              </div>
-              
-              <div className="mt-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Model Number</label>
-                    <input
-                      type="text"
-                      value={formData.modelNumber}
-                      onChange={(e) => handleInputChange('modelNumber', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                      placeholder="Enter model number"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Installation Date</label>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Model Number
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.modelNumber}
+                    onChange={(e) => handleInputChange('modelNumber', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="Enter model number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Installation Date
+                  </label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                       type="date"
                       value={formData.installationDate}
                       onChange={(e) => handleInputChange('installationDate', e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                     />
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Initial Reading <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.initialReading}
-                      onChange={(e) => handleInputChange('initialReading', e.target.value)}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${
-                        errors.initialReading ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter initial reading"
-                      min="0"
-                    />
-                    {errors.initialReading && <p className="text-red-500 text-sm mt-1">{errors.initialReading}</p>}
-                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Initial Reading <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.initialReading}
+                    onChange={(e) => handleInputChange('initialReading', e.target.value)}
+                    className={`w-full px-4 py-2.5 border ${errors.initialReading ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors`}
+                    placeholder="0"
+                  />
+                  {errors.initialReading && (
+                    <p className="mt-1 text-sm text-red-500">{errors.initialReading}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -585,18 +586,19 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           <div className="flex justify-end gap-4">
             <button
               onClick={onBack}
-              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
+              className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              Review & Save
+              Update Customer
             </button>
           </div>
+
         </div>
       </div>
     </div>

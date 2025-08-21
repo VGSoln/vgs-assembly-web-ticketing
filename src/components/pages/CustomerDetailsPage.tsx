@@ -1,7 +1,9 @@
 'use client'
 import React, { useState } from 'react';
-import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, Home, ChevronLeft, Briefcase, Calendar, Clock, Hash, CreditCard, Droplets, Gauge, FileSpreadsheet, File, Copy, Printer, FileText, Receipt, Eye, Edit2, Trash2, FileDown } from 'lucide-react';
+import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, Home, ChevronLeft, Briefcase, Calendar, Clock, Hash, CreditCard, Droplets, Gauge, FileSpreadsheet, File, Copy, Printer, FileText, Receipt, Eye, Edit2, Trash2, FileDown, Image } from 'lucide-react';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { EditCustomerPage } from './EditCustomerPage';
+import { LogCustomerCallModal } from '../ui/LogCustomerCallModal';
 
 interface CustomerDetailsPageProps {
   customerId?: string;
@@ -16,7 +18,7 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
 }) => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'rates' | 'payments' | 'bills'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'rates' | 'payments' | 'bills' | 'readings' | 'visits'>('profile');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -26,6 +28,21 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
   const [billSortColumn, setBillSortColumn] = useState<string | null>(null);
   const [billSortDirection, setBillSortDirection] = useState<'asc' | 'desc'>('asc');
   const [billModalOpen, setBillModalOpen] = useState(false);
+  
+  // Readings state
+  const [readingSearchTerm, setReadingSearchTerm] = useState('');
+  const [readingSortColumn, setReadingSortColumn] = useState<string | null>(null);
+  const [readingSortDirection, setReadingSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [readingModalOpen, setReadingModalOpen] = useState(false);
+  
+  // Visits state
+  const [visitSearchTerm, setVisitSearchTerm] = useState('');
+  const [visitSortColumn, setVisitSortColumn] = useState<string | null>(null);
+  const [visitSortDirection, setVisitSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [visitModalOpen, setVisitModalOpen] = useState(false);
+  const [showEditCustomer, setShowEditCustomer] = useState(false);
+  const [showLogCallModal, setShowLogCallModal] = useState(false);
+  const [showSmsSuccessModal, setShowSmsSuccessModal] = useState(false);
 
   // Mock customer data - in a real app, this would come from an API
   const customerData = {
@@ -75,6 +92,53 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
     { period: '202501', description: 'Bill (January 2025)', currentBill: 680.60, status: 'Not Paid', amountPaid: 0.00, amountDue: 686.16 },
     { period: '202412', description: 'Bill (December 2024)', currentBill: 165.56, status: 'Not Paid', amountPaid: 160.00, amountDue: 5.56 },
     { period: '202411', description: 'Bill (November 2024)', currentBill: 0.00, status: 'Paid', amountPaid: 0.00, amountDue: 0.00 }
+  ];
+
+  // Reading data with actual meter reading information
+  const readingData = [
+    { id: '13655', meterNumber: '2201505462', date: '29 July, 2025', volume: 304.0, hasPicture: true, hasLocation: true },
+    { id: '11380', meterNumber: '2201505462', date: '24 June, 2025', volume: 273.0, hasPicture: true, hasLocation: true },
+    { id: '10185', meterNumber: '2201505462', date: '27 May, 2025', volume: 251.0, hasPicture: true, hasLocation: true },
+    { id: '8346', meterNumber: '2201505462', date: '23 April, 2025', volume: 221.0, hasPicture: true, hasLocation: true },
+    { id: '6561', meterNumber: '2201505462', date: '21 March, 2025', volume: 193.0, hasPicture: true, hasLocation: true },
+    { id: '5877', meterNumber: '2201505462', date: '27 February, 2025', volume: 152.0, hasPicture: true, hasLocation: true },
+    { id: '3843', meterNumber: '2201505462', date: '23 January, 2025', volume: 68.0, hasPicture: true, hasLocation: true },
+    { id: '1904', meterNumber: '2201505462', date: '20 December, 2024', volume: 13.0, hasPicture: true, hasLocation: true },
+    { id: '404', meterNumber: '2201505462', date: '20 November, 2024', volume: 0.0, hasPicture: true, hasLocation: true }
+  ];
+  
+  // Visit data with actual visit information
+  const visitData = [
+    { 
+      id: '7546', 
+      visitDate: '20 Aug 2025 4:54 PM', 
+      staffName: 'Francis Seguri', 
+      visitOutcome: 'Other', 
+      customerComments: 'next week', 
+      staffNotes: '', 
+      created: '20 Aug 2025 4:54 PM', 
+      hasGPS: true 
+    },
+    { 
+      id: '2378', 
+      visitDate: '21 Mar 2025 2:32 PM', 
+      staffName: 'Francis Seguri', 
+      visitOutcome: 'Other', 
+      customerComments: 'will pay Monday 24/3/25', 
+      staffNotes: '', 
+      created: '21 Mar 2025 2:32 PM', 
+      hasGPS: true 
+    },
+    { 
+      id: '1759', 
+      visitDate: '13 Mar 2025 1:10 PM', 
+      staffName: 'Francis Seguri', 
+      visitOutcome: 'Other', 
+      customerComments: '0545357198', 
+      staffNotes: '', 
+      created: '13 Mar 2025 1:10 PM', 
+      hasGPS: true 
+    }
   ];
 
   // Filter payments based on search term
@@ -157,6 +221,82 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
     } else {
       setBillSortColumn(column);
       setBillSortDirection('asc');
+    }
+  };
+
+  // Filter readings based on search term
+  const filteredReadings = readingData.filter(reading => {
+    if (!readingSearchTerm) return true;
+    const searchLower = readingSearchTerm.toLowerCase();
+    return (
+      reading.id.toLowerCase().includes(searchLower) ||
+      reading.meterNumber.toLowerCase().includes(searchLower) ||
+      reading.date.toLowerCase().includes(searchLower) ||
+      reading.volume.toString().includes(searchLower)
+    );
+  });
+
+  // Sort readings
+  const sortedReadings = [...filteredReadings].sort((a, b) => {
+    if (!readingSortColumn) return 0;
+    
+    let aVal: any = a[readingSortColumn as keyof typeof a];
+    let bVal: any = b[readingSortColumn as keyof typeof b];
+    
+    if (readingSortColumn === 'volume' || readingSortColumn === 'id') {
+      aVal = parseFloat(aVal);
+      bVal = parseFloat(bVal);
+    }
+    
+    if (aVal < bVal) return readingSortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return readingSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Handle reading sort
+  const handleReadingSort = (column: string) => {
+    if (readingSortColumn === column) {
+      setReadingSortDirection(readingSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setReadingSortColumn(column);
+      setReadingSortDirection('asc');
+    }
+  };
+  
+  // Filter visits based on search term
+  const filteredVisits = visitData.filter(visit => {
+    if (!visitSearchTerm) return true;
+    return visit.id.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
+           visit.staffName.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
+           visit.visitDate.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
+           visit.visitOutcome.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
+           visit.customerComments.toLowerCase().includes(visitSearchTerm.toLowerCase());
+  });
+  
+  // Sort visits
+  const sortedVisits = [...filteredVisits].sort((a, b) => {
+    if (!visitSortColumn) return 0;
+    
+    let aVal: any = a[visitSortColumn as keyof typeof a];
+    let bVal: any = b[visitSortColumn as keyof typeof b];
+    
+    if (visitSortColumn === 'id') {
+      aVal = parseInt(aVal);
+      bVal = parseInt(bVal);
+    }
+    
+    if (aVal < bVal) return visitSortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return visitSortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+  
+  // Handle visit sort
+  const handleVisitSort = (column: string) => {
+    if (visitSortColumn === column) {
+      setVisitSortDirection(visitSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setVisitSortColumn(column);
+      setVisitSortDirection('asc');
     }
   };
 
@@ -258,9 +398,110 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
     window.print();
   };
 
+  // Reading Export functions
+  const exportReadingsToCSV = () => {
+    const headers = ['ID', 'Meter #', 'Date', 'Volume (m3)', 'Picture', 'Location'];
+    const rows = sortedReadings.map(r => [r.id, r.meterNumber, r.date, r.volume.toFixed(1), r.hasPicture ? 'Yes' : 'No', r.hasLocation ? 'Yes' : 'No']);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `readings_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
+  const exportReadingsToPDF = () => {
+    const content = `
+METER READINGS REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+${sortedReadings.map(r => `
+ID: ${r.id}
+Meter #: ${r.meterNumber}
+Date: ${r.date}
+Volume: ${r.volume.toFixed(1)} m³
+Picture: ${r.hasPicture ? 'Available' : 'Not Available'}
+Location: ${r.hasLocation ? 'Available' : 'Not Available'}
+----------------------------`).join('\n')}
+    `;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `readings_${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+  };
+
+  const handleReadingCopy = () => {
+    const text = sortedReadings.map(r => 
+      `${r.id}\t${r.meterNumber}\t${r.date}\t${r.volume.toFixed(1)} m³\t${r.hasPicture ? 'Image' : 'No Image'}\t${r.hasLocation ? 'Location' : 'No Location'}`
+    ).join('\n');
+    navigator.clipboard.writeText(text);
+    alert('Reading data copied to clipboard!');
+  };
+
+  const handleReadingPrint = () => {
+    window.print();
+  };
+  
+  // Visit Export functions
+  const exportVisitsToCSV = () => {
+    const headers = ['ID', 'Visit Date', 'Staff Name', 'Visit Outcome', 'Customer Comments', 'Staff Notes', 'Created', 'GPS'];
+    const rows = sortedVisits.map(v => [v.id, v.visitDate, v.staffName, v.visitOutcome, v.customerComments, v.staffNotes, v.created, v.hasGPS ? 'Yes' : 'No']);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `visits_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+  
+  const exportVisitsToPDF = () => {
+    const content = `Visit Records
+Date: ${new Date().toLocaleDateString()}
+Total Visits: ${sortedVisits.length}
+
+${sortedVisits.map(v => `ID: ${v.id}
+Visit Date: ${v.visitDate}
+Staff Name: ${v.staffName}
+Visit Outcome: ${v.visitOutcome}
+Customer Comments: ${v.customerComments}
+Staff Notes: ${v.staffNotes}
+Created: ${v.created}
+GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
+-----------------------------`).join('\n')}
+`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `visits_${new Date().toISOString().split('T')[0]}.txt`;
+    a.click();
+  };
+  
+  const handleVisitCopy = () => {
+    const text = sortedVisits.map(v => 
+      `${v.id}\t${v.visitDate}\t${v.staffName}\t${v.visitOutcome}\t${v.customerComments}\t${v.staffNotes}\t${v.created}\t${v.hasGPS ? 'GPS' : 'No GPS'}`
+    ).join('\n');
+    navigator.clipboard.writeText(text);
+    alert('Visit data copied to clipboard!');
+  };
+  
+  const handleVisitPrint = () => {
+    window.print();
+  };
+
   const handleLogCall = () => {
-    // Handle log customer call
-    console.log('Logging customer call');
+    setShowLogCallModal(true);
+  };
+  
+  const handleSaveCallLog = (callData: any) => {
+    console.log('Saving call log:', callData);
+    // Here you would typically send the data to your API
+    // For now, we'll just log it and close the modal
+    setShowLogCallModal(false);
   };
 
   const handleNotifyViaText = () => {
@@ -270,6 +511,22 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
   const handleReceivePayment = () => {
     setPaymentModalOpen(true);
   };
+  
+  const handleSaveCustomer = (customerData: any) => {
+    console.log('Saving customer:', customerData);
+    setShowEditCustomer(false);
+  };
+
+  // Show EditCustomerPage if showEditCustomer is true
+  if (showEditCustomer) {
+    return (
+      <EditCustomerPage
+        customerId={customerId}
+        onBack={() => setShowEditCustomer(false)}
+        onSave={handleSaveCustomer}
+      />
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 h-full overflow-hidden">
@@ -296,7 +553,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
               </span>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => onEdit?.(customerData.customerNumber)}
+                  onClick={() => setShowEditCustomer(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Edit className="w-3.5 h-3.5" />
@@ -341,7 +598,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <User className="w-3.5 h-3.5 mr-1.5" />
+                <User className={`w-3.5 h-3.5 mr-1.5 ${activeTab === 'profile' ? 'text-white' : 'text-cyan-500'}`} />
                 Customer Profile
               </button>
               <button 
@@ -352,7 +609,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <span className="text-sm mr-1">₵</span>
+                <span className={`text-sm mr-1 ${activeTab === 'rates' ? 'text-white' : 'text-green-500'}`}>₵</span>
                 Rates
               </button>
               <button 
@@ -363,7 +620,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                <CreditCard className={`w-3.5 h-3.5 mr-1.5 ${activeTab === 'payments' ? 'text-white' : 'text-purple-500'}`} />
                 Payments
               </button>
               <button 
@@ -374,8 +631,30 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <Receipt className="w-3.5 h-3.5 mr-1.5" />
+                <Receipt className={`w-3.5 h-3.5 mr-1.5 ${activeTab === 'bills' ? 'text-white' : 'text-yellow-500'}`} />
                 Bills
+              </button>
+              <button 
+                onClick={() => setActiveTab('readings')}
+                className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'readings'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <Gauge className={`w-3.5 h-3.5 mr-1.5 ${activeTab === 'readings' ? 'text-white' : 'text-teal-500'}`} />
+                Readings
+              </button>
+              <button 
+                onClick={() => setActiveTab('visits')}
+                className={`inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                  activeTab === 'visits'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <Calendar className={`w-3.5 h-3.5 mr-1.5 ${activeTab === 'visits' ? 'text-white' : 'text-indigo-500'}`} />
+                Visits
               </button>
             </div>
           </div>
@@ -567,7 +846,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                 {/* Rates Content */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-lg">₵</span>
+                    <span className="text-lg text-green-500">₵</span>
                     Rate Information
                   </h3>
                   
@@ -1098,6 +1377,400 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
                   </div>
                 </div>
               </>
+            ) : activeTab === 'readings' ? (
+              <>
+                {/* Readings Content - Duplicate of Payments */}
+                <div className="space-y-5">
+                  {/* Search and Export Controls */}
+                  <div className="bg-white px-4 py-3 border border-gray-200 rounded-t-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Show</span>
+                        <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="50">50</option>
+                          <option value="10">10</option>
+                          <option value="25">25</option>
+                          <option value="100">100</option>
+                        </select>
+                        <span className="text-sm text-gray-600">entries</span>
+                      </div>
+                      
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={handleReadingCopy}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                            <Copy className="w-4 h-4" />
+                            Copy
+                          </button>
+                          <button 
+                            onClick={handleReadingPrint}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                            <Printer className="w-4 h-4" />
+                            Print
+                          </button>
+                          <button 
+                            onClick={exportReadingsToCSV}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 flex items-center gap-1.5 transition-colors">
+                            <FileSpreadsheet className="w-4 h-4" />
+                            Excel
+                          </button>
+                          <button 
+                            onClick={exportReadingsToCSV}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1.5 transition-colors">
+                            <File className="w-4 h-4" />
+                            CSV
+                          </button>
+                          <button 
+                            onClick={exportReadingsToPDF}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 flex items-center gap-1.5 transition-colors">
+                            <FileText className="w-4 h-4" />
+                            PDF
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search readings..."
+                          value={readingSearchTerm}
+                          onChange={(e) => setReadingSearchTerm(e.target.value)}
+                          className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-48 bg-white"
+                        />
+                        <svg className="w-4 h-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Readings Table */}
+                  <div className="overflow-hidden border border-gray-200 border-t-0 rounded-b-lg">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-slate-700">
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleReadingSort('id')}
+                          >
+                            <div className="flex items-center gap-1">
+                              ID
+                              {readingSortColumn === 'id' && (
+                                <span className="text-xs">{readingSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleReadingSort('meterNumber')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Meter #
+                              {readingSortColumn === 'meterNumber' && (
+                                <span className="text-xs">{readingSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleReadingSort('date')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Date
+                              {readingSortColumn === 'date' && (
+                                <span className="text-xs">{readingSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-right py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleReadingSort('volume')}
+                          >
+                            <div className="flex items-center justify-end gap-1">
+                              Volume (m³)
+                              {readingSortColumn === 'volume' && (
+                                <span className="text-xs">{readingSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-white border-r border-slate-600">
+                            Picture
+                          </th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-white">
+                            Location
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedReadings.map((reading, index) => (
+                          <tr key={reading.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-3 px-4 text-sm text-gray-900">{reading.id}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{reading.meterNumber}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{reading.date}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900 text-right">{reading.volume.toFixed(1)}</td>
+                            <td className="py-3 px-4 text-sm text-center">
+                              {reading.hasPicture ? (
+                                <button className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-white bg-orange-500 rounded hover:bg-orange-600">
+                                  Image
+                                </button>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-sm text-center">
+                              {reading.hasLocation ? (
+                                <button className="text-blue-600 hover:text-blue-800">
+                                  <MapPin className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {/* Table Footer with Sorting info */}
+                    <div className="bg-slate-700 text-white px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedReadings.length}</span> of <span className="font-medium">{sortedReadings.length}</span> entries
+                        </div>
+                        {readingSortColumn && (
+                          <div className="text-sm text-gray-300">
+                            Sorted by <span className="font-semibold text-white">
+                              {readingSortColumn === 'id' ? 'ID' :
+                               readingSortColumn === 'meterNumber' ? 'Meter #' :
+                               readingSortColumn === 'date' ? 'Date' :
+                               readingSortColumn === 'volume' ? 'Volume' : readingSortColumn}
+                            </span>
+                            <span className="ml-1 text-gray-300">
+                              ({readingSortDirection === 'asc' ? 'Ascending' : 'Descending'})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      Showing 1 to {sortedReadings.length} of {sortedReadings.length} results
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed" disabled>
+                        ← Previous
+                      </button>
+                      <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        1
+                      </button>
+                      <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" disabled>
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : activeTab === 'visits' ? (
+              <>
+                {/* Visits Content - Duplicate of Readings */}
+                <div className="space-y-5">
+                  {/* Search and Export Controls */}
+                  <div className="bg-white px-4 py-3 border border-gray-200 rounded-t-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Show</span>
+                        <select className="border border-gray-300 rounded px-2 py-1 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                          <option value="50">50</option>
+                          <option value="10">10</option>
+                          <option value="25">25</option>
+                          <option value="100">100</option>
+                        </select>
+                        <span className="text-sm text-gray-600">entries</span>
+                      </div>
+                      
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={handleVisitCopy}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                            <Copy className="w-4 h-4" />
+                            Copy
+                          </button>
+                          <button 
+                            onClick={handleVisitPrint}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 flex items-center gap-1.5 transition-colors">
+                            <Printer className="w-4 h-4" />
+                            Print
+                          </button>
+                          <button 
+                            onClick={exportVisitsToCSV}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 flex items-center gap-1.5 transition-colors">
+                            <FileSpreadsheet className="w-4 h-4" />
+                            Excel
+                          </button>
+                          <button 
+                            onClick={exportVisitsToCSV}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 flex items-center gap-1.5 transition-colors">
+                            <File className="w-4 h-4" />
+                            CSV
+                          </button>
+                          <button 
+                            onClick={exportVisitsToPDF}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded hover:bg-red-700 flex items-center gap-1.5 transition-colors">
+                            <FileText className="w-4 h-4" />
+                            PDF
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search visits..."
+                          value={visitSearchTerm}
+                          onChange={(e) => setVisitSearchTerm(e.target.value)}
+                          className="pl-9 pr-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-48 bg-white"
+                        />
+                        <svg className="w-4 h-4 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Visits Table */}
+                  <div className="overflow-hidden border border-gray-200 border-t-0 rounded-b-lg">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-slate-700">
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleVisitSort('id')}
+                          >
+                            <div className="flex items-center gap-1">
+                              ID
+                              {visitSortColumn === 'id' && (
+                                <span className="text-xs">{visitSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleVisitSort('visitDate')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Visit Date
+                              {visitSortColumn === 'visitDate' && (
+                                <span className="text-xs">{visitSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleVisitSort('staffName')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Staff Name
+                              {visitSortColumn === 'staffName' && (
+                                <span className="text-xs">{visitSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th 
+                            className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600 cursor-pointer hover:bg-slate-600"
+                            onClick={() => handleVisitSort('visitOutcome')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Visit Outcome
+                              {visitSortColumn === 'visitOutcome' && (
+                                <span className="text-xs">{visitSortDirection === 'asc' ? '▲' : '▼'}</span>
+                              )}
+                            </div>
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600">
+                            Customer Comments
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600">
+                            Staff Notes
+                          </th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-white border-r border-slate-600">
+                            Created
+                          </th>
+                          <th className="text-center py-3 px-4 text-sm font-medium text-white">
+                            GPS
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedVisits.map((visit, index) => (
+                          <tr key={visit.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.id}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.visitDate}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.staffName}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.visitOutcome}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.customerComments}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.staffNotes || '-'}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900">{visit.created}</td>
+                            <td className="py-3 px-4 text-sm text-center">
+                              {visit.hasGPS ? (
+                                <button className="text-blue-600 hover:text-blue-800">
+                                  <MapPin className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <span className="text-gray-400">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    
+                    {/* Table Footer with Sorting info */}
+                    <div className="bg-slate-700 text-white px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          Showing <span className="font-medium">1</span> to <span className="font-medium">{sortedVisits.length}</span> of <span className="font-medium">{sortedVisits.length}</span> entries
+                        </div>
+                        {visitSortColumn && (
+                          <div className="text-sm text-gray-300">
+                            Sorted by <span className="font-semibold text-white">
+                              {visitSortColumn === 'id' ? 'ID' :
+                               visitSortColumn === 'visitDate' ? 'Visit Date' :
+                               visitSortColumn === 'staffName' ? 'Staff Name' :
+                               visitSortColumn === 'visitOutcome' ? 'Visit Outcome' : visitSortColumn}
+                            </span>
+                            <span className="ml-1 text-gray-300">
+                              ({visitSortDirection === 'asc' ? 'Ascending' : 'Descending'})
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      Showing 1 to {sortedVisits.length} of {sortedVisits.length} results
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button className="px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed" disabled>
+                        ← Previous
+                      </button>
+                      <button className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
+                        1
+                      </button>
+                      <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" disabled>
+                        Next →
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : null}
           </div>
         </div>
@@ -1121,13 +1794,34 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
         isOpen={notificationModalOpen}
         onClose={() => setNotificationModalOpen(false)}
         onConfirm={() => {
-          console.log('Notification sent');
+          console.log('Sending SMS notification...');
           setNotificationModalOpen(false);
+          // Show success modal after a brief delay
+          setTimeout(() => {
+            setShowSmsSuccessModal(true);
+          }, 500);
         }}
         title="Send Text Notification"
-        message="Are you sure you want to send a text notification to this customer?"
-        confirmText="Send Notification"
+        message={`Are you sure you want to send a Bill and Payment Link notification to:\n\nCustomer ID: ${customerData.customerNumber}\nName: ${customerData.name}\nPhone: ${customerData.phone}`}
+        confirmText="Send SMS"
+        cancelText="Cancel"
         confirmButtonClass="bg-purple-600 hover:bg-purple-700"
+        showCancelButton={true}
+        autoClose={false}
+        type="info"
+      />
+      
+      {/* SMS Success Modal */}
+      <ConfirmationModal
+        isOpen={showSmsSuccessModal}
+        onClose={() => setShowSmsSuccessModal(false)}
+        title="SMS Sent Successfully"
+        message={`Text notification has been successfully sent to ${customerData.name} at ${customerData.phone}.`}
+        confirmText="OK"
+        confirmButtonClass="bg-green-600 hover:bg-green-700"
+        autoClose={true}
+        autoCloseDelay={15000}
+        type="success"
       />
 
       <ConfirmationModal
@@ -1141,6 +1835,27 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
         message="Are you sure you want to delete this bill?"
         confirmText="Delete Bill"
         confirmButtonClass="bg-red-600 hover:bg-red-700"
+      />
+
+      <ConfirmationModal
+        isOpen={readingModalOpen}
+        onClose={() => setReadingModalOpen(false)}
+        onConfirm={() => {
+          console.log('Reading deleted');
+          setReadingModalOpen(false);
+        }}
+        title="Delete Reading"
+        message="Are you sure you want to delete this reading?"
+        confirmText="Delete Reading"
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+      />
+
+      {/* Log Customer Call Modal */}
+      <LogCustomerCallModal
+        isOpen={showLogCallModal}
+        onClose={() => setShowLogCallModal(false)}
+        onSave={handleSaveCallLog}
+        customerName={customerData.name}
       />
     </div>
   );
