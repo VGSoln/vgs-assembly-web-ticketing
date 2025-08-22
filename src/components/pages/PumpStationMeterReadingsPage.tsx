@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronDown, ChevronUp, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Camera, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { PumpStationLocationModal } from '../ui/PumpStationLocationModal';
 import { 
   pumpStationMeterReadingsData, 
   businessLevelOptions,
@@ -51,6 +52,8 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -62,16 +65,17 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
 
   const columns = [
     { key: 'id', label: 'ID', sortable: true, width: '5%' },
-    { key: 'pumpStationMeterNumber', label: 'Meter #', sortable: true, width: '11%' },
-    { key: 'pumpStationName', label: 'Station Name', sortable: true, width: '16%' },
-    { key: 'meterType', label: 'Type', sortable: true, width: '8%' },
-    { key: 'system', label: 'System', sortable: true, width: '10%' },
-    { key: 'staffName', label: 'Staff', sortable: true, width: '12%' },
-    { key: 'readingDate', label: 'Read Date', sortable: true, width: '9%' },
-    { key: 'serverDate', label: 'Server Date', sortable: true, width: '9%' },
-    { key: 'reading', label: 'Reading', sortable: true, width: '8%' },
-    { key: 'fieldReading', label: 'Field Read', sortable: true, width: '8%' },
-    { key: 'picture', label: 'Picture', sortable: false, width: '8%' }
+    { key: 'pumpStationMeterNumber', label: 'Meter #', sortable: true, width: '10%' },
+    { key: 'pumpStationName', label: 'Station Name', sortable: true, width: '14%' },
+    { key: 'meterType', label: 'Type', sortable: true, width: '7%' },
+    { key: 'system', label: 'System', sortable: true, width: '9%' },
+    { key: 'status', label: 'Status', sortable: true, width: '10%' },
+    { key: 'staffName', label: 'Staff', sortable: true, width: '10%' },
+    { key: 'readingDate', label: 'Read Date', sortable: true, width: '8%' },
+    { key: 'serverDate', label: 'Server Date', sortable: true, width: '8%' },
+    { key: 'reading', label: 'Reading', sortable: true, width: '7%' },
+    { key: 'fieldReading', label: 'Field Read', sortable: true, width: '7%' },
+    { key: 'picture', label: 'Picture', sortable: false, width: '7%' }
   ];
 
   // Sorting function
@@ -354,6 +358,13 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                           {reading.system}
                         </span>
                       </td>
+                      <td className="px-3 py-3 text-11px text-slate-800 border-r border-gray-100 text-center">
+                        <span className={`text-11px font-bold ${
+                          reading.status === 'Out of Service' ? 'text-red-600' : 'text-green-600'
+                        }`}>
+                          {reading.status}
+                        </span>
+                      </td>
                       <td className="px-3 py-3 text-11px text-slate-800 border-r border-gray-100">
                         <div className="break-words leading-tight group-hover:text-slate-900">
                           {reading.staffName}
@@ -381,6 +392,27 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                       </td>
                       <td className="px-3 py-3 text-11px text-center">
                         <div className="flex flex-col items-center gap-1">
+                          <button 
+                            onClick={() => {
+                              setLocationModalData({
+                                stationName: reading.pumpStationName,
+                                stationNumber: reading.pumpStationMeterNumber,
+                                meterNumber: reading.pumpStationMeterNumber,
+                                pumpCapacity: 500, // Default capacity
+                                reading: reading.reading,
+                                lastReading: reading.readingDate,
+                                operationalStatus: reading.status,
+                                staffName: reading.staffName,
+                                location: reading.system,
+                                city: reading.system
+                              });
+                              setShowLocationModal(true);
+                            }}
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
+                            title="View Location"
+                          >
+                            <MapPin className="w-4 h-4 text-white" />
+                          </button>
                           {reading.picture && (
                             <button 
                               onClick={() => console.log('Picture clicked for pump station:', reading.pumpStationName)}
@@ -450,6 +482,27 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                 <p className="text-blue-600 font-medium">{reading.pumpStationMeterNumber}</p>
               </div>
               <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    setLocationModalData({
+                      stationName: reading.pumpStationName,
+                      stationNumber: reading.pumpStationMeterNumber,
+                      meterNumber: reading.pumpStationMeterNumber,
+                      pumpCapacity: 500, // Default capacity
+                      reading: reading.reading,
+                      lastReading: reading.readingDate,
+                      operationalStatus: reading.status,
+                      staffName: reading.staffName,
+                      location: reading.system,
+                      city: reading.system
+                    });
+                    setShowLocationModal(true);
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  title="View Location"
+                >
+                  <MapPin className="w-5 h-5 text-white" />
+                </button>
                 {reading.picture && (
                   <button 
                     onClick={() => console.log('Picture clicked for pump station:', reading.pumpStationName)}
@@ -477,6 +530,14 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">System</label>
                   <p className="text-sm text-gray-700">{reading.system}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+                  <p className={`text-sm font-bold ${
+                    reading.status === 'Out of Service' ? 'text-red-600' : 'text-green-600'
+                  }`}>
+                    {reading.status}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Staff Name</label>
@@ -561,6 +622,27 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
           </div>
         </div>
       </div>
+
+      {/* Pump Station Location Modal */}
+      {showLocationModal && locationModalData && (
+        <PumpStationLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          stationName={locationModalData.stationName}
+          stationNumber={locationModalData.stationNumber}
+          meterNumber={locationModalData.meterNumber}
+          pumpCapacity={locationModalData.pumpCapacity}
+          reading={locationModalData.reading}
+          lastReading={locationModalData.lastReading}
+          operationalStatus={locationModalData.operationalStatus}
+          staffName={locationModalData.staffName}
+          location={locationModalData.location}
+          city={locationModalData.city}
+        />
+      )}
     </div>
   );
 };

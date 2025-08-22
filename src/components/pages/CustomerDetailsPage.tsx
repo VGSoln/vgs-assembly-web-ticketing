@@ -4,6 +4,10 @@ import { ArrowLeft, Phone, MessageSquare, DollarSign, Edit, User, MapPin, Mail, 
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { EditCustomerPage } from './EditCustomerPage';
 import { LogCustomerCallModal } from '../ui/LogCustomerCallModal';
+import { ReceiptModal } from '../ui/ReceiptModal';
+import { LocationModal } from '../ui/LocationModal';
+import { CustomerLocationMap } from '../ui/CustomerLocationMap';
+import { VisitLocationModal } from '../ui/VisitLocationModal';
 
 interface CustomerDetailsPageProps {
   customerId?: string;
@@ -22,6 +26,12 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [receiptModalData, setReceiptModalData] = useState<any>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [visitLocationModalData, setVisitLocationModalData] = useState<any>(null);
+  const [showVisitLocationModal, setShowVisitLocationModal] = useState(false);
   
   // Bills state
   const [billSearchTerm, setBillSearchTerm] = useState('');
@@ -270,7 +280,9 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
            visit.staffName.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
            visit.visitDate.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
            visit.visitOutcome.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
-           visit.customerComments.toLowerCase().includes(visitSearchTerm.toLowerCase());
+           visit.customerComments.toLowerCase().includes(visitSearchTerm.toLowerCase()) ||
+           (visit.staffNotes && visit.staffNotes.toLowerCase().includes(visitSearchTerm.toLowerCase())) ||
+           visit.created.toLowerCase().includes(visitSearchTerm.toLowerCase());
   });
   
   // Sort visits
@@ -669,54 +681,80 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                     <User className="w-4 h-4 text-green-500" />
                     Personal Information
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Name with Avatar */}
-                    <div className="md:col-span-2">
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Name</label>
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-bold text-white">{initials}</span>
-                        </div>
+                  <div className="flex gap-4">
+                    {/* Customer Information - 75% width */}
+                    <div className="w-[75%]">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Name with Avatar */}
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">{customerData.name}</p>
-                          <p className="text-xs text-gray-500">@{customerData.username}</p>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Name</label>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full overflow-hidden transition-all duration-300 ease-in-out hover:scale-[2.5] hover:z-50 hover:shadow-2xl cursor-pointer transform-gpu">
+                              <img 
+                                src="/images/customer3.jpg" 
+                                alt={customerData.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">{customerData.name}</p>
+                              <p className="text-xs text-gray-500">@{customerData.username}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Phone */}
+                        <div>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Phone</label>
+                          <p className="text-sm font-medium text-gray-900">{customerData.phone}</p>
+                        </div>
+
+                        {/* Customer Type */}
+                        <div>
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Customer Type</label>
+                          <p className="text-sm font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block">
+                            {customerData.customerType}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Second row - Address, Email, and GPS */}
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mt-4">
+                        {/* Address */}
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Address</label>
+                          <p className="text-sm font-medium text-gray-900">{customerData.address}</p>
+                        </div>
+
+                        {/* Email */}
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Email</label>
+                          <p className="text-sm font-medium text-gray-900 break-all">{customerData.email}</p>
+                        </div>
+
+                        {/* GPS Coordinates */}
+                        <div className="md:col-span-2">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">GPS Coordinates</label>
+                          <p className="text-sm font-medium text-gray-900 font-mono text-xs">
+                            Lat: {customerData.latitude} | Long: {customerData.longitude}
+                          </p>
                         </div>
                       </div>
                     </div>
-
-                {/* Phone */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Phone</label>
-                  <p className="text-sm font-medium text-gray-900">{customerData.phone}</p>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Email</label>
-                  <p className="text-sm font-medium text-gray-900 break-all">{customerData.email}</p>
-                </div>
-
-                {/* Customer Type */}
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Customer Type</label>
-                  <p className="text-sm font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded inline-block">
-                    {customerData.customerType}
-                  </p>
-                </div>
-              </div>
-
-              {/* Address and Location */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div className="md:col-span-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Address</label>
-                  <p className="text-sm font-medium text-gray-900">{customerData.address}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">GPS Coordinates</label>
-                  <p className="text-sm font-medium text-gray-900 font-mono text-xs">
-                    Lat: {customerData.latitude} | Long: {customerData.longitude}
-                  </p>
-                </div>
+                    
+                    {/* Map - 25% width */}
+                    <div className="w-[25%] relative">
+                      <div className="absolute -top-10 right-0 w-full" style={{ bottom: '-6px' }}>
+                        <div className="h-full py-2 flex">
+                          <div className="w-full rounded-lg overflow-hidden border border-gray-200">
+                            <CustomerLocationMap 
+                              latitude={parseFloat(customerData.latitude)} 
+                              longitude={parseFloat(customerData.longitude)} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1076,10 +1114,37 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                             </td>
                             <td className="py-3 px-4 text-center">
                               <div className="flex items-center justify-center gap-1">
-                                <button className="px-2 py-1 text-xs font-medium text-white bg-orange-500 rounded hover:bg-orange-600">
+                                <button 
+                                  onClick={() => {
+                                    setReceiptModalData({
+                                      customerName: customerData.name,
+                                      customerNumber: customerData.accountNumber,
+                                      phoneNumber: customerData.phone,
+                                      transactionId: `PAY-${payment.id}`,
+                                      amount: payment.amount,
+                                      date: payment.date,
+                                      receiptImage: '/images/reciept1.jpg'
+                                    });
+                                    setShowReceiptModal(true);
+                                  }}
+                                  className="px-2 py-1 text-xs font-medium text-white bg-orange-500 rounded hover:bg-orange-600">
                                   Rcpt
                                 </button>
-                                <button className="p-1 text-blue-600 hover:text-blue-800">
+                                <button 
+                                  onClick={() => {
+                                    setLocationModalData({
+                                      customerName: customerData.name,
+                                      customerNumber: customerData.accountNumber,
+                                      phoneNumber: customerData.phone,
+                                      transactionId: `PAY-${payment.id}`,
+                                      amount: payment.amount,
+                                      date: payment.date,
+                                      latitude: 5.6037 + (Math.random() - 0.5) * 0.02,
+                                      longitude: -0.1870 + (Math.random() - 0.5) * 0.02
+                                    });
+                                    setShowLocationModal(true);
+                                  }}
+                                  className="p-1 text-blue-600 hover:text-blue-800">
                                   <MapPin className="w-4 h-4" />
                                 </button>
                               </div>
@@ -1717,7 +1782,20 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                             <td className="py-3 px-4 text-sm text-gray-900">{visit.created}</td>
                             <td className="py-3 px-4 text-sm text-center">
                               {visit.hasGPS ? (
-                                <button className="text-blue-600 hover:text-blue-800">
+                                <button 
+                                  onClick={() => {
+                                    setVisitLocationModalData({
+                                      customerName: customerData.name,
+                                      customerNumber: customerData.customerNumber,
+                                      phoneNumber: customerData.phone,
+                                      visitDate: visit.visitDate.split(' ').slice(0, 3).join(' '),
+                                      visitTime: visit.visitDate.split(' ').slice(3).join(' '),
+                                      staffName: visit.staffName,
+                                      visitOutcome: visit.visitOutcome
+                                    });
+                                    setShowVisitLocationModal(true);
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800">
                                   <MapPin className="w-4 h-4" />
                                 </button>
                               ) : (
@@ -1857,6 +1935,61 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
         onSave={handleSaveCallLog}
         customerName={customerData.name}
       />
+
+      {/* Receipt Modal */}
+      {showReceiptModal && receiptModalData && (
+        <ReceiptModal
+          isOpen={showReceiptModal}
+          onClose={() => {
+            setShowReceiptModal(false);
+            setReceiptModalData(null);
+          }}
+          customerName={receiptModalData.customerName}
+          customerNumber={receiptModalData.customerNumber}
+          phoneNumber={receiptModalData.phoneNumber}
+          transactionId={receiptModalData.transactionId}
+          amount={receiptModalData.amount}
+          date={receiptModalData.date}
+          receiptImage={receiptModalData.receiptImage}
+        />
+      )}
+
+      {/* Location Modal */}
+      {showLocationModal && locationModalData && (
+        <LocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          customerName={locationModalData.customerName}
+          customerNumber={locationModalData.customerNumber}
+          phoneNumber={locationModalData.phoneNumber}
+          transactionId={locationModalData.transactionId}
+          amount={locationModalData.amount}
+          date={locationModalData.date}
+          latitude={locationModalData.latitude}
+          longitude={locationModalData.longitude}
+        />
+      )}
+
+      {/* Visit Location Modal */}
+      {showVisitLocationModal && visitLocationModalData && (
+        <VisitLocationModal
+          isOpen={showVisitLocationModal}
+          onClose={() => {
+            setShowVisitLocationModal(false);
+            setVisitLocationModalData(null);
+          }}
+          customerName={visitLocationModalData.customerName}
+          customerNumber={visitLocationModalData.customerNumber}
+          phoneNumber={visitLocationModalData.phoneNumber}
+          visitDate={visitLocationModalData.visitDate}
+          visitTime={visitLocationModalData.visitTime}
+          staffName={visitLocationModalData.staffName}
+          visitOutcome={visitLocationModalData.visitOutcome}
+        />
+      )}
     </div>
   );
 };

@@ -98,11 +98,16 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
     let filtered = staffData.filter(staff =>
+      staff.id.toString().includes(searchTerm) ||
       staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      staff.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.phone.includes(searchTerm) ||
+      staff.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.assignedZones.toLowerCase().includes(searchTerm.toLowerCase()) ||
       staff.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      staff.position.toLowerCase().includes(searchTerm.toLowerCase())
+      staff.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.created.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.modified.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      staff.status.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortConfig) {

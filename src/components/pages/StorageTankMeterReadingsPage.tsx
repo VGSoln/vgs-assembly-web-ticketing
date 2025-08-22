@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronDown, ChevronUp, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Camera, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { StorageTankLocationModal } from '../ui/StorageTankLocationModal';
 import { 
   storageTankMeterReadingsData, 
   businessLevelOptions,
@@ -51,6 +52,8 @@ export const StorageTankMeterReadingsPage: React.FC<StorageTankMeterReadingsPage
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -380,6 +383,29 @@ export const StorageTankMeterReadingsPage: React.FC<StorageTankMeterReadingsPage
                       </td>
                       <td className="px-3 py-3 text-11px text-center">
                         <div className="flex flex-col items-center gap-1">
+                          <button 
+                            onClick={() => {
+                              setLocationModalData({
+                                readingId: reading.id.toString(),
+                                transactionId: reading.id.toString(),
+                                tankName: reading.storageTankName,
+                                tankNumber: reading.storageTankMeterNumber,
+                                meterNumber: reading.storageTankMeterNumber,
+                                meterType: reading.meterType,
+                                capacity: 10000, // Default capacity
+                                reading: reading.reading,
+                                readingDate: reading.readingDate,
+                                staffName: reading.staffName,
+                                location: reading.system,
+                                city: reading.system
+                              });
+                              setShowLocationModal(true);
+                            }}
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
+                            title="View Location"
+                          >
+                            <MapPin className="w-4 h-4 text-white" />
+                          </button>
                           {reading.picture && (
                             <button 
                               onClick={() => console.log('Picture clicked for storage tank:', reading.storageTankName)}
@@ -449,6 +475,29 @@ export const StorageTankMeterReadingsPage: React.FC<StorageTankMeterReadingsPage
                 <p className="text-blue-600 font-medium">{reading.storageTankMeterNumber}</p>
               </div>
               <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => {
+                    setLocationModalData({
+                      readingId: reading.id.toString(),
+                      transactionId: reading.id.toString(),
+                      tankName: reading.storageTankName,
+                      tankNumber: reading.storageTankMeterNumber,
+                      meterNumber: reading.storageTankMeterNumber,
+                      meterType: reading.meterType,
+                      capacity: 10000, // Default capacity
+                      reading: reading.reading,
+                      readingDate: reading.readingDate,
+                      staffName: reading.staffName,
+                      location: reading.system,
+                      city: reading.system
+                    });
+                    setShowLocationModal(true);
+                  }}
+                  className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  title="View Location"
+                >
+                  <MapPin className="w-5 h-5 text-white" />
+                </button>
                 {reading.picture && (
                   <button 
                     onClick={() => console.log('Picture clicked for storage tank:', reading.storageTankName)}
@@ -560,6 +609,29 @@ export const StorageTankMeterReadingsPage: React.FC<StorageTankMeterReadingsPage
           </div>
         </div>
       </div>
+
+      {/* Storage Tank Location Modal */}
+      {showLocationModal && locationModalData && (
+        <StorageTankLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          readingId={locationModalData.readingId}
+          transactionId={locationModalData.transactionId}
+          tankName={locationModalData.tankName}
+          tankNumber={locationModalData.tankNumber}
+          meterNumber={locationModalData.meterNumber}
+          meterType={locationModalData.meterType}
+          capacity={locationModalData.capacity}
+          reading={locationModalData.reading}
+          readingDate={locationModalData.readingDate}
+          staffName={locationModalData.staffName}
+          location={locationModalData.location}
+          city={locationModalData.city}
+        />
+      )}
     </div>
   );
 };

@@ -62,7 +62,6 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
                 Back
               </button>
               <div className="border-l border-gray-300 pl-3">
-                <h1 className="text-xl font-bold text-gray-900">Staff Detail Information</h1>
                 <p className="text-sm text-gray-600">Staff ID: #{staff.id.toString().padStart(4, '0')}</p>
               </div>
             </div>
@@ -121,8 +120,12 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
                 <div className="md:col-span-2">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Name</label>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-gray-700">{initials}</span>
+                    <div className="w-12 h-12 rounded-full overflow-hidden transition-all duration-300 ease-in-out hover:scale-[2.5] hover:z-50 hover:shadow-2xl cursor-pointer transform-gpu">
+                      <img 
+                        src="/images/customer1.jpg" 
+                        alt={staff.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{staff.name}</p>

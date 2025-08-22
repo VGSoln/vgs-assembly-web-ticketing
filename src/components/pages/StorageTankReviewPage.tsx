@@ -107,13 +107,6 @@ export const StorageTankReviewPage: React.FC<StorageTankReviewPageProps> = ({
               <p className="text-sm text-gray-500 mt-1">Please review the information below before saving</p>
             </div>
           </div>
-          <button
-            onClick={onEdit || onBack}
-            className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
-          >
-            <Edit className="w-4 h-4" />
-            Edit Information
-          </button>
         </div>
       </div>
 
@@ -283,13 +276,6 @@ export const StorageTankReviewPage: React.FC<StorageTankReviewPageProps> = ({
             </button>
             
             <div className="flex gap-4">
-              <button
-                onClick={onEdit || onBack}
-                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
-              >
-                <Edit className="w-4 h-4" />
-                Edit Information
-              </button>
               <button
                 onClick={onConfirm}
                 className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg"

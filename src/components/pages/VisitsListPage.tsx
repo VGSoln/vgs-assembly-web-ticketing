@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronDown, ChevronUp, MapPin, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, MapPin, Phone, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { VisitLocationModal } from '../ui/VisitLocationModal';
+import { LogCustomerCallModal } from '../ui/LogCustomerCallModal';
 import { 
   visitsTransactionsData, 
   businessLevelOptions, 
@@ -53,6 +55,10 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
+  const [showLogCallModal, setShowLogCallModal] = useState(false);
+  const [logCallModalData, setLogCallModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -124,13 +130,18 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
     let filtered = visitsTransactionsData.filter(visit =>
+      visit.id.toString().includes(searchTerm) ||
       visit.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       visit.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       visit.phone.includes(searchTerm) ||
       visit.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
       visit.staffName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      visit.visitDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (visit.visitTime && visit.visitTime.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      visit.visitOutcome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (visit.customerComments && visit.customerComments.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (visit.staffComments && visit.staffComments.toLowerCase().includes(searchTerm.toLowerCase()))
+      (visit.staffComments && visit.staffComments.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      visit.created.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortConfig) {
@@ -393,7 +404,19 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
                   <div className="flex flex-col items-center gap-1">
                     {visit.gps && (
                       <button 
-                        onClick={() => console.log('GPS clicked for visit:', visit.id, 'Customer:', visit.customerName)}
+                        onClick={() => {
+                          setLocationModalData({
+                            visitId: visit.id.toString(),
+                            customerName: visit.customerName,
+                            customerNumber: visit.customerNumber,
+                            phoneNumber: visit.phone,
+                            visitDate: visit.visitDate,
+                            visitTime: visit.visitTime || '12:00 PM',
+                            staffName: visit.staffName,
+                            visitOutcome: visit.visitOutcome
+                          });
+                          setShowLocationModal(true);
+                        }}
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                         title="View GPS Location"
                       >
@@ -402,11 +425,18 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
                     )}
                     {visit.photo && (
                       <button 
-                        onClick={() => console.log('Photo clicked for visit:', visit.id, 'Customer:', visit.customerName)}
+                        onClick={() => {
+                          setLogCallModalData({
+                            customerName: visit.customerName,
+                            customerNumber: visit.customerNumber,
+                            staffName: visit.staffName
+                          });
+                          setShowLogCallModal(true);
+                        }}
                         className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
-                        title="View Photo"
+                        title="Log Customer Call"
                       >
-                        <Camera className="w-4 h-4 text-white" />
+                        <Phone className="w-4 h-4 text-white" />
                       </button>
                     )}
                   </div>
@@ -472,7 +502,19 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
               <div className="flex items-center gap-2">
                 {visit.gps && (
                   <button 
-                    onClick={() => console.log('GPS clicked for visit:', visit.id, 'Customer:', visit.customerName)}
+                    onClick={() => {
+                      setLocationModalData({
+                        visitId: visit.id.toString(),
+                        customerName: visit.customerName,
+                        customerNumber: visit.customerNumber,
+                        phoneNumber: visit.phone,
+                        visitDate: visit.visitDate,
+                        visitTime: visit.visitTime || '12:00 PM',
+                        staffName: visit.staffName,
+                        visitOutcome: visit.visitOutcome
+                      });
+                      setShowLocationModal(true);
+                    }}
                     className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                     title="View GPS Location"
                   >
@@ -481,11 +523,18 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
                 )}
                 {visit.photo && (
                   <button 
-                    onClick={() => console.log('Photo clicked for visit:', visit.id, 'Customer:', visit.customerName)}
+                    onClick={() => {
+                      setLogCallModalData({
+                        customerName: visit.customerName,
+                        customerNumber: visit.customerNumber,
+                        staffName: visit.staffName
+                      });
+                      setShowLogCallModal(true);
+                    }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    title="View Photo"
+                    title="Log Customer Call"
                   >
-                    <Camera className="w-5 h-5 text-white" />
+                    <Phone className="w-5 h-5 text-white" />
                   </button>
                 )}
               </div>
@@ -614,6 +663,38 @@ export const VisitsListPage: React.FC<VisitsListPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Visit Location Modal */}
+      {showLocationModal && locationModalData && (
+        <VisitLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          visitId={locationModalData.visitId}
+          customerName={locationModalData.customerName}
+          customerNumber={locationModalData.customerNumber}
+          phoneNumber={locationModalData.phoneNumber}
+          visitDate={locationModalData.visitDate}
+          visitTime={locationModalData.visitTime}
+          staffName={locationModalData.staffName}
+          visitOutcome={locationModalData.visitOutcome}
+        />
+      )}
+
+      {/* Log Customer Call Modal */}
+      {showLogCallModal && logCallModalData && (
+        <LogCustomerCallModal
+          isOpen={showLogCallModal}
+          onClose={() => {
+            setShowLogCallModal(false);
+            setLogCallModalData(null);
+          }}
+          customerName={logCallModalData.customerName}
+          customerNumber={logCallModalData.customerNumber}
+        />
+      )}
     </div>
   );
 };

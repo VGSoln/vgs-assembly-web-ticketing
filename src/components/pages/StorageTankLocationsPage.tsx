@@ -316,9 +316,9 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-gray-50" style={{ overflow: 'hidden' }}>
+    <div className="w-full h-full flex flex-col bg-gray-50">
       {/* Top Controls */}
-      <div className="bg-white shadow-sm border-b border-gray-200 p-4 flex-shrink-0 w-full" style={{ overflow: 'hidden' }}>
+      <div className="bg-white shadow-sm border-b border-gray-200 p-4 flex-shrink-0 w-full relative" style={{ zIndex: 1000 }}>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 max-w-full">
           {/* Filter Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
@@ -360,18 +360,12 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
       </div>
 
       {/* Map Container */}
-      <div className="bg-white flex-1 flex flex-col w-full" style={{ minHeight: 0, overflow: 'hidden' }}>
+      <div className="bg-white flex-1 flex flex-col w-full relative" style={{ minHeight: 0, zIndex: 1 }}>
         {/* Map Controls Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
           <h2 className="text-lg font-semibold text-gray-900">Storage Tank Locations</h2>
           
           <div className="flex items-center gap-3">
-            {/* Filter Button */}
-            <button className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
-              <Filter className="w-4 h-4" />
-              <span className="text-sm font-medium">Filter</span>
-            </button>
-            
             {/* Map Type Toggle */}
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
@@ -401,11 +395,11 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
         </div>
 
         {/* Map Display */}
-        <div className="flex-1 relative" style={{ minHeight: 0, overflow: 'hidden' }}>
+        <div className="flex-1 relative" style={{ minHeight: 0, overflow: 'hidden', zIndex: 1 }}>
           <div 
             ref={mapRef}
             className="w-full h-full absolute inset-0"
-            style={{ overflow: 'hidden' }}
+            style={{ zIndex: 1 }}
           />
           
           {!mapLoaded && (

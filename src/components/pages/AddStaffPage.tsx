@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Save, X, ChevronLeft, Upload } from 'lucide-react';
 import { HierarchicalAccess } from '../ui/HierarchicalAccess';
+import { ModernSelect } from '../ui/ModernSelect';
 
 interface AddStaffPageProps {
   onBack: () => void;
@@ -133,42 +134,42 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
   };
 
   const positionOptions = [
-    'Water System Manager',
-    'Information Technology Specialist',
-    'Data Analyst',
-    'System Admin',
-    'Chief Accountant',
-    'Information Technology Coordinator',
-    'Hydrologist',
-    'Revenue Officer',
-    'Field Officer',
-    'Technician'
+    { value: 'Water System Manager', label: 'Water System Manager' },
+    { value: 'Information Technology Specialist', label: 'Information Technology Specialist' },
+    { value: 'Data Analyst', label: 'Data Analyst' },
+    { value: 'System Admin', label: 'System Admin' },
+    { value: 'Chief Accountant', label: 'Chief Accountant' },
+    { value: 'Information Technology Coordinator', label: 'Information Technology Coordinator' },
+    { value: 'Hydrologist', label: 'Hydrologist' },
+    { value: 'Revenue Officer', label: 'Revenue Officer' },
+    { value: 'Field Officer', label: 'Field Officer' },
+    { value: 'Technician', label: 'Technician' }
   ];
 
   const businessLevelOptions = [
-    'Head Office',
-    'Regional Office',
-    'Water System Office'
+    { value: 'Head Office', label: 'Head Office' },
+    { value: 'Regional Office', label: 'Regional Office' },
+    { value: 'Water System Office', label: 'Water System Office' }
   ];
 
   const roleOptions = [
-    'Management',
-    'Data_Admin',
-    'System_Admin',
-    'Collector',
-    'Field_Officer',
-    'Technician'
+    { value: 'Management', label: 'Management' },
+    { value: 'Data_Admin', label: 'Data Admin' },
+    { value: 'System_Admin', label: 'System Admin' },
+    { value: 'Collector', label: 'Collector' },
+    { value: 'Field_Officer', label: 'Field Officer' },
+    { value: 'Technician', label: 'Technician' }
   ];
 
   const statusOptions = [
-    'Active',
-    'Inactive'
+    { value: 'Active', label: 'Active' },
+    { value: 'Inactive', label: 'Inactive' }
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative z-20">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button 
@@ -187,7 +188,7 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
       </div>
 
       {/* Add Staff Form */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative z-10 overflow-visible">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Add Staff</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -281,18 +282,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Position <span className="text-red-500">*</span>
             </label>
-            <select
+            <ModernSelect
               value={formData.position}
-              onChange={(e) => handleInputChange('position', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.position ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select Position</option>
-              {positionOptions.map(position => (
-                <option key={position} value={position}>{position}</option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange('position', value)}
+              placeholder="Select Position"
+              options={positionOptions}
+              className="w-full"
+            />
             {errors.position && <p className="mt-1 text-sm text-red-600">{errors.position}</p>}
           </div>
 
@@ -301,18 +297,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Business Level <span className="text-red-500">*</span>
             </label>
-            <select
+            <ModernSelect
               value={formData.businessLevel}
-              onChange={(e) => handleInputChange('businessLevel', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.businessLevel ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select Business Level</option>
-              {businessLevelOptions.map(level => (
-                <option key={level} value={level}>{level}</option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange('businessLevel', value)}
+              placeholder="Select Business Level"
+              options={businessLevelOptions}
+              className="w-full"
+            />
             {errors.businessLevel && <p className="mt-1 text-sm text-red-600">{errors.businessLevel}</p>}
           </div>
 
@@ -321,18 +312,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Role <span className="text-red-500">*</span>
             </label>
-            <select
+            <ModernSelect
               value={formData.role}
-              onChange={(e) => handleInputChange('role', e.target.value)}
-              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.role ? 'border-red-500' : 'border-gray-300'
-              }`}
-            >
-              <option value="">Select Role</option>
-              {roleOptions.map(role => (
-                <option key={role} value={role}>{role}</option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange('role', value)}
+              placeholder="Select Role"
+              options={roleOptions}
+              className="w-full"
+            />
             {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role}</p>}
           </div>
 
@@ -341,15 +327,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status <span className="text-red-500">*</span>
             </label>
-            <select
+            <ModernSelect
               value={formData.status}
-              onChange={(e) => handleInputChange('status', e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              {statusOptions.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+              onChange={(value) => handleInputChange('status', value)}
+              placeholder="Select Status"
+              options={statusOptions}
+              className="w-full"
+            />
           </div>
         </div>
 

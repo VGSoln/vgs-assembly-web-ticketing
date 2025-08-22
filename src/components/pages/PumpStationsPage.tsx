@@ -5,6 +5,7 @@ import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddPumpStationPage } from './AddPumpStationPage';
 import { PumpStationDetailsPage } from './PumpStationDetailsPage';
 import { EditPumpStationPage } from './EditPumpStationPage';
+import { PumpStationLocationModal } from '../ui/PumpStationLocationModal';
 import { 
   pumpStationsData, 
   businessLevelOptions
@@ -56,6 +57,8 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedStation, setSelectedStation] = useState<any>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -66,14 +69,15 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
 
   const columns = [
     { key: 'pumpStationNumber', label: 'Station #', sortable: true, width: '8%' },
-    { key: 'waterSystemName', label: 'Water System', sortable: true, width: '18%' },
-    { key: 'pumpStationName', label: 'Station Name', sortable: true, width: '18%' },
-    { key: 'throughput', label: 'Flow', sortable: true, width: '8%' },
-    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '12%' },
-    { key: 'lastReadingDate', label: 'Last Read', sortable: true, width: '10%' },
-    { key: 'daysSinceLastReading', label: 'Days', sortable: true, width: '7%' },
-    { key: 'lastReading', label: 'Reading', sortable: true, width: '11%' },
-    { key: 'actions', label: 'Actions', sortable: false, width: '8%' }
+    { key: 'waterSystemName', label: 'Water System', sortable: true, width: '15%' },
+    { key: 'pumpStationName', label: 'Station Name', sortable: true, width: '15%' },
+    { key: 'status', label: 'Status', sortable: true, width: '10%' },
+    { key: 'throughput', label: 'Flow', sortable: true, width: '7%' },
+    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '10%' },
+    { key: 'lastReadingDate', label: 'Last Read', sortable: true, width: '9%' },
+    { key: 'daysSinceLastReading', label: 'Days', sortable: true, width: '6%' },
+    { key: 'lastReading', label: 'Reading', sortable: true, width: '10%' },
+    { key: 'actions', label: 'Actions', sortable: false, width: '10%' }
   ];
 
   // Navigation handlers
@@ -416,6 +420,13 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
                       </div>
                     </td>
                     <td className="px-2 py-2 text-11px text-slate-800 border-r border-gray-100 text-center">
+                      <span className={`text-11px font-bold ${
+                        station.status === 'Out of Service' ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {station.status}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 text-11px text-slate-800 border-r border-gray-100 text-center">
                       <span className="text-11px font-semibold text-slate-800">
                         {station.throughput}
                       </span>
@@ -451,7 +462,21 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
                         </button>
                         {station.gps && (
                           <button 
-                            onClick={() => console.log('GPS clicked for pump station:', station.pumpStationName)}
+                            onClick={() => {
+                              setLocationModalData({
+                                stationId: station.id.toString(),
+                                stationName: station.pumpStationName,
+                                stationNumber: station.pumpStationNumber,
+                                stationType: station.pumpStationType,
+                                pumpCapacity: station.capacity,
+                                flowRate: station.flowRate || 0,
+                                lastReading: station.lastReadingDate,
+                                operationalStatus: station.status,
+                                location: station.location,
+                                city: station.location
+                              });
+                              setShowLocationModal(true);
+                            }}
                             className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                             title="View GPS Location"
                           >
@@ -524,7 +549,21 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
               <div className="flex items-center gap-2">
                 {station.gps && (
                   <button 
-                    onClick={() => console.log('GPS clicked for pump station:', station.pumpStationName)}
+                    onClick={() => {
+                      setLocationModalData({
+                        stationId: station.id.toString(),
+                        stationName: station.pumpStationName,
+                        stationNumber: station.pumpStationNumber,
+                        stationType: station.pumpStationType,
+                        pumpCapacity: station.capacity,
+                        flowRate: station.flowRate || 0,
+                        lastReading: station.lastReadingDate,
+                        operationalStatus: station.status,
+                        location: station.location,
+                        city: station.location
+                      });
+                      setShowLocationModal(true);
+                    }}
                     className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                   >
                     <MapPin className="w-3 h-3" />
@@ -546,6 +585,14 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Water System Name</label>
                   <p className="text-sm text-gray-900">{station.waterSystemName}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
+                  <p className={`text-sm font-bold ${
+                    station.status === 'Out of Service' ? 'text-red-600' : 'text-green-600'
+                  }`}>
+                    {station.status}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Throughput</label>
@@ -630,6 +677,27 @@ export const PumpStationsPage: React.FC<PumpStationsPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Pump Station Location Modal */}
+      {showLocationModal && locationModalData && (
+        <PumpStationLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          stationId={locationModalData.stationId}
+          stationName={locationModalData.stationName}
+          stationNumber={locationModalData.stationNumber}
+          stationType={locationModalData.stationType}
+          pumpCapacity={locationModalData.pumpCapacity}
+          flowRate={locationModalData.flowRate}
+          lastReading={locationModalData.lastReading}
+          operationalStatus={locationModalData.operationalStatus}
+          location={locationModalData.location}
+          city={locationModalData.city}
+        />
+      )}
     </div>
   );
 };

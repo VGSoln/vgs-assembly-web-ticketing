@@ -2,6 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { ReceiptModal } from '../ui/ReceiptModal';
+import { LocationModal } from '../ui/LocationModal';
+import { ChequeModal } from '../ui/ChequeModal';
+import { VoidPaymentModal } from '../ui/VoidPaymentModal';
+import { VoidDetailsModal } from '../ui/VoidDetailsModal';
+import { SuccessModal } from '../ui/SuccessModal';
 import { 
   businessLevelOptions, 
   zoneOptions, 
@@ -46,7 +52,7 @@ const paymentsTransactionsData = [
     phone: '050-608-2996',
     amount: 170,
     collector: 'Rapheal Kwabena Aboagye',
-    type: 'Cash',
+    type: 'Cheque',
     zone: 'ZONE 3',
     periodEnd: '01 Jul 2025',
     customerType: 'Domestic',
@@ -64,7 +70,7 @@ const paymentsTransactionsData = [
     phone: '020-818-3923',
     amount: 30,
     collector: 'Rapheal Kwabena Aboagye',
-    type: 'Cash',
+    type: 'Cheque',
     zone: 'ZONE 4',
     periodEnd: '01 Jul 2025',
     customerType: 'Domestic',
@@ -106,7 +112,10 @@ const paymentsTransactionsData = [
     customerType: 'Domestic',
     dateTime: '20 Aug 2025 04:48 PM',
     created: '20 Aug 2025 04:48 PM',
-    status: 'Paid',
+    status: 'Voided',
+    voidReason: 'Duplicate payment - customer already paid for this period',
+    voidedDate: '21 Aug 2025 10:30 AM',
+    voidedBy: 'CWSA Admin',
     receipt: true,
     gps: true
   },
@@ -254,6 +263,18 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [receiptModalData, setReceiptModalData] = useState<any>(null);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [chequeModalData, setChequeModalData] = useState<any>(null);
+  const [showChequeModal, setShowChequeModal] = useState(false);
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [voidModalData, setVoidModalData] = useState<any>(null);
+  const [showVoidDetailsModal, setShowVoidDetailsModal] = useState(false);
+  const [voidDetailsData, setVoidDetailsData] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -327,13 +348,20 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
     let filtered = paymentsTransactionsData.filter(payment =>
+      payment.id.toString().includes(searchTerm) ||
+      payment.transId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.phone.includes(searchTerm) ||
-      payment.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.amount.toString().includes(searchTerm) ||
       payment.collector.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.transId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.type.toLowerCase().includes(searchTerm.toLowerCase())
+      payment.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.periodEnd.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.dateTime.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.created.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.status.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (sortConfig) {
@@ -567,11 +595,30 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
-                  <span className={`text-xs font-medium ${
-                    payment.type === 'ePayment' ? 'text-blue-600' : 'text-slate-800'
-                  }`}>
-                    {payment.type}
-                  </span>
+                  {payment.type === 'Cheque' ? (
+                    <button
+                      onClick={() => {
+                        setChequeModalData({
+                          customerName: payment.customerName,
+                          customerNumber: payment.customerNumber,
+                          phoneNumber: payment.phone,
+                          transactionId: payment.transId,
+                          amount: payment.amount,
+                          date: payment.dateTime
+                        });
+                        setShowChequeModal(true);
+                      }}
+                      className="text-xs font-medium text-purple-600 hover:text-purple-800 underline cursor-pointer"
+                    >
+                      {payment.type}
+                    </button>
+                  ) : (
+                    <span className={`text-xs font-medium ${
+                      payment.type === 'ePayment' ? 'text-blue-600' : 'text-slate-800'
+                    }`}>
+                      {payment.type}
+                    </span>
+                  )}
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
                   <span className="text-xs font-semibold text-slate-800">
@@ -597,38 +644,149 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-center border-r border-gray-100">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">
-                    Paid
-                  </span>
+                  {payment.status === 'Voided' ? (
+                    <button
+                      onClick={() => {
+                        setVoidDetailsData({
+                          transactionId: payment.transId,
+                          customerName: payment.customerName,
+                          customerNumber: payment.customerNumber,
+                          phoneNumber: payment.phone,
+                          transactionDate: payment.dateTime,
+                          amount: payment.amount,
+                          voidReason: (payment as any).voidReason || 'Reason not available',
+                          voidedDate: (payment as any).voidedDate || 'Date not available',
+                          voidedBy: (payment as any).voidedBy || 'User not available'
+                        });
+                        setShowVoidDetailsModal(true);
+                      }}
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                      {payment.status}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">
+                      {payment.status}
+                    </span>
+                  )}
                 </td>
                 <td className="px-1 py-2 text-xs text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
                     {payment.receipt && (
                       <button 
-                        onClick={() => console.log('Receipt clicked for payment:', payment.transId)}
-                        className="bg-orange-500 text-white px-1.5 py-0.5 rounded text-xs hover:bg-orange-600 transition-colors font-medium w-10" 
-                        title="View Receipt"
+                        onClick={() => {
+                          if (payment.type === 'ePayment') return;
+                          setReceiptModalData({
+                            customerName: payment.customerName,
+                            customerNumber: payment.customerNumber,
+                            phoneNumber: payment.phone,
+                            transactionId: payment.transId,
+                            amount: payment.amount,
+                            date: payment.dateTime,
+                            receiptImage: '/images/reciept1.jpg'
+                          });
+                          setShowReceiptModal(true);
+                        }}
+                        className={`px-1.5 py-0.5 rounded text-xs font-medium w-10 transition-colors ${
+                          payment.type === 'ePayment' 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50' 
+                            : 'bg-orange-500 text-white hover:bg-orange-600'
+                        }`}
+                        title={payment.type === 'ePayment' ? 'Disabled for ePayment' : 'View Receipt'}
+                        disabled={payment.type === 'ePayment'}
                       >
                         Rcpt
                       </button>
                     )}
                     {payment.gps && (
                       <button 
-                        onClick={() => console.log('GPS clicked for payment:', payment.transId)}
-                        className="p-0.5 rounded-full bg-blue-500 hover:bg-blue-600 transition-all duration-200" 
-                        title="View GPS Location"
+                        onClick={() => {
+                          if (payment.type === 'ePayment') return;
+                          setLocationModalData({
+                            customerName: payment.customerName,
+                            customerNumber: payment.customerNumber,
+                            phoneNumber: payment.phone,
+                            transactionId: payment.transId,
+                            amount: payment.amount,
+                            date: payment.dateTime,
+                            latitude: 5.6037 + (Math.random() - 0.5) * 0.02,
+                            longitude: -0.1870 + (Math.random() - 0.5) * 0.02
+                          });
+                          setShowLocationModal(true);
+                        }}
+                        className={`p-1 rounded-full transition-all duration-200 ${
+                          payment.type === 'ePayment' 
+                            ? 'bg-gray-300 cursor-not-allowed opacity-50' 
+                            : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
+                        title={payment.type === 'ePayment' ? 'Disabled for ePayment' : 'View GPS Location'}
+                        disabled={payment.type === 'ePayment'}
                       >
-                        <MapPin className="w-3 h-3 text-white" />
+                        <MapPin className={`w-4 h-4 ${payment.type === 'ePayment' ? 'text-gray-500' : 'text-white'}`} />
                       </button>
                     )}
                     <button 
-                      onClick={() => console.log('Void clicked for payment:', payment.transId)}
-                      className="p-0.5 rounded-full hover:bg-gray-50 transition-all duration-200" 
-                      title="Void Transaction"
+                      onClick={() => {
+                        if (payment.type === 'ePayment') return;
+                        
+                        if (payment.status === 'Voided') {
+                          // Show read-only void details modal for already voided payments
+                          setVoidDetailsData({
+                            transactionId: payment.transId,
+                            customerName: payment.customerName,
+                            customerNumber: payment.customerNumber,
+                            phoneNumber: payment.phone,
+                            transactionDate: payment.dateTime,
+                            amount: payment.amount,
+                            voidReason: (payment as any).voidReason || 'Reason not available',
+                            voidedDate: (payment as any).voidedDate || 'Date not available',
+                            voidedBy: (payment as any).voidedBy || 'User not available'
+                          });
+                          setShowVoidDetailsModal(true);
+                        } else {
+                          // Show void confirmation modal for active payments
+                          setVoidModalData({
+                            transactionId: payment.transId,
+                            customerName: payment.customerName,
+                            customerNumber: payment.customerNumber,
+                            phoneNumber: payment.phone,
+                            transactionDate: payment.dateTime,
+                            amount: payment.amount
+                          });
+                          setShowVoidModal(true);
+                        }
+                      }}
+                      className={`p-0.5 rounded-full transition-all duration-200 ${
+                        payment.type === 'ePayment' 
+                          ? 'cursor-not-allowed opacity-30' 
+                          : payment.status === 'Voided'
+                          ? 'hover:bg-red-50 cursor-pointer'
+                          : 'hover:bg-gray-50 cursor-pointer'
+                      }`}
+                      title={
+                        payment.type === 'ePayment' 
+                          ? 'Disabled for ePayment' 
+                          : payment.status === 'Voided'
+                          ? 'View Void Details'
+                          : 'Void Transaction'
+                      }
+                      disabled={payment.type === 'ePayment'}
                     >
                       <div className="relative">
-                        <div className="w-3.5 h-3.5 rounded-full bg-gray-100"></div>
-                        <Ban className="w-3.5 h-3.5 absolute inset-0 text-gray-300 opacity-50" strokeWidth={1.5} />
+                        <div className={`rounded-full ${
+                          payment.type === 'ePayment' 
+                            ? 'w-5 h-5 bg-gray-200' 
+                            : payment.status === 'Voided'
+                            ? 'w-5 h-5 bg-red-100'
+                            : 'w-5 h-5 bg-gray-100'
+                        }`}></div>
+                        <Ban className={`absolute inset-0 ${
+                          payment.type === 'ePayment' 
+                            ? 'w-5 h-5 text-gray-400 opacity-50' 
+                            : payment.status === 'Voided'
+                            ? 'w-5 h-5 text-red-600'
+                            : 'w-5 h-5 text-gray-300 opacity-50'
+                        }`} strokeWidth={1.5} />
                       </div>
                     </button>
                   </div>
@@ -692,16 +850,56 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
                 </a>
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {payment.status}
-                </span>
+                {payment.status === 'Voided' ? (
+                  <button
+                    onClick={() => {
+                      setVoidDetailsData({
+                        transactionId: payment.transId,
+                        customerName: payment.customerName,
+                        customerNumber: payment.customerNumber,
+                        phoneNumber: payment.phone,
+                        transactionDate: payment.dateTime,
+                        amount: payment.amount,
+                        voidReason: (payment as any).voidReason || 'Reason not available',
+                        voidedDate: (payment as any).voidedDate || 'Date not available',
+                        voidedBy: (payment as any).voidedBy || 'User not available'
+                      });
+                      setShowVoidDetailsModal(true);
+                    }}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer"
+                  >
+                    {payment.status}
+                  </button>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {payment.status}
+                  </span>
+                )}
                 {payment.gps && (
                   <button 
-                    onClick={() => console.log('GPS clicked for payment:', payment.transId)}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 cursor-pointer"
-                    title="View GPS Location"
+                    onClick={() => {
+                      if (payment.type === 'ePayment') return;
+                      setLocationModalData({
+                        customerName: payment.customerName,
+                        customerNumber: payment.customerNumber,
+                        phoneNumber: payment.phone,
+                        transactionId: payment.transId,
+                        amount: payment.amount,
+                        date: payment.dateTime,
+                        latitude: 5.6037 + (Math.random() - 0.5) * 0.02,
+                        longitude: -0.1870 + (Math.random() - 0.5) * 0.02
+                      });
+                      setShowLocationModal(true);
+                    }}
+                    className={`p-2 rounded-full shadow-sm transition-all duration-200 ${
+                      payment.type === 'ePayment'
+                        ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 cursor-pointer'
+                    }`}
+                    title={payment.type === 'ePayment' ? 'Disabled for ePayment' : 'View GPS Location'}
+                    disabled={payment.type === 'ePayment'}
                   >
-                    <MapPin className="w-5 h-5 text-white" />
+                    <MapPin className={`w-5 h-5 ${payment.type === 'ePayment' ? 'text-gray-500' : 'text-white'}`} />
                   </button>
                 )}
               </div>
@@ -723,11 +921,30 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    payment.type === 'ePayment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-                  }`}>
-                    {payment.type}
-                  </span>
+                  {payment.type === 'Cheque' ? (
+                    <button
+                      onClick={() => {
+                        setChequeModalData({
+                          customerName: payment.customerName,
+                          customerNumber: payment.customerNumber,
+                          phoneNumber: payment.phone,
+                          transactionId: payment.transId,
+                          amount: payment.amount,
+                          date: payment.dateTime
+                        });
+                        setShowChequeModal(true);
+                      }}
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 hover:bg-purple-200 cursor-pointer"
+                    >
+                      {payment.type}
+                    </button>
+                  ) : (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      payment.type === 'ePayment' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {payment.type}
+                    </span>
+                  )}
                 </div>
               </div>
               
@@ -810,6 +1027,123 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Receipt Modal */}
+      {showReceiptModal && receiptModalData && (
+        <ReceiptModal
+          isOpen={showReceiptModal}
+          onClose={() => {
+            setShowReceiptModal(false);
+            setReceiptModalData(null);
+          }}
+          customerName={receiptModalData.customerName}
+          customerNumber={receiptModalData.customerNumber}
+          phoneNumber={receiptModalData.phoneNumber}
+          transactionId={receiptModalData.transactionId}
+          amount={receiptModalData.amount}
+          date={receiptModalData.date}
+          receiptImage={receiptModalData.receiptImage}
+        />
+      )}
+
+      {/* Location Modal */}
+      {showLocationModal && locationModalData && (
+        <LocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          customerName={locationModalData.customerName}
+          customerNumber={locationModalData.customerNumber}
+          phoneNumber={locationModalData.phoneNumber}
+          transactionId={locationModalData.transactionId}
+          amount={locationModalData.amount}
+          date={locationModalData.date}
+          latitude={locationModalData.latitude}
+          longitude={locationModalData.longitude}
+        />
+      )}
+
+      {/* Cheque Modal */}
+      {showChequeModal && chequeModalData && (
+        <ChequeModal
+          isOpen={showChequeModal}
+          onClose={() => {
+            setShowChequeModal(false);
+            setChequeModalData(null);
+          }}
+          customerName={chequeModalData.customerName}
+          customerNumber={chequeModalData.customerNumber}
+          phoneNumber={chequeModalData.phoneNumber}
+          transactionId={chequeModalData.transactionId}
+          amount={chequeModalData.amount}
+          date={chequeModalData.date}
+        />
+      )}
+
+      {/* Void Payment Modal */}
+      {showVoidModal && voidModalData && (
+        <VoidPaymentModal
+          isOpen={showVoidModal}
+          onClose={() => {
+            setShowVoidModal(false);
+            setVoidModalData(null);
+          }}
+          onConfirm={(reason) => {
+            console.log('Voiding payment:', voidModalData.transactionId, 'Reason:', reason);
+            // Here you would typically make an API call to void the payment
+            
+            // Close void modal
+            setShowVoidModal(false);
+            
+            // Show success modal
+            setSuccessMessage(`Payment transaction #${voidModalData.transactionId} has been successfully voided.`);
+            setShowSuccessModal(true);
+            
+            // Clear void modal data
+            setVoidModalData(null);
+          }}
+          transactionId={voidModalData.transactionId}
+          customerName={voidModalData.customerName}
+          customerNumber={voidModalData.customerNumber}
+          phoneNumber={voidModalData.phoneNumber}
+          transactionDate={voidModalData.transactionDate}
+          amount={voidModalData.amount}
+        />
+      )}
+
+      {/* Void Details Modal (for already voided payments) */}
+      {showVoidDetailsModal && voidDetailsData && (
+        <VoidDetailsModal
+          isOpen={showVoidDetailsModal}
+          onClose={() => {
+            setShowVoidDetailsModal(false);
+            setVoidDetailsData(null);
+          }}
+          transactionId={voidDetailsData.transactionId}
+          customerName={voidDetailsData.customerName}
+          customerNumber={voidDetailsData.customerNumber}
+          phoneNumber={voidDetailsData.phoneNumber}
+          transactionDate={voidDetailsData.transactionDate}
+          amount={voidDetailsData.amount}
+          voidReason={voidDetailsData.voidReason}
+          voidedDate={voidDetailsData.voidedDate}
+          voidedBy={voidDetailsData.voidedBy}
+        />
+      )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          setSuccessMessage('');
+        }}
+        title="Payment Voided"
+        message={successMessage}
+        details="The payment has been permanently voided and cannot be reversed."
+      />
     </div>
   );
 };

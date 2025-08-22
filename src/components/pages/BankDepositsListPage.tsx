@@ -2,6 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { DepositReceiptModal } from '../ui/DepositReceiptModal';
+import { VoidDepositModal } from '../ui/VoidDepositModal';
+import { VoidedDepositModal } from '../ui/VoidedDepositModal';
+import { VoidSuccessModal } from '../ui/VoidSuccessModal';
 import { 
   businessLevelOptions, 
   zoneOptions, 
@@ -29,7 +33,8 @@ const bankDepositsData = [
     depositAmount: 153,
     zone: 'ZONE 9',
     collector: 'Mabel Tottimeh',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0101',
+    depositType: 'eDeposit',
     created: '20 Aug 2025 06:40 PM',
     status: 'Deposited',
     receipt: true
@@ -43,7 +48,8 @@ const bankDepositsData = [
     depositAmount: 170,
     zone: 'ZONE 3',
     collector: 'Rapheal Kwabena Aboagye',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0102',
+    depositType: 'Bank',
     created: '20 Aug 2025 06:16 PM',
     status: 'Deposited',
     receipt: true
@@ -57,9 +63,13 @@ const bankDepositsData = [
     depositAmount: 132,
     zone: 'Stand Pipes',
     collector: 'Rapheal Kwabena Aboagye',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0102',
+    depositType: 'Bank',
     created: '20 Aug 2025 06:12 PM',
-    status: 'Deposited',
+    status: 'Voided',
+    voidReason: 'Incorrect deposit amount - should have been 232',
+    voidedDate: '21 Aug 2025 09:15 AM',
+    voidedBy: 'Finance Manager',
     receipt: true
   },
   {
@@ -71,7 +81,8 @@ const bankDepositsData = [
     depositAmount: 120,
     zone: 'ZONE 1',
     collector: 'Kubura Abdul Rahman',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0103',
+    depositType: 'eDeposit',
     created: '20 Aug 2025 06:12 PM',
     status: 'Deposited',
     receipt: true
@@ -85,7 +96,8 @@ const bankDepositsData = [
     depositAmount: 1900,
     zone: 'ZONE 4',
     collector: 'Rapheal Kwabena Aboagye',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0102',
+    depositType: 'Bank',
     created: '20 Aug 2025 05:45 PM',
     status: 'Deposited',
     receipt: true
@@ -99,7 +111,8 @@ const bankDepositsData = [
     depositAmount: 838,
     zone: 'ZONE 3',
     collector: 'Francis Seguri',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0104',
+    depositType: 'eDeposit',
     created: '20 Aug 2025 05:14 PM',
     status: 'Deposited',
     receipt: true
@@ -113,9 +126,13 @@ const bankDepositsData = [
     depositAmount: 43,
     zone: 'ZONE 4',
     collector: 'Rapheal Kwabena Aboagye',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0102',
+    depositType: 'Bank',
     created: '20 Aug 2025 10:15 AM',
-    status: 'Deposited',
+    status: 'Voided',
+    voidReason: 'Duplicate deposit entry',
+    voidedDate: '20 Aug 2025 02:30 PM',
+    voidedBy: 'CWSA Admin',
     receipt: true
   },
   {
@@ -127,7 +144,8 @@ const bankDepositsData = [
     depositAmount: 155,
     zone: 'ZONE 4',
     collector: 'Kubura Abdul Rahman',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0103',
+    depositType: 'eDeposit',
     created: '20 Aug 2025 09:53 AM',
     status: 'Deposited',
     receipt: true
@@ -141,7 +159,8 @@ const bankDepositsData = [
     depositAmount: 150,
     zone: 'ZONE 1',
     collector: 'Kubura Abdul Rahman',
-    collectionsRange: '2025-08-20 - 2025-08-20',
+    collectorPhone: '024-555-0103',
+    depositType: 'eDeposit',
     created: '20 Aug 2025 09:52 AM',
     status: 'Deposited',
     receipt: true
@@ -155,9 +174,13 @@ const bankDepositsData = [
     depositAmount: 105.5,
     zone: 'ZONE 8',
     collector: 'John Adesu Senyo',
-    collectionsRange: '2025-08-19 - 2025-08-19',
+    collectorPhone: '024-555-0105',
+    depositType: 'Bank',
     created: '19 Aug 2025 05:09 PM',
-    status: 'Deposited',
+    status: 'Voided',
+    voidReason: 'Bank rejected deposit - invalid account details',
+    voidedDate: '21 Aug 2025 11:45 AM',
+    voidedBy: 'Bank Reconciliation Team',
     receipt: true
   }
 ];
@@ -196,6 +219,14 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [depositReceiptModalData, setDepositReceiptModalData] = useState<any>(null);
+  const [showDepositReceiptModal, setShowDepositReceiptModal] = useState(false);
+  const [voidDepositModalData, setVoidDepositModalData] = useState<any>(null);
+  const [showVoidDepositModal, setShowVoidDepositModal] = useState(false);
+  const [voidedDepositModalData, setVoidedDepositModalData] = useState<any>(null);
+  const [showVoidedDepositModal, setShowVoidedDepositModal] = useState(false);
+  const [showVoidSuccessModal, setShowVoidSuccessModal] = useState(false);
+  const [voidedTransactionId, setVoidedTransactionId] = useState<string>('');
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -212,7 +243,7 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
     { key: 'depositAmount', label: 'Deposit Amt', sortable: true, width: '7%' },
     { key: 'zone', label: 'Zone', sortable: true, width: '7%' },
     { key: 'collector', label: 'Collector', sortable: true, width: '11%' },
-    { key: 'collectionsRange', label: 'Collections Range', sortable: true, width: '13%' },
+    { key: 'depositType', label: 'Deposit Type', sortable: true, width: '13%' },
     { key: 'created', label: 'Created', sortable: true, width: '10%' },
     { key: 'status', label: 'Status', sortable: true, width: '7%' },
     { key: 'actions', label: 'Actions', sortable: false, width: '6%' }
@@ -265,14 +296,47 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = bankDepositsData.filter(deposit =>
-      deposit.bankName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deposit.accountNumber.includes(searchTerm) ||
-      deposit.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deposit.collector.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      deposit.transId.includes(searchTerm) ||
-      deposit.collectionsRange.includes(searchTerm)
-    );
+    let filtered = bankDepositsData;
+    
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase().trim();
+      
+      // Special handling for deposit type searches
+      // If user types exactly "bank" (not as part of another word), prioritize deposit type
+      const isExactBankSearch = search === 'bank';
+      const isDepositTypeSearch = search === 'bank' || search === 'edeposit' || 
+                                  search === 'edep' || search === 'deposit';
+      
+      filtered = filtered.filter(deposit => {
+        // For exact "bank" search, only match deposit type
+        if (isExactBankSearch) {
+          return deposit.depositType.toLowerCase() === 'bank';
+        }
+        
+        // Check all fields including deposit type
+        const matchesId = deposit.id.toString().includes(search);
+        const matchesTransId = deposit.transId.toLowerCase().includes(search);
+        const matchesDateTime = deposit.dateTime.toLowerCase().includes(search);
+        const matchesBankName = deposit.bankName.toLowerCase().includes(search);
+        const matchesAccountNumber = deposit.accountNumber.toLowerCase().includes(search);
+        const matchesAmount = deposit.depositAmount.toString().includes(search);
+        const matchesZone = deposit.zone.toLowerCase().includes(search);
+        const matchesCollector = deposit.collector.toLowerCase().includes(search);
+        const matchesPhone = deposit.collectorPhone ? deposit.collectorPhone.toLowerCase().includes(search) : false;
+        const matchesDepositType = deposit.depositType.toLowerCase().includes(search);
+        const matchesCreated = deposit.created.toLowerCase().includes(search);
+        const matchesStatus = deposit.status.toLowerCase().includes(search);
+        const matchesVoidReason = (deposit as any).voidReason ? (deposit as any).voidReason.toLowerCase().includes(search) : false;
+        const matchesVoidedDate = (deposit as any).voidedDate ? (deposit as any).voidedDate.toLowerCase().includes(search) : false;
+        const matchesVoidedBy = (deposit as any).voidedBy ? (deposit as any).voidedBy.toLowerCase().includes(search) : false;
+        
+        return matchesId || matchesTransId || matchesDateTime || matchesBankName || 
+               matchesAccountNumber || matchesAmount || matchesZone || matchesCollector || 
+               matchesPhone || matchesDepositType || matchesCreated || matchesStatus ||
+               matchesVoidReason || matchesVoidedDate || matchesVoidedBy;
+      });
+    }
 
     if (sortConfig) {
       filtered.sort((a, b) => {
@@ -419,7 +483,7 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
-              placeholder="Search bank deposits, customers, comments..."
+              placeholder="Search deposits... (try: eDeposit, Bank, zone, collector)"
             />
           </div>
         </div>
@@ -510,9 +574,9 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                     {deposit.collector}
                   </div>
                 </td>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100 text-center">
-                  <div className="text-xs">
-                    {deposit.collectionsRange}
+                <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
+                  <div className={deposit.depositType === 'eDeposit' ? 'text-blue-600' : ''}>
+                    {deposit.depositType}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
@@ -522,31 +586,116 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-center border-r border-gray-100">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">
-                    {deposit.status}
-                  </span>
+                  {deposit.status === 'Voided' ? (
+                    <button
+                      onClick={() => {
+                        setVoidedDepositModalData({
+                          transactionId: deposit.transId,
+                          depositDate: deposit.dateTime,
+                          bankName: deposit.bankName,
+                          accountNumber: deposit.accountNumber,
+                          depositAmount: deposit.depositAmount,
+                          zone: deposit.zone,
+                          collector: deposit.collector,
+                          voidReason: (deposit as any).voidReason || 'Not specified',
+                          voidedDate: (deposit as any).voidedDate || 'Unknown',
+                          voidedBy: (deposit as any).voidedBy || 'Unknown'
+                        });
+                        setShowVoidedDepositModal(true);
+                      }}
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-colors cursor-pointer"
+                    >
+                      {deposit.status}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-600 text-white">
+                      {deposit.status}
+                    </span>
+                  )}
                 </td>
                 <td className="px-1 py-2 text-xs text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
                     {deposit.receipt && (
                       <button 
-                        onClick={() => console.log('Receipt clicked for deposit:', deposit.transId)}
-                        className="bg-orange-500 text-white px-1.5 py-0.5 rounded text-xs hover:bg-orange-600 transition-colors font-medium w-10" 
-                        title="View Receipt"
+                        onClick={() => {
+                          if (deposit.depositType === 'eDeposit') return;
+                          setDepositReceiptModalData({
+                            collectorName: deposit.collector,
+                            collectorPhone: deposit.collectorPhone || 'N/A',
+                            depositDate: deposit.dateTime,
+                            amount: deposit.depositAmount,
+                            bankName: deposit.bankName,
+                            accountNumber: deposit.accountNumber,
+                            transactionId: deposit.transId,
+                            receiptImage: '/images/reciept1.jpg'
+                          });
+                          setShowDepositReceiptModal(true);
+                        }}
+                        className={`px-1.5 py-0.5 rounded text-xs font-medium w-10 transition-colors ${
+                          deposit.depositType === 'eDeposit' 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50' 
+                            : 'bg-orange-500 text-white hover:bg-orange-600'
+                        }`}
+                        title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
+                        disabled={deposit.depositType === 'eDeposit'}
                       >
                         Rcpt
                       </button>
                     )}
-                    <button 
-                      onClick={() => console.log('Void clicked for deposit:', deposit.transId)}
-                      className="p-0.5 rounded-full hover:bg-gray-50 transition-all duration-200" 
-                      title="Void Transaction"
-                    >
-                      <div className="relative">
-                        <div className="w-3.5 h-3.5 rounded-full bg-gray-100"></div>
-                        <Ban className="w-3.5 h-3.5 absolute inset-0 text-gray-300 opacity-50" strokeWidth={1.5} />
-                      </div>
-                    </button>
+                    {deposit.status === 'Voided' ? (
+                      <button
+                        onClick={() => {
+                          setVoidedDepositModalData({
+                            transactionId: deposit.transId,
+                            depositDate: deposit.dateTime,
+                            bankName: deposit.bankName,
+                            accountNumber: deposit.accountNumber,
+                            depositAmount: deposit.depositAmount,
+                            zone: deposit.zone,
+                            collector: deposit.collector,
+                            voidReason: (deposit as any).voidReason || 'Not specified',
+                            voidedDate: (deposit as any).voidedDate || 'Unknown',
+                            voidedBy: (deposit as any).voidedBy || 'Unknown'
+                          });
+                          setShowVoidedDepositModal(true);
+                        }}
+                        className="p-0.5 rounded-full transition-all duration-200 hover:bg-red-50"
+                        title="View Void Details"
+                      >
+                        <div className="relative">
+                          <div className="w-5 h-5 rounded-full bg-red-100"></div>
+                          <Ban className="w-5 h-5 absolute inset-0 text-red-600" strokeWidth={1.5} />
+                        </div>
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => {
+                          if (deposit.depositType === 'eDeposit') return;
+                          setVoidDepositModalData({
+                            transactionId: deposit.transId,
+                            depositDate: deposit.dateTime,
+                            bankName: deposit.bankName,
+                            accountNumber: deposit.accountNumber,
+                            depositAmount: deposit.depositAmount,
+                            zone: deposit.zone,
+                            collector: deposit.collector
+                          });
+                          setShowVoidDepositModal(true);
+                        }}
+                        className={`p-0.5 rounded-full transition-all duration-200 ${
+                          deposit.depositType === 'eDeposit' 
+                            ? 'cursor-not-allowed opacity-30' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                        title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
+                        disabled={deposit.depositType === 'eDeposit'}
+                      >
+                        <div className="relative">
+                          <div className={`w-5 h-5 rounded-full ${deposit.depositType === 'eDeposit' ? 'bg-gray-200' : 'bg-gray-100'}`}></div>
+                          <Ban className={`w-5 h-5 absolute inset-0 ${deposit.depositType === 'eDeposit' ? 'text-gray-400' : 'text-gray-300'} opacity-50`} strokeWidth={1.5} />
+                        </div>
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -598,33 +747,41 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
           </div>
         </div>
         
-        {currentData.map((visit, index) => (
-          <div key={visit.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
+        {currentData.map((deposit, index) => (
+          <div key={deposit.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">ID: {visit.id}</h3>
-                <a href="#" className="text-blue-600 hover:text-blue-800 underline font-medium">
-                  {visit.customerNumber}
-                </a>
+                <h3 className="text-lg font-semibold text-gray-900">Trans ID: {deposit.transId}</h3>
+                <p className="text-blue-600 font-medium">
+                  {deposit.bankName}
+                </p>
               </div>
               <div className="flex items-center gap-2">
-                {visit.gps && (
-                  <button 
-                    onClick={() => console.log('GPS clicked for bank deposit:', visit.id, 'Customer:', visit.customerName)}
-                    className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    title="View GPS Location"
+                {deposit.status === 'Voided' ? (
+                  <button
+                    onClick={() => {
+                      setVoidedDepositModalData({
+                        transactionId: deposit.transId,
+                        depositDate: deposit.dateTime,
+                        bankName: deposit.bankName,
+                        accountNumber: deposit.accountNumber,
+                        depositAmount: deposit.depositAmount,
+                        zone: deposit.zone,
+                        collector: deposit.collector,
+                        voidReason: (deposit as any).voidReason || 'Not specified',
+                        voidedDate: (deposit as any).voidedDate || 'Unknown',
+                        voidedBy: (deposit as any).voidedBy || 'Unknown'
+                      });
+                      setShowVoidedDepositModal(true);
+                    }}
+                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 transition-colors cursor-pointer"
                   >
-                    <MapPin className="w-5 h-5 text-white" />
+                    {deposit.status}
                   </button>
-                )}
-                {visit.photo && (
-                  <button 
-                    onClick={() => console.log('Photo clicked for bank deposit:', visit.id, 'Customer:', visit.customerName)}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    title="View Photo"
-                  >
-                    <Camera className="w-5 h-5 text-white" />
-                  </button>
+                ) : (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    {deposit.status}
+                  </span>
                 )}
               </div>
             </div>
@@ -632,68 +789,119 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</label>
-                  <p className="text-11px font-medium text-gray-900">{visit.customerName}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Account Number</label>
+                  <p className="text-sm font-medium text-gray-900">{deposit.accountNumber}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</label>
-                  <p className="text-11px text-gray-700">{visit.phone}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Amount</label>
+                  <p className="text-lg font-bold text-green-600">GH₵ {deposit.depositAmount.toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Zone</label>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {visit.zone}
+                    {deposit.zone}
                   </span>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Staff Name</label>
-                  <p className="text-11px text-gray-700">{visit.staffName}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Collector</label>
+                  <p className="text-sm text-gray-700">{deposit.collector}</p>
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Date</label>
-                  <div>
-                    <p className="text-11px font-medium text-gray-900">{visit.visitDate}</p>
-                    <p className="text-xs text-gray-500">{visit.visitTime}</p>
-                  </div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</label>
+                  <p className="text-sm font-medium text-gray-900">{deposit.dateTime}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Outcome</label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    visit.visitOutcome === 'Other' 
-                      ? 'bg-green-100 text-green-800' 
-                      : visit.visitOutcome === 'Meter Disconnected'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {visit.visitOutcome}
-                  </span>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Type</label>
+                  <p className={`text-sm ${deposit.depositType === 'eDeposit' ? 'text-blue-600' : 'text-gray-700'}`}>
+                    {deposit.depositType}
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</label>
-                  <p className="text-11px text-gray-700">{visit.created}</p>
+                  <p className="text-sm text-gray-700">{deposit.created}</p>
                 </div>
               </div>
             </div>
             
-            {(visit.customerComments || visit.staffComments) && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                {visit.customerComments && (
-                  <div className="mb-3">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Comments</label>
-                    <p className="text-11px text-gray-700 mt-1">{visit.customerComments}</p>
-                  </div>
-                )}
-                {visit.staffComments && (
-                  <div>
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Staff Comments</label>
-                    <p className="text-11px text-gray-700 mt-1">{visit.staffComments}</p>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
+              {deposit.receipt && (
+                <button 
+                  onClick={() => {
+                    if (deposit.depositType === 'eDeposit') return;
+                    setDepositReceiptModalData({
+                      collectorName: deposit.collector,
+                      collectorPhone: deposit.collectorPhone || 'N/A',
+                      depositDate: deposit.dateTime,
+                      amount: deposit.depositAmount,
+                      bankName: deposit.bankName,
+                      accountNumber: deposit.accountNumber,
+                      transactionId: deposit.transId,
+                      receiptImage: '/images/reciept1.jpg'
+                    });
+                    setShowDepositReceiptModal(true);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    deposit.depositType === 'eDeposit'
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
+                      : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                  }`}
+                  title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
+                  disabled={deposit.depositType === 'eDeposit'}
+                >
+                  View Receipt
+                </button>
+              )}
+              {deposit.status === 'Voided' ? (
+                <button
+                  onClick={() => {
+                    setVoidedDepositModalData({
+                      transactionId: deposit.transId,
+                      depositDate: deposit.dateTime,
+                      bankName: deposit.bankName,
+                      accountNumber: deposit.accountNumber,
+                      depositAmount: deposit.depositAmount,
+                      zone: deposit.zone,
+                      collector: deposit.collector,
+                      voidReason: (deposit as any).voidReason || 'Not specified',
+                      voidedDate: (deposit as any).voidedDate || 'Unknown',
+                      voidedBy: (deposit as any).voidedBy || 'Unknown'
+                    });
+                    setShowVoidedDepositModal(true);
+                  }}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors bg-red-100 text-red-700 hover:bg-red-200"
+                >
+                  View Void Details
+                </button>
+              ) : (
+                <button 
+                  onClick={() => {
+                    if (deposit.depositType === 'eDeposit') return;
+                    setVoidDepositModalData({
+                      transactionId: deposit.transId,
+                      depositDate: deposit.dateTime,
+                      bankName: deposit.bankName,
+                      accountNumber: deposit.accountNumber,
+                      depositAmount: deposit.depositAmount,
+                      zone: deposit.zone,
+                      collector: deposit.collector
+                    });
+                    setShowVoidDepositModal(true);
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    deposit.depositType === 'eDeposit'
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                  title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
+                  disabled={deposit.depositType === 'eDeposit'}
+                >
+                  Void Transaction
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -752,6 +960,86 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Deposit Receipt Modal */}
+      {showDepositReceiptModal && depositReceiptModalData && (
+        <DepositReceiptModal
+          isOpen={showDepositReceiptModal}
+          onClose={() => {
+            setShowDepositReceiptModal(false);
+            setDepositReceiptModalData(null);
+          }}
+          collectorName={depositReceiptModalData.collectorName}
+          collectorPhone={depositReceiptModalData.collectorPhone}
+          depositDate={depositReceiptModalData.depositDate}
+          amount={depositReceiptModalData.amount}
+          bankName={depositReceiptModalData.bankName}
+          accountNumber={depositReceiptModalData.accountNumber}
+          transactionId={depositReceiptModalData.transactionId}
+          receiptImage={depositReceiptModalData.receiptImage}
+        />
+      )}
+
+      {/* Void Deposit Modal */}
+      {showVoidDepositModal && voidDepositModalData && (
+        <VoidDepositModal
+          isOpen={showVoidDepositModal}
+          onClose={() => {
+            setShowVoidDepositModal(false);
+            setVoidDepositModalData(null);
+          }}
+          onConfirm={(reason) => {
+            console.log('Voiding deposit:', voidDepositModalData.transactionId, 'Reason:', reason);
+            // Here you would typically make an API call to void the deposit
+            const transactionId = voidDepositModalData.transactionId;
+            setVoidedTransactionId(transactionId);
+            setShowVoidDepositModal(false);
+            setVoidDepositModalData(null);
+            // Show success modal
+            setShowVoidSuccessModal(true);
+          }}
+          transactionId={voidDepositModalData.transactionId}
+          depositDate={voidDepositModalData.depositDate}
+          bankName={voidDepositModalData.bankName}
+          accountNumber={voidDepositModalData.accountNumber}
+          depositAmount={voidDepositModalData.depositAmount}
+          zone={voidDepositModalData.zone}
+          collector={voidDepositModalData.collector}
+        />
+      )}
+
+      {/* Voided Deposit Modal */}
+      {showVoidedDepositModal && voidedDepositModalData && (
+        <VoidedDepositModal
+          isOpen={showVoidedDepositModal}
+          onClose={() => {
+            setShowVoidedDepositModal(false);
+            setVoidedDepositModalData(null);
+          }}
+          transactionId={voidedDepositModalData.transactionId}
+          depositDate={voidedDepositModalData.depositDate}
+          bankName={voidedDepositModalData.bankName}
+          accountNumber={voidedDepositModalData.accountNumber}
+          depositAmount={voidedDepositModalData.depositAmount}
+          zone={voidedDepositModalData.zone}
+          collector={voidedDepositModalData.collector}
+          voidReason={voidedDepositModalData.voidReason}
+          voidedDate={voidedDepositModalData.voidedDate}
+          voidedBy={voidedDepositModalData.voidedBy}
+        />
+      )}
+
+      {/* Void Success Modal */}
+      <VoidSuccessModal
+        isOpen={showVoidSuccessModal}
+        onClose={() => {
+          setShowVoidSuccessModal(false);
+          setVoidedTransactionId('');
+          // Optionally refresh the data here
+        }}
+        transactionId={voidedTransactionId}
+        transactionType="deposit"
+      />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import { Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check
 import { ModernSelect } from '../ui/ModernSelect';
 import { AddCustomerPage } from './AddCustomerPage';
 import { CustomerDetailsPage } from './CustomerDetailsPage';
+import { CustomerLocationModal } from '../ui/CustomerLocationModal';
 import { 
   businessLevelOptions, 
   zoneOptions
@@ -36,6 +37,8 @@ export const CustomersPage: React.FC<CustomersPageProps> = () => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [selectedCustomerLocation, setSelectedCustomerLocation] = useState<any>(null);
   
   
   // Update document title and body attribute based on view
@@ -304,9 +307,19 @@ export const CustomersPage: React.FC<CustomersPageProps> = () => {
   const filteredAndSortedData = useMemo(() => {
     let filtered = customersData.filter(customer => {
       const matchesSearch = 
-        customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.id.toString().includes(searchTerm) ||
         customer.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerPhone.includes(searchTerm);
+        customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.customerPhone.includes(searchTerm) ||
+        customer.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.meterType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.meterNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.lastPaymentDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.amountDue.toString().includes(searchTerm) ||
+        customer.created.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.status.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesZone = !selectedZone || customer.zone === selectedZone;
       
@@ -618,7 +631,21 @@ export const CustomersPage: React.FC<CustomersPageProps> = () => {
                         <Eye className="w-4 h-4 text-white" />
                       </button>
                       <button 
-                        onClick={() => console.log('View location for:', customer.customerName)}
+                        onClick={() => {
+                          setSelectedCustomerLocation({
+                            customerName: customer.customerName,
+                            customerNumber: customer.customerNumber,
+                            customerPhone: customer.customerPhone,
+                            city: customer.city,
+                            meterNumber: customer.meterNumber,
+                            lastPaymentDate: customer.lastPaymentDate,
+                            amountDue: customer.amountDue,
+                            // Add some variation to coordinates for demo
+                            latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
+                            longitude: -0.1870 + (Math.random() - 0.5) * 0.05
+                          });
+                          setShowLocationModal(true);
+                        }}
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                         title={`View location for ${customer.customerName}`}
                       >
@@ -697,7 +724,21 @@ export const CustomersPage: React.FC<CustomersPageProps> = () => {
                   <Eye className="w-5 h-5 text-white" />
                 </button>
                 <button 
-                  onClick={() => console.log('View location for:', customer.customerName)}
+                  onClick={() => {
+                    setSelectedCustomerLocation({
+                      customerName: customer.customerName,
+                      customerNumber: customer.customerNumber,
+                      customerPhone: customer.customerPhone,
+                      city: customer.city,
+                      meterNumber: customer.meterNumber,
+                      lastPaymentDate: customer.lastPaymentDate,
+                      amountDue: customer.amountDue,
+                      // Add some variation to coordinates for demo
+                      latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
+                      longitude: -0.1870 + (Math.random() - 0.5) * 0.05
+                    });
+                    setShowLocationModal(true);
+                  }}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                   title={`View location for ${customer.customerName}`}
                 >
@@ -818,6 +859,26 @@ export const CustomersPage: React.FC<CustomersPageProps> = () => {
           </div>
         </div>
       </div>
+
+      {/* Customer Location Modal */}
+      {showLocationModal && selectedCustomerLocation && (
+        <CustomerLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setSelectedCustomerLocation(null);
+          }}
+          customerName={selectedCustomerLocation.customerName}
+          customerNumber={selectedCustomerLocation.customerNumber}
+          customerPhone={selectedCustomerLocation.customerPhone}
+          city={selectedCustomerLocation.city}
+          meterNumber={selectedCustomerLocation.meterNumber}
+          lastPaymentDate={selectedCustomerLocation.lastPaymentDate}
+          amountDue={selectedCustomerLocation.amountDue}
+          latitude={selectedCustomerLocation.latitude}
+          longitude={selectedCustomerLocation.longitude}
+        />
+      )}
     </div>
   );
 };

@@ -265,17 +265,17 @@ export const AddStorageTankPage: React.FC<AddStorageTankPageProps> = ({ onBack, 
 
       {/* Form Content */}
       <div className="max-w-6xl mx-auto p-6">
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
           
           {/* Basic Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-40">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Database className="w-5 h-5 text-white" />
                 <h2 className="text-xl font-semibold text-white">Basic Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6 overflow-visible relative">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -311,14 +311,14 @@ export const AddStorageTankPage: React.FC<AddStorageTankPageProps> = ({ onBack, 
           </div>
 
           {/* Location Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-30">
             <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-white" />
                 <h2 className="text-xl font-semibold text-white">Location Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6 overflow-visible relative">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -378,14 +378,14 @@ export const AddStorageTankPage: React.FC<AddStorageTankPageProps> = ({ onBack, 
           </div>
 
           {/* Technical Specifications Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-20">
+            <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Settings className="w-5 h-5 text-white" />
                 <h2 className="text-xl font-semibold text-white">Technical Specifications</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6 overflow-visible relative">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Throughput (L/s)</label>
@@ -459,14 +459,14 @@ export const AddStorageTankPage: React.FC<AddStorageTankPageProps> = ({ onBack, 
           </div>
 
           {/* Meter Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
-            <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 px-6 py-4">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-10">
+            <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Gauge className="w-5 h-5 text-white" />
                 <h2 className="text-xl font-semibold text-white">Meter Information</h2>
               </div>
             </div>
-            <div className="p-6 overflow-visible">
+            <div className="p-6 overflow-visible relative">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -281,7 +281,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
         <div className="space-y-6">
           
           {/* Personal Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-50">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <User className="w-5 h-5 text-white" />
@@ -337,7 +337,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           </div>
 
           {/* Contact Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-40">
             <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-white" />
@@ -380,7 +380,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           </div>
 
           {/* Location Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-30">
             <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <MapPin className="w-5 h-5 text-white" />
@@ -445,7 +445,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           </div>
 
           {/* Customer Type & Billing Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-20">
             <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Building2 className="w-5 h-5 text-white" />
@@ -486,7 +486,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           </div>
 
           {/* Meter Information Section */}
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 relative z-10">
             <div className="bg-gradient-to-r from-cyan-600 to-cyan-700 px-6 py-4 rounded-t-xl">
               <div className="flex items-center gap-3">
                 <Gauge className="w-5 h-5 text-white" />

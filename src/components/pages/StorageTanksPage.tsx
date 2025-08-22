@@ -5,6 +5,7 @@ import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddStorageTankPage } from './AddStorageTankPage';
 import { StorageTankDetailsPage } from './StorageTankDetailsPage';
 import { EditStorageTankPage } from './EditStorageTankPage';
+import { StorageTankLocationModal } from '../ui/StorageTankLocationModal';
 import { 
   storageTanksData, 
   businessLevelOptions
@@ -56,6 +57,8 @@ export const StorageTanksPage: React.FC<StorageTanksPageProps> = ({
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [selectedTank, setSelectedTank] = useState<any>(null);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -451,7 +454,20 @@ export const StorageTanksPage: React.FC<StorageTanksPageProps> = ({
                         </button>
                         {tank.gps && (
                           <button 
-                            onClick={() => console.log('GPS clicked for storage tank:', tank.storageTankName)}
+                            onClick={() => {
+                              setLocationModalData({
+                                tankId: tank.id.toString(),
+                                tankName: tank.storageTankName,
+                                tankNumber: tank.storageTankNumber,
+                                tankType: tank.storageTankType,
+                                capacity: tank.capacity,
+                                currentLevel: tank.currentLevel || 0,
+                                lastReading: tank.lastReadingDate,
+                                location: tank.location,
+                                city: tank.location
+                              });
+                              setShowLocationModal(true);
+                            }}
                             className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                             title="View GPS Location"
                           >
@@ -524,7 +540,20 @@ export const StorageTanksPage: React.FC<StorageTanksPageProps> = ({
               <div className="flex items-center gap-2">
                 {tank.gps && (
                   <button 
-                    onClick={() => console.log('GPS clicked for storage tank:', tank.storageTankName)}
+                    onClick={() => {
+                      setLocationModalData({
+                        tankId: tank.id.toString(),
+                        tankName: tank.storageTankName,
+                        tankNumber: tank.storageTankNumber,
+                        tankType: tank.storageTankType,
+                        capacity: tank.capacity,
+                        currentLevel: tank.currentLevel || 0,
+                        lastReading: tank.lastReadingDate,
+                        location: tank.location,
+                        city: tank.location
+                      });
+                      setShowLocationModal(true);
+                    }}
                     className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                   >
                     <MapPin className="w-3 h-3" />
@@ -630,6 +659,26 @@ export const StorageTanksPage: React.FC<StorageTanksPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Storage Tank Location Modal */}
+      {showLocationModal && locationModalData && (
+        <StorageTankLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          tankId={locationModalData.tankId}
+          tankName={locationModalData.tankName}
+          tankNumber={locationModalData.tankNumber}
+          tankType={locationModalData.tankType}
+          capacity={locationModalData.capacity}
+          currentLevel={locationModalData.currentLevel}
+          lastReading={locationModalData.lastReading}
+          location={locationModalData.location}
+          city={locationModalData.city}
+        />
+      )}
     </div>
   );
 };

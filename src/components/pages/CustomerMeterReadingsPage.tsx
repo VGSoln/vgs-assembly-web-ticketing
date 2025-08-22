@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Calendar, ChevronDown, ChevronUp, Camera, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
+import { MeterReadingLocationModal } from '../ui/MeterReadingLocationModal';
 import { 
   customerMeterReadingsData, 
   businessLevelOptions,
@@ -53,6 +54,8 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationModalData, setLocationModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -429,7 +432,22 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
                           )}
                           {reading.gps && (
                             <button 
-                              onClick={() => console.log('GPS clicked for customer:', reading.customerName, 'Location data would be shown')}
+                              onClick={() => {
+                                setLocationModalData({
+                                  readingId: reading.id.toString(),
+                                  customerName: reading.customerName,
+                                  customerNumber: reading.customerNumber,
+                                  phoneNumber: reading.customerPhone,
+                                  meterNumber: reading.meterNumber,
+                                  currentReading: reading.reading,
+                                  previousReading: reading.fieldReading,
+                                  consumption: reading.reading - reading.fieldReading,
+                                  readingDate: reading.readingDate,
+                                  city: reading.zone,
+                                  staffName: reading.staffName
+                                });
+                                setShowLocationModal(true);
+                              }}
                               className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                               title="View GPS Location"
                             >
@@ -507,7 +525,22 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
               <div className="flex items-center gap-2">
                 {reading.gps && (
                   <button 
-                    onClick={() => console.log('GPS clicked for customer:', reading.customerName)}
+                    onClick={() => {
+                      setLocationModalData({
+                        readingId: reading.id.toString(),
+                        customerName: reading.customerName,
+                        customerNumber: reading.customerNumber,
+                        phoneNumber: reading.customerPhone,
+                        meterNumber: reading.meterNumber,
+                        currentReading: reading.reading,
+                        previousReading: reading.fieldReading,
+                        consumption: reading.reading - reading.fieldReading,
+                        readingDate: reading.readingDate,
+                        city: reading.zone,
+                        staffName: reading.staffName
+                      });
+                      setShowLocationModal(true);
+                    }}
                     className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                     title="View GPS Location"
                   >
@@ -640,6 +673,28 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
           </div>
         </div>
       </div>
+
+      {/* Meter Reading Location Modal */}
+      {showLocationModal && locationModalData && (
+        <MeterReadingLocationModal
+          isOpen={showLocationModal}
+          onClose={() => {
+            setShowLocationModal(false);
+            setLocationModalData(null);
+          }}
+          readingId={locationModalData.readingId}
+          customerName={locationModalData.customerName}
+          customerNumber={locationModalData.customerNumber}
+          phoneNumber={locationModalData.phoneNumber}
+          meterNumber={locationModalData.meterNumber}
+          currentReading={locationModalData.currentReading}
+          previousReading={locationModalData.previousReading}
+          consumption={locationModalData.consumption}
+          readingDate={locationModalData.readingDate}
+          city={locationModalData.city}
+          staffName={locationModalData.staffName}
+        />
+      )}
     </div>
   );
 };
