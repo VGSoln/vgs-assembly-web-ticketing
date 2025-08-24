@@ -5,6 +5,14 @@ import { Header } from './layout/Header';
 import { Footer } from './layout/Footer';
 import { PerformancePage } from './pages/PerformancePage';
 import { DebtPage } from './pages/DebtPage';
+import { DashboardDetailsCustomerDebtPage } from './pages/DashboardDetailsCustomerDebtPage';
+import { DashboardDetailsYearlyWaterConnectionsPage } from './pages/DashboardDetailsYearlyWaterConnectionsPage';
+import { DashboardDetailsPaidCustomersPage } from './pages/DashboardDetailsPaidCustomersPage';
+import { DashboardDetailsNonPaidCustomersPage } from './pages/DashboardDetailsNonPaidCustomersPage';
+import { DashboardDetailsCustomersWithNoPaymentsPage } from './pages/DashboardDetailsCustomersWithNoPaymentsPage';
+import { DashboardDetailsInactiveCustomersPage } from './pages/DashboardDetailsInactiveCustomersPage';
+import { DashboardDetailsCustomersInactiveThisYearPage } from './pages/DashboardDetailsCustomersInactiveThisYearPage';
+import { CustomerPaymentStatusPage } from './pages/CustomerPaymentStatusPage';
 import { VisitsPage } from './pages/VisitsPage';
 import { VisitsListPage } from './pages/VisitsListPage';
 import { PaymentsListPage } from './pages/PaymentsListPage';
@@ -24,6 +32,7 @@ import { CollectorLocationsPage } from './pages/CollectorLocationsPage';
 import { PumpStationLocationsPage } from './pages/PumpStationLocationsPage';
 import { StorageTankLocationsPage } from './pages/StorageTankLocationsPage';
 import { CustomersPage } from './pages/CustomersPage';
+import { ReactivatedCustomersPage } from './pages/ReactivatedCustomersPage';
 import { PageType, DateRange, ActiveYears } from '@/types/dashboard';
 import { formatDate } from '@/lib/utils';
 import { menuItems } from '@/lib/data';
@@ -34,6 +43,8 @@ const Dashboard = () => {
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
   const [currentPage, setCurrentPage] = useState<PageType>('performance');
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [showCustomerDetails, setShowCustomerDetails] = useState<boolean>(false);
 
   // Date range state (Performance page)
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
@@ -169,6 +180,21 @@ const Dashboard = () => {
     setSelectedStaffId('');
   };
 
+  // Customer navigation handler
+  const handleCustomerNavigation = (customerId: string) => {
+    setSelectedCustomerId(customerId);
+    setShowCustomerDetails(true);
+    setCurrentPage('customers');
+  };
+
+  // Reset customer navigation state when leaving customers page
+  useEffect(() => {
+    if (currentPage !== 'customers' && currentPage !== 'customer-details') {
+      setSelectedCustomerId('');
+      setShowCustomerDetails(false);
+    }
+  }, [currentPage]);
+
   // Render page content based on current page
   const renderPageContent = () => {
     switch (currentPage) {
@@ -185,6 +211,7 @@ const Dashboard = () => {
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
             onToggleYear={toggleYear}
+            onNavigate={(page) => setCurrentPage(page as PageType)}
           />
         );
         
@@ -198,6 +225,114 @@ const Dashboard = () => {
             onMonthChange={setSelectedMonth}
             onYearChange={setSelectedYear}
             onMonthYearApply={handleMonthYearSelect}
+            onNavigate={(page, filter) => {
+              if (filter && filter.monthsOwed !== undefined) {
+                sessionStorage.setItem('customerDebtFilter', JSON.stringify({ monthsOwed: filter.monthsOwed }));
+              }
+              setCurrentPage(page as PageType);
+            }}
+          />
+        );
+        
+      case 'dashboard-details-customer-debt':
+        return (
+          <DashboardDetailsCustomerDebtPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('performance')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'dashboard-details-yearly-water-connections':
+        return (
+          <DashboardDetailsYearlyWaterConnectionsPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('performance')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'dashboard-details-paid-customers':
+        return (
+          <DashboardDetailsPaidCustomersPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('performance')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'dashboard-details-non-paid-customers':
+        return (
+          <DashboardDetailsNonPaidCustomersPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('debt')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'dashboard-details-customers-with-no-payments':
+        return (
+          <DashboardDetailsCustomersWithNoPaymentsPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('debt')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'dashboard-details-inactive-customers':
+        return <DashboardDetailsInactiveCustomersPage onNavigate={setCurrentPage} />;
+        
+      case 'dashboard-details-customers-inactive-this-year':
+        return <DashboardDetailsCustomersInactiveThisYearPage onNavigate={setCurrentPage} />;
+        
+      case 'customer-payment-status':
+        return (
+          <CustomerPaymentStatusPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('performance')}
+            onCustomerClick={handleCustomerNavigation}
           />
         );
         
@@ -225,6 +360,7 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
+            onCustomerClick={handleCustomerNavigation}
           />
         );
 
@@ -355,7 +491,16 @@ const Dashboard = () => {
 
       case 'customers':
       case 'customer-details':
-        return <CustomersPage />;
+        return <CustomersPage 
+          initialCustomerId={selectedCustomerId}
+          initialShowDetails={showCustomerDetails}
+        />;
+        
+      case 'reactivated-customers':
+        return <ReactivatedCustomersPage 
+          initialCustomerId={selectedCustomerId}
+          initialShowDetails={showCustomerDetails}
+        />;
         
       default:
         return null;

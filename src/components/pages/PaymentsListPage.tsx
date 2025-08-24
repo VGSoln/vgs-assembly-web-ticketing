@@ -238,6 +238,7 @@ interface PaymentsListPageProps {
   onPresetSelect: (preset: string) => void;
   onDateRangeChange: (range: DateRange) => void;
   onDateRangeApply: () => void;
+  onCustomerClick?: (customerId: string) => void;
 }
 
 type SortConfig = {
@@ -253,7 +254,8 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
   onDateRangeToggle,
   onPresetSelect,
   onDateRangeChange,
-  onDateRangeApply
+  onDateRangeApply,
+  onCustomerClick
 }) => {
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
@@ -285,7 +287,7 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
 
   const columns = [
     { key: 'transId', label: 'Trans ID', sortable: true, width: '11%' },
-    { key: 'customerName', label: 'Cust. Name', sortable: true, width: '11%' },
+    { key: 'customerName', label: 'Customer Name', sortable: true, width: '11%' },
     { key: 'customerNumber', label: 'Cust #', sortable: true, width: '8%' },
     { key: 'phone', label: 'Phone', sortable: true, width: '7%' },
     { key: 'amount', label: 'Amt', sortable: true, width: '6%' },
@@ -293,7 +295,7 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
     { key: 'type', label: 'Type', sortable: true, width: '5%' },
     { key: 'zone', label: 'Zone', sortable: true, width: '4%' },
     { key: 'periodEnd', label: 'Period End', sortable: true, width: '6%' },
-    { key: 'customerType', label: 'Cust. Type', sortable: true, width: '6%' },
+    { key: 'customerType', label: 'Customer Type', sortable: true, width: '6%' },
     { key: 'dateTime', label: 'Date & Time', sortable: true, width: '9%' },
     { key: 'created', label: 'Created', sortable: true, width: '9%' },
     { key: 'status', label: 'Status', sortable: true, width: '4%' },
@@ -572,14 +574,14 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100">
-                  <a href="#" className="text-blue-600 hover:text-blue-800 block transition-colors duration-200 hover:underline">
+                  <a href="#" onClick={() => onCustomerClick?.(payment.customerNumber)} className="text-blue-600 hover:text-blue-800 block transition-colors duration-200 hover:underline">
                     {payment.customerName}
                   </a>
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100">
-                  <span className="font-mono text-xs block">
+                  <a href="#" onClick={() => onCustomerClick?.(payment.customerNumber)} className="text-blue-600 hover:text-blue-800 break-all leading-tight transition-colors duration-200 hover:underline text-xs font-mono">
                     {payment.customerNumber}
-                  </span>
+                  </a>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
                   <div className="font-mono text-xs">
@@ -845,7 +847,7 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Trans ID: {payment.transId}</h3>
-                <a href="#" className="text-blue-600 hover:text-blue-800 underline font-medium">
+                <a href="#" onClick={() => onCustomerClick?.(payment.customerNumber)} className="text-blue-600 hover:text-blue-800 underline font-medium">
                   {payment.customerNumber}
                 </a>
               </div>
@@ -909,7 +911,7 @@ export const PaymentsListPage: React.FC<PaymentsListPageProps> = ({
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</label>
-                  <p className="text-sm font-medium text-gray-900">{payment.customerName}</p>
+                  <a href="#" onClick={() => onCustomerClick?.(payment.customerNumber)} className="text-sm text-blue-600 hover:text-blue-800 break-words leading-tight cursor-pointer hover:underline transition-colors duration-200 font-medium">{payment.customerName}</a>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</label>

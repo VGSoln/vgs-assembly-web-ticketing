@@ -1,0 +1,52 @@
+/* Remove all focus outlines from pie charts */
+.pie-chart-container,
+.pie-chart-container *,
+.pie-chart-container *:focus,
+.pie-chart-container *:active,
+.pie-chart-container *:focus-visible,
+.pie-chart-container svg,
+.pie-chart-container svg *,
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-surface,
+.recharts-surface *,
+.recharts-container,
+.recharts-container *,
+.recharts-layer,
+.recharts-pie,
+.recharts-pie *,
+.recharts-pie-sector,
+g[class*="recharts"],
+g[class*="recharts"] *,
+path[class*="recharts"],
+[class*="recharts"]:focus,
+[class*="recharts"]:focus-visible,
+[class*="recharts"]:active {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Also remove any browser default focus styles */
+.pie-chart-container:focus-within,
+.pie-chart-container:focus-within * {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure pointer cursor on all pie chart sections */
+.recharts-pie-sector,
+.recharts-layer,
+.recharts-pie path,
+.recharts-pie g,
+.recharts-sector {
+  cursor: pointer !important;
+}
+
+.recharts-pie-sector:hover,
+.recharts-layer:hover,
+.recharts-pie path:hover {
+  cursor: pointer !important;
+}

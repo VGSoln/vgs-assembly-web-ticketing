@@ -1,13 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import React, { useState, useRef, useCallback } from 'react';
+import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import { PieDataItem } from '@/types/dashboard';
 import { Legend } from '../ui/Legend';
+import { SimplePieChart } from './SimplePieChart';
 
 interface PieChartCardProps {
   title: string;
   data: PieDataItem[];
   legendItems?: { color: string; label: string }[];
-  legendValues?: { color: string; label: string; value: string }[];
+  legendValues?: { color: string; label: string; value: string; onClick?: () => void }[];
   width?: number;
   height?: number;
   className?: string;
@@ -67,6 +68,30 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
     setTooltip({ visible: false, x: 0, y: 0, data: null });
   };
 
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  const handlePieEnter = useCallback((_, index: number) => {
+    setActiveIndex(index);
+  }, []);
+
+  const handlePieLeave = useCallback(() => {
+    setActiveIndex(null);
+  }, []);
+
+  const handlePieClick = useCallback((data: any, index: number) => {
+    console.log('handlePieClick called with:', data, index);
+    alert(`Testing click on index ${index}`);
+    if (!data) return;
+    
+    const legendValue = legendValues?.find(lv => lv.color === data.color);
+    console.log('Found legend value:', legendValue);
+    
+    if (legendValue?.onClick) {
+      alert(`Navigating to ${legendValue.label}`);
+      legendValue.onClick();
+    }
+  }, [legendValues]);
+
   const renderTooltip = () => {
     if (!tooltip.visible || !tooltip.data) return null;
 
@@ -107,34 +132,18 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
       )}
       
       <div className="flex items-center justify-center mb-2">
-        <div 
-          className="relative" 
-          style={{ width, height }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, data: null })}
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={data}
-                cx="50%"
-                cy="50%"
-                innerRadius={0}
-                outerRadius={120}
-                dataKey="value"
-              >
-                {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.color}
-                    onMouseEnter={(event) => handleMouseEnter(entry, event)}
-                    onMouseLeave={handleCellMouseLeave}
-                    style={{ cursor: 'pointer' }}
-                  />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+        <div className="relative" onMouseMove={handleMouseMove} onMouseLeave={() => setTooltip({ visible: false, x: 0, y: 0, data: null })}>
+          <SimplePieChart
+            data={data}
+            width={width}
+            height={height}
+            onSectionClick={(index, clickedData) => {
+              const legendValue = legendValues?.find(lv => lv.color === clickedData.color);
+              if (legendValue?.onClick) {
+                legendValue.onClick();
+              }
+            }}
+          />
           {renderTooltip()}
         </div>
       </div>
@@ -142,9 +151,15 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
       {legendValues && (
         <div className="flex flex-wrap gap-2 justify-center">
           {legendValues.map((item, index) => (
-            <div key={index} className={`text-white px-3 py-1 rounded text-xs font-medium`} style={{ backgroundColor: item.color }}>
+            <button 
+              key={index} 
+              className={`text-white px-3 py-1 rounded text-xs font-medium ${item.onClick ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`} 
+              style={{ backgroundColor: item.color }}
+              onClick={item.onClick}
+              disabled={!item.onClick}
+            >
               {item.value}
-            </div>
+            </button>
           ))}
         </div>
       )}

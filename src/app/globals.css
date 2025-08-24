@@ -5,6 +5,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-10px {
+    font-size: 10px;
+  }
+  .text-11px {
+    font-size: 11px;
+  }
+}
+
 /* Fix Leaflet default markers */
 .leaflet-default-icon-path {
   background-image: url('https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png');

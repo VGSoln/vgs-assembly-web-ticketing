@@ -296,7 +296,7 @@ export const PumpStationLocationModal: React.FC<PumpStationLocationModalProps> =
 
                 {lastReading && (
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading Date</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Reading Date</p>
                     <p className="text-sm font-semibold text-gray-900">{lastReading}</p>
                   </div>
                 )}
@@ -312,7 +312,7 @@ export const PumpStationLocationModal: React.FC<PumpStationLocationModalProps> =
                     {operationalStatus}
                   </p>
                   <div className="mt-2">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Reading</p>
                     <p className="text-2xl font-bold text-blue-600">{(reading || flowRate).toLocaleString()}</p>
                   </div>
                 </div>

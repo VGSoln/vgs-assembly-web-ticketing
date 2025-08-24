@@ -15,6 +15,7 @@ interface DebtPageProps {
   onMonthChange: (month: string) => void;
   onYearChange: (year: string) => void;
   onMonthYearApply: () => void;
+  onNavigate?: (page: string, filter?: any) => void;
 }
 
 export const DebtPage: React.FC<DebtPageProps> = ({
@@ -24,7 +25,8 @@ export const DebtPage: React.FC<DebtPageProps> = ({
   onMonthYearToggle,
   onMonthChange,
   onYearChange,
-  onMonthYearApply
+  onMonthYearApply,
+  onNavigate
 }) => {
   const businessCenterOptions = [
     { value: 'center1', label: 'Center 1' },
@@ -55,8 +57,18 @@ export const DebtPage: React.FC<DebtPageProps> = ({
   ];
 
   const paidCustomersValues = [
-    { color: '#10b981', label: 'Paid', value: '118 (7.44%)' },
-    { color: '#dc2626', label: 'Non Paid', value: '1,468 (92.56%)' }
+    { 
+      color: '#10b981', 
+      label: 'Paid', 
+      value: '118 (7.44%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-paid-customers')
+    },
+    { 
+      color: '#dc2626', 
+      label: 'Non Paid', 
+      value: '1,468 (92.56%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-non-paid-customers')
+    }
   ];
 
   const totalDebtValues = [
@@ -65,11 +77,36 @@ export const DebtPage: React.FC<DebtPageProps> = ({
   ];
 
   const debtByMonthsValues = [
-    { color: '#10b981', label: 'No Debt', value: '125 (8.70%)' },
-    { color: '#3b82f6', label: '1 Month', value: '491 (34.17%)' },
-    { color: '#8b5cf6', label: '2 Month', value: '307 (21.36%)' },
-    { color: '#f59e0b', label: '3 Month', value: '174 (12.11%)' },
-    { color: '#dc2626', label: '4+ Month', value: '340 (23.66%)' }
+    { 
+      color: '#10b981', 
+      label: 'No Debt', 
+      value: '125 (8.70%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-customer-debt', { monthsOwed: 0 })
+    },
+    { 
+      color: '#3b82f6', 
+      label: '1 Month', 
+      value: '491 (34.17%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-customer-debt', { monthsOwed: 1 })
+    },
+    { 
+      color: '#8b5cf6', 
+      label: '2 Month', 
+      value: '307 (21.36%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-customer-debt', { monthsOwed: 2 })
+    },
+    { 
+      color: '#f59e0b', 
+      label: '3 Month', 
+      value: '174 (12.11%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-customer-debt', { monthsOwed: 3 })
+    },
+    { 
+      color: '#dc2626', 
+      label: '4+ Month', 
+      value: '340 (23.66%)',
+      onClick: () => onNavigate && onNavigate('dashboard-details-customer-debt', { monthsOwed: 4 })
+    }
   ];
 
   return (
@@ -128,7 +165,9 @@ export const DebtPage: React.FC<DebtPageProps> = ({
           <div className="bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <Users size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate && onNavigate('dashboard-details-customers-inactive-this-year')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>
@@ -141,7 +180,9 @@ export const DebtPage: React.FC<DebtPageProps> = ({
           <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <UserX size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate('dashboard-details-inactive-customers')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>
@@ -154,7 +195,9 @@ export const DebtPage: React.FC<DebtPageProps> = ({
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <AlertTriangle size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate('dashboard-details-customers-with-no-payments')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>

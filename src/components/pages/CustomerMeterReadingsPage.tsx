@@ -3,6 +3,7 @@ import { Calendar, ChevronDown, ChevronUp, Camera, MapPin, Search, Copy, FileTex
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { MeterReadingLocationModal } from '../ui/MeterReadingLocationModal';
+import { MeterPhotoModal } from '../ui/MeterPhotoModal';
 import { 
   customerMeterReadingsData, 
   businessLevelOptions,
@@ -56,6 +57,8 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
   const [exportStatus, setExportStatus] = useState<string>('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationModalData, setLocationModalData] = useState<any>(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoModalData, setPhotoModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -423,7 +426,19 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
                         <div className="flex flex-col items-center gap-1">
                           {reading.picture && (
                             <button 
-                              onClick={() => console.log('Picture clicked for customer:', reading.customerName)}
+                              onClick={() => {
+                                setPhotoModalData({
+                                  readingId: reading.id.toString(),
+                                  meterNumber: reading.meterNumber,
+                                  customerName: reading.customerName,
+                                  customerNumber: reading.customerNumber,
+                                  readingDate: reading.readingDate,
+                                  readingValue: reading.reading,
+                                  volume: reading.reading - reading.fieldReading,
+                                  staffName: reading.staffName
+                                });
+                                setShowPhotoModal(true);
+                              }}
                               className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                               title="View Picture"
                             >
@@ -549,7 +564,19 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
                 )}
                 {reading.picture && (
                   <button 
-                    onClick={() => console.log('Picture clicked for customer:', reading.customerName)}
+                    onClick={() => {
+                      setPhotoModalData({
+                        readingId: reading.id.toString(),
+                        meterNumber: reading.meterNumber,
+                        customerName: reading.customerName,
+                        customerNumber: reading.customerNumber,
+                        readingDate: reading.readingDate,
+                        readingValue: reading.reading,
+                        volume: reading.reading - reading.fieldReading,
+                        staffName: reading.staffName
+                      });
+                      setShowPhotoModal(true);
+                    }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                     title="View Picture"
                   >
@@ -693,6 +720,25 @@ export const CustomerMeterReadingsPage: React.FC<CustomerMeterReadingsPageProps>
           readingDate={locationModalData.readingDate}
           city={locationModalData.city}
           staffName={locationModalData.staffName}
+        />
+      )}
+
+      {/* Meter Photo Modal */}
+      {showPhotoModal && photoModalData && (
+        <MeterPhotoModal
+          isOpen={showPhotoModal}
+          onClose={() => {
+            setShowPhotoModal(false);
+            setPhotoModalData(null);
+          }}
+          readingId={photoModalData.readingId}
+          meterNumber={photoModalData.meterNumber}
+          customerName={photoModalData.customerName}
+          customerNumber={photoModalData.customerNumber}
+          readingDate={photoModalData.readingDate}
+          readingValue={photoModalData.readingValue}
+          volume={photoModalData.volume}
+          staffName={photoModalData.staffName}
         />
       )}
     </div>

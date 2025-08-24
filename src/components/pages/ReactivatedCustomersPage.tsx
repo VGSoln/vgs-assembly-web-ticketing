@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, Eye, MapPin, ArrowUpDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
+import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddCustomerPage } from './AddCustomerPage';
 import { CustomerDetailsPage } from './CustomerDetailsPage';
 import { CustomerLocationModal } from '../ui/CustomerLocationModal';
@@ -16,13 +17,14 @@ interface Customer {
   customerName: string;
   customerPhone: string;
   customerType: 'Domestic' | 'Non-Residential';
-  meterType: 'Manual' | 'Digital';
   meterNumber: string;
-  city: string;
   zone: string;
   lastPaymentDate: string;
   amountDue: number;
-  created: string;
+  reactivatedDate: string;
+  reactivationReason: string;
+  deactivationDate: string;
+  deactivationReason: string;
   status: 'Active' | 'Inactive';
 }
 
@@ -31,12 +33,12 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
-interface CustomersPageProps {
+interface ReactivatedCustomersPageProps {
   initialCustomerId?: string;
   initialShowDetails?: boolean;
 }
 
-export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId, initialShowDetails }) => {
+export const ReactivatedCustomersPage: React.FC<ReactivatedCustomersPageProps> = ({ initialCustomerId, initialShowDetails }) => {
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(initialShowDetails || false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialCustomerId || '');
@@ -94,12 +96,17 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
 
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
-  const [selectedMonthsSincePayment, setSelectedMonthsSincePayment] = useState('');
   const [entriesPerPage, setEntriesPerPage] = useState('50');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
+  
+  // Date range state
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const [selectedDateRange, setSelectedDateRange] = useState({ start: '2025-08-01', end: '2025-08-31' });
+  const [displayDateRange, setDisplayDateRange] = useState('Aug 1 - Aug 31, 2025');
+  const [activePreset, setActivePreset] = useState('');
 
   // Mock data based on the screenshot
   const customersData: Customer[] = [
@@ -109,13 +116,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDALLAH IBRAHIM',
       customerPhone: '0244304995',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '200307953',
-      city: 'DANFA',
       zone: 'ZONE 4',
       lastPaymentDate: '01 Aug 2025',
       amountDue: 0.00,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '15 Dec 2024',
+      deactivationReason: 'Non-payment',
+      reactivatedDate: '10 Jan 2025',
+      reactivationReason: 'Payment received',
       status: 'Active'
     },
     {
@@ -124,13 +132,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDALLAH MOHAMMED SAANI',
       customerPhone: '0243114560',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '200508606-A',
-      city: 'HABITAT C',
       zone: 'ZONE 8',
       lastPaymentDate: '19 Jun 2025',
       amountDue: 337.34,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '20 Nov 2024',
+      deactivationReason: 'Customer request',
+      reactivatedDate: '15 Jan 2025',
+      reactivationReason: 'Service resumption requested',
       status: 'Active'
     },
     {
@@ -139,13 +148,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL HAMMED MUMIN AKANDE',
       customerPhone: '0553467420',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150737',
-      city: 'NEW KWEIMAN',
       zone: 'ZONE 2',
       lastPaymentDate: '29 Jul 2025',
       amountDue: 388.65,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '10 Oct 2024',
+      deactivationReason: 'Meter tampering',
+      reactivatedDate: '20 Jan 2025',
+      reactivationReason: 'Issue resolved',
       status: 'Active'
     },
     {
@@ -154,13 +164,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL KARIM IDRIS 1',
       customerPhone: '0532612960',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150287',
-      city: 'NEW ADOTEIMAN',
       zone: 'ZONE 3',
       lastPaymentDate: '21 Jul 2025',
       amountDue: 674.08,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '05 Sep 2024',
+      deactivationReason: 'Property renovation',
+      reactivatedDate: '25 Jan 2025',
+      reactivationReason: 'Renovation completed',
       status: 'Active'
     },
     {
@@ -169,13 +180,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL KARIM IDRIS 2',
       customerPhone: '1111111111',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150456',
-      city: 'NEW ADOTEIMAN',
       zone: 'ZONE 3',
       lastPaymentDate: '01 Nov 2024',
       amountDue: 93.80,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '01 Aug 2024',
+      deactivationReason: 'Account dormant',
+      reactivatedDate: '30 Jan 2025',
+      reactivationReason: 'Customer returned',
       status: 'Active'
     },
     {
@@ -184,13 +196,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL KARIM IDRIS 3',
       customerPhone: '111111111',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150458',
-      city: 'NEW ADOTEIMAN',
       zone: 'ZONE 3',
       lastPaymentDate: '01 Nov 2024',
       amountDue: -75.88,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '15 Jul 2024',
+      deactivationReason: 'Customer relocated',
+      reactivatedDate: '05 Feb 2025',
+      reactivationReason: 'New tenant registered',
       status: 'Active'
     },
     {
@@ -199,13 +212,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL KARIM IDRIS 4',
       customerPhone: '0558682403',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150391',
-      city: 'NEW ADOTEIMAN',
       zone: 'ZONE 3',
       lastPaymentDate: '30 Jan 2025',
       amountDue: 201.44,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '20 Jun 2024',
+      deactivationReason: 'Non-payment',
+      reactivatedDate: '10 Feb 2025',
+      reactivationReason: 'Payment plan established',
       status: 'Active'
     },
     {
@@ -214,13 +228,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL LATIF ABDULAI',
       customerPhone: '0203646915',
       customerType: 'Non-Residential',
-      meterType: 'Manual',
       meterNumber: '220150462',
-      city: 'DANFA',
       zone: 'ZONE 4',
       lastPaymentDate: '14 Aug 2025',
       amountDue: -10.52,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '10 May 2024',
+      deactivationReason: 'Business closure',
+      reactivatedDate: '15 Feb 2025',
+      reactivationReason: 'Business reopened',
       status: 'Active'
     },
     {
@@ -229,13 +244,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL RASHID MUSAH',
       customerPhone: '0240915672',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '170601106',
-      city: 'NEW ADOTEIMAN',
       zone: 'ZONE 3',
       lastPaymentDate: '13 Aug 2025',
       amountDue: 0.20,
-      created: '01 Nov 2024 12:00 AM',
+      deactivationDate: '25 Apr 2024',
+      deactivationReason: 'Meter fault',
+      reactivatedDate: '20 Feb 2025',
+      reactivationReason: 'Meter repaired',
       status: 'Active'
     },
     {
@@ -244,13 +260,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
       customerName: 'ABDUL RAZAK FUSEINI MUSTAPHA',
       customerPhone: '0242911766',
       customerType: 'Domestic',
-      meterType: 'Manual',
       meterNumber: '220150465',
-      city: 'NEW KWEIMAN',
       zone: 'ZONE 2',
       lastPaymentDate: '07 Aug 2025',
       amountDue: -347.32,
-      created: '06 Mar 2025 12:00 AM',
+      deactivationDate: '01 Mar 2024',
+      deactivationReason: 'Extended absence',
+      reactivatedDate: '06 Mar 2025',
+      reactivationReason: 'Customer returned',
       status: 'Active'
     }
   ];
@@ -262,28 +279,20 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
     { value: '100', label: '100' }
   ];
 
-  const monthsSincePaymentOptions = [
-    { value: '0', label: 'Current' },
-    { value: '1', label: '1 Month' },
-    { value: '2', label: '2 Months' },
-    { value: '3', label: '3 Months' },
-    { value: '4+', label: '4+ Months' }
-  ];
-
   const columns = [
-    { key: 'customerNumber', label: 'Customer #', sortable: true, width: '10%' },
-    { key: 'customerName', label: 'Name', sortable: true, width: '15%' },
-    { key: 'customerPhone', label: 'Phone', sortable: true, width: '10%' },
-    { key: 'customerType', label: 'Type', sortable: true, width: '8%' },
-    { key: 'meterType', label: 'Meter Type', sortable: true, width: '8%' },
-    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '10%' },
-    { key: 'city', label: 'City', sortable: true, width: '8%' },
+    { key: 'customerNumber', label: 'Customer #', sortable: true, width: '9%' },
+    { key: 'customerName', label: 'Name', sortable: true, width: '12%' },
+    { key: 'customerPhone', label: 'Phone', sortable: true, width: '9%' },
+    { key: 'customerType', label: 'Type', sortable: true, width: '7%' },
+    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '9%' },
     { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
-    { key: 'lastPaymentDate', label: 'Last Payment', sortable: true, width: '10%' },
+    { key: 'lastPaymentDate', label: 'Last Payment', sortable: true, width: '9%' },
     { key: 'amountDue', label: 'Amount Due', sortable: true, width: '8%' },
-    { key: 'created', label: 'Created', sortable: true, width: '8%' },
-    { key: 'status', label: 'Status', sortable: false, width: '6%' },
-    { key: 'actions', label: 'Details', sortable: false, width: '8%' }
+    { key: 'deactivationDate', label: 'Deactivation Date', sortable: true, width: '10%' },
+    { key: 'deactivationReason', label: 'Deactivation Reason', sortable: true, width: '11%' },
+    { key: 'reactivatedDate', label: 'Reactivated Date', sortable: true, width: '10%' },
+    { key: 'reactivationReason', label: 'Reactivation Reason', sortable: true, width: '11%' },
+    { key: 'status', label: 'Status', sortable: false, width: '5%' }
   ];
 
   // Sorting function
@@ -315,13 +324,14 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
         customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.customerPhone.includes(searchTerm) ||
         customer.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.meterType.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.meterNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.lastPaymentDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.amountDue.toString().includes(searchTerm) ||
-        customer.created.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.deactivationDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.deactivationReason.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.reactivatedDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.reactivationReason.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.status.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesZone = !selectedZone || customer.zone === selectedZone;
@@ -384,19 +394,35 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
 
   return (
     <div className="space-y-3">
-      {/* Top Action Row */}
-      <div className="flex justify-end items-center mb-4">
-        <button 
-          onClick={handleAddCustomer}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Add New Customer
-        </button>
-      </div>
-
       {/* Filters Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-3">
+        <DateRangePicker
+          isOpen={dateRangeOpen}
+          selectedDateRange={selectedDateRange}
+          displayDateRange={displayDateRange}
+          activePreset={activePreset}
+          onToggle={() => setDateRangeOpen(!dateRangeOpen)}
+          onPresetSelect={(presetKey) => {
+            setActivePreset(presetKey);
+            // You would typically update the date range based on the preset here
+          }}
+          onDateChange={(range) => {
+            setSelectedDateRange(range);
+            setActivePreset('');
+          }}
+          onApplyRange={() => {
+            setDateRangeOpen(false);
+            // Format the display range
+            const start = new Date(selectedDateRange.start);
+            const end = new Date(selectedDateRange.end);
+            const formatDate = (date: Date) => {
+              const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+              return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+            };
+            setDisplayDateRange(`${formatDate(start)} - ${formatDate(end)}`);
+          }}
+        />
+        
         <ModernSelect
           placeholder="Select Business Center"
           options={businessLevelOptions}
@@ -409,13 +435,6 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
           options={zoneOptions}
           value={selectedZone}
           onChange={setSelectedZone}
-        />
-
-        <ModernSelect
-          placeholder="Months Since Last Payment"
-          options={monthsSincePaymentOptions}
-          value={selectedMonthsSincePayment}
-          onChange={setSelectedMonthsSincePayment}
         />
       </div>
 
@@ -584,19 +603,9 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
                       {customer.customerType}
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
-                    <span className="text-xs font-semibold">
-                      {customer.meterType}
-                    </span>
-                  </td>
                   <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
                     <div className="break-all leading-tight font-mono text-10px bg-slate-100 px-1 py-0.5 rounded text-center">
                       {customer.meterNumber}
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 font-medium">
-                    <div className="break-words leading-tight">
-                      {customer.city}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
@@ -612,49 +621,30 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
                   <td className={`px-2 py-2 text-xs border-r border-gray-100 text-center font-bold ${getAmountColor(customer.amountDue)}`}>
                     {formatCurrency(customer.amountDue)}
                   </td>
-                  <td className="px-2 py-2 text-xs text-slate-600 border-r border-gray-100">
-                    <div className="leading-tight text-center break-words">
-                      <div className="font-bold text-slate-800">{customer.created.split(' ').slice(0, 3).join(' ')}</div>
-                      <div className="text-xs text-slate-500">{customer.created.split(' ').slice(3).join(' ')}</div>
+                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100">
+                    <div className="leading-tight text-center break-words font-semibold">
+                      {customer.deactivationDate}
                     </div>
                   </td>
-                  <td className="px-2 py-2 border-r border-gray-100 text-center">
+                  <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="break-words leading-tight">
+                      {customer.deactivationReason}
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100">
+                    <div className="leading-tight text-center break-words font-semibold">
+                      {customer.reactivatedDate}
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="break-words leading-tight">
+                      {customer.reactivationReason}
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-center">
                     <span className="inline-flex px-1 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800">
                       {customer.status}
                     </span>
-                  </td>
-                  <td className="px-2 py-2 text-center">
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <button 
-                        type="button"
-                        onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                        title={`View details for ${customer.customerName}`}
-                      >
-                        <Eye className="w-4 h-4 text-white" />
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setSelectedCustomerLocation({
-                            customerName: customer.customerName,
-                            customerNumber: customer.customerNumber,
-                            customerPhone: customer.customerPhone,
-                            city: customer.city,
-                            meterNumber: customer.meterNumber,
-                            lastPaymentDate: customer.lastPaymentDate,
-                            amountDue: customer.amountDue,
-                            // Add some variation to coordinates for demo
-                            latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
-                            longitude: -0.1870 + (Math.random() - 0.5) * 0.05
-                          });
-                          setShowLocationModal(true);
-                        }}
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                        title={`View location for ${customer.customerName}`}
-                      >
-                        <MapPin className="w-4 h-4 text-white" />
-                      </button>
-                    </div>
                   </td>
                 </tr>
               ))}
@@ -717,37 +707,6 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
                   {customer.customerNumber}
                 </button>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                <button 
-                  type="button"
-                  onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
-                  className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  title={`View details for ${customer.customerName}`}
-                >
-                  <Eye className="w-5 h-5 text-white" />
-                </button>
-                <button 
-                  onClick={() => {
-                    setSelectedCustomerLocation({
-                      customerName: customer.customerName,
-                      customerNumber: customer.customerNumber,
-                      customerPhone: customer.customerPhone,
-                      city: customer.city,
-                      meterNumber: customer.meterNumber,
-                      lastPaymentDate: customer.lastPaymentDate,
-                      amountDue: customer.amountDue,
-                      // Add some variation to coordinates for demo
-                      latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
-                      longitude: -0.1870 + (Math.random() - 0.5) * 0.05
-                    });
-                    setShowLocationModal(true);
-                  }}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  title={`View location for ${customer.customerName}`}
-                >
-                  <MapPin className="w-5 h-5 text-white" />
-                </button>
-              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -761,16 +720,16 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
                   <p className="text-sm font-medium text-gray-900">{customer.customerType}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Meter Type</label>
-                  <p className="text-sm text-gray-700">{customer.meterType}</p>
-                </div>
-                <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Meter Number</label>
                   <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.meterNumber}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">City</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.city}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deactivation Date</label>
+                  <p className="text-sm font-medium text-gray-900">{customer.deactivationDate}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deactivation Reason</label>
+                  <p className="text-sm text-gray-700">{customer.deactivationReason}</p>
                 </div>
               </div>
               
@@ -792,11 +751,12 @@ export const CustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId,
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</label>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{customer.created.split(' ').slice(0, 3).join(' ')}</p>
-                    <p className="text-xs text-gray-500">{customer.created.split(' ').slice(3).join(' ')}</p>
-                  </div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reactivated Date</label>
+                  <p className="text-sm font-bold text-gray-900">{customer.reactivatedDate}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Reactivation Reason</label>
+                  <p className="text-sm text-gray-700">{customer.reactivationReason}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>

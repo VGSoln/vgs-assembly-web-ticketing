@@ -70,12 +70,30 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Storage Tank Locations';
       case 'customers':
         return isCustomerDetails ? 'Customer Detail Information' : 'Customer List';
+      case 'reactivated-customers':
+        return 'Reactivated Customer List';
       case 'customer-details':
         return 'Customer Detail Information';
       case 'payments':
         return 'Payment Transactions';
       case 'bank-deposits':
         return 'Bank Deposit Transactions';
+      case 'dashboard-details-customer-debt':
+        return 'Customer Debt';
+      case 'dashboard-details-yearly-water-connections':
+        return 'Yearly Water Connections';
+      case 'dashboard-details-paid-customers':
+        return 'Paid Customers';
+      case 'dashboard-details-non-paid-customers':
+        return 'Non-Paid Customers';
+      case 'dashboard-details-customers-with-no-payments':
+        return 'Customers with No Payments';
+      case 'dashboard-details-inactive-customers':
+        return 'Inactive Customers';
+      case 'dashboard-details-customers-inactive-this-year':
+        return 'Customers made Inactive this Year';
+      case 'customer-payment-status':
+        return 'Paid Customers';
       default:
         return 'Dashboard';
     }
@@ -121,12 +139,30 @@ export const Header: React.FC<HeaderProps> = ({
         return 'GPS';
       case 'customers':
         return 'Customers';
+      case 'reactivated-customers':
+        return 'Customers';
       case 'customer-details':
         return 'Customers';
       case 'payments':
         return 'Payments';
       case 'bank-deposits':
         return 'Bank Deposits';
+      case 'dashboard-details-customer-debt':
+        return 'Dashboard Details';
+      case 'dashboard-details-yearly-water-connections':
+        return 'Dashboard Details';
+      case 'dashboard-details-paid-customers':
+        return 'Dashboard Details';
+      case 'dashboard-details-non-paid-customers':
+        return 'Dashboard Details';
+      case 'dashboard-details-customers-with-no-payments':
+        return 'Dashboard Details';
+      case 'dashboard-details-inactive-customers':
+        return 'Dashboard Details';
+      case 'dashboard-details-customers-inactive-this-year':
+        return 'Dashboard Details';
+      case 'customer-payment-status':
+        return 'Customer Payment Status';
       default:
         return 'Dashboard';
     }

@@ -8,6 +8,7 @@ import { ReceiptModal } from '../ui/ReceiptModal';
 import { LocationModal } from '../ui/LocationModal';
 import { CustomerLocationMap } from '../ui/CustomerLocationMap';
 import { VisitLocationModal } from '../ui/VisitLocationModal';
+import { DeactivationModal } from '../ui/DeactivationModal';
 
 interface CustomerDetailsPageProps {
   customerId?: string;
@@ -53,6 +54,7 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
   const [showEditCustomer, setShowEditCustomer] = useState(false);
   const [showLogCallModal, setShowLogCallModal] = useState(false);
   const [showSmsSuccessModal, setShowSmsSuccessModal] = useState(false);
+  const [showDeactivationModal, setShowDeactivationModal] = useState(false);
 
   // Mock customer data - in a real app, this would come from an API
   const customerData = {
@@ -560,9 +562,11 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <button 
+                onClick={() => setShowDeactivationModal(true)}
+                className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 hover:bg-green-200 transition-colors cursor-pointer">
                 {customerData.status}
-              </span>
+              </button>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setShowEditCustomer(true)}
@@ -1934,6 +1938,21 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
         onClose={() => setShowLogCallModal(false)}
         onSave={handleSaveCallLog}
         customerName={customerData.name}
+      />
+
+      {/* Deactivation Modal */}
+      <DeactivationModal
+        isOpen={showDeactivationModal}
+        onClose={() => setShowDeactivationModal(false)}
+        customerNumber={customerData.customerNumber}
+        customerName={customerData.name}
+        customerPhone={customerData.phone}
+        meterNumber={customerData.meterNumber}
+        onConfirm={(reason) => {
+          console.log('Deactivating customer:', customerData.customerNumber, 'Reason:', reason);
+          // Here you would typically make an API call to deactivate the customer
+          setShowDeactivationModal(false);
+        }}
       />
 
       {/* Receipt Modal */}

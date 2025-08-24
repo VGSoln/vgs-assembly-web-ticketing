@@ -5,7 +5,7 @@
 **Project Name:** Community Water and Sanitation Agency (CWSA) Dashboard  
 **Technology Stack:** Next.js 15, TypeScript, Tailwind CSS, Recharts, Lucide React, Leaflet, React Leaflet  
 **Development Status:** Active Development  
-**Last Updated:** August 22, 2025 (Version 3.3)  
+**Last Updated:** August 24, 2025 (Version 3.4)  
 **Package Name:** cwsa-dashboard  
 **Version:** 0.1.0
 
@@ -366,6 +366,54 @@
    - **StorageTankLocationsPage.tsx** - Map view of storage tanks
    - **StorageTankMeterReadingsPage.tsx** - Meter readings management
 
+### Phase 10: Version 3.4 Updates (Completed ✅)
+
+**Dashboard Details Pages & Customer Management Enhancements:**
+
+1. **Dashboard Details Pages Created**
+   - **DashboardDetailsInactiveCustomersPage.tsx** - List of inactive customers with reactivation options
+   - **DashboardDetailsCustomersInactiveThisYearPage.tsx** - Customers made inactive in current year
+   - Added Back button navigation to return to Debt Overview page
+   - Removed Add New Customer button and filter dropdowns for cleaner interface
+   - Added Inactive Date and Inactive Reason columns
+   - Implemented single Reactivation icon in Actions column
+
+2. **Customer Reactivation/Deactivation System**
+   - **ReactivationModal.tsx** - Professional green-themed modal for customer reactivation
+     - Two-step confirmation process
+     - Customer number and phone verification
+     - Reactivation reason textarea
+     - Customer information display
+   - **DeactivationModal.tsx** - Professional red-themed modal for customer deactivation
+     - Two-step confirmation with warnings
+     - ModernSelect dropdown for deactivation reasons
+     - Support for "Other" reason with text input
+     - Multiple width and spacing optimizations (final width: 522px)
+     - Reduced font size for warning messages
+
+3. **Reactivated Customers Page**
+   - **ReactivatedCustomersPage.tsx** - Complete list of reactivated customers
+   - Added Date Range filter using DateRangePicker component
+   - Removed "Add New Customer" button and "Months Since Last Payment" dropdown
+   - Column structure updates:
+     - Removed: Meter Type, City, Details columns
+     - Added: Deactivation Date, Deactivation Reason, Reactivated Date, Reactivation Reason
+   - Mock data populated with realistic deactivation/reactivation information
+   - Added to sidebar navigation under Customers menu
+
+4. **UI/UX Improvements**
+   - All modal popups now use ModernSelect component for dropdowns
+   - Consistent modern dropdown styling across the application
+   - Fixed DateRangePicker blank page issue with proper prop handling
+   - Improved table column widths for better data visibility
+
+5. **Navigation & Header Updates**
+   - Added new page types to dashboard navigation
+   - Header component updated with correct page titles:
+     - "Dashboard Details Inactive Customers"
+     - "Dashboard Details Customers made Inactive this Year"
+     - "Customers Reactivated Customer List"
+
 3. **Staff Management Enhancements**
    - **AddStaffPage.tsx** - Comprehensive staff addition form
    - **EditStaffPage.tsx** - Edit existing staff members
@@ -637,7 +685,7 @@ npm start
 ## Project Status
 
 ### Current Version
-- **Version:** 3.2 (Latest)
+- **Version:** 3.4 (Latest)
 - **Status:** Active Development
 - **Git Branch:** main
 
@@ -677,4 +725,4 @@ For questions or support regarding this dashboard, please contact the developmen
 ---
 
 *This documentation is actively maintained and updated with each development session.*
-*Last comprehensive review: August 21, 2025*
+*Last comprehensive review: August 24, 2025*

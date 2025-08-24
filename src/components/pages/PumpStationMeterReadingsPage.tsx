@@ -3,6 +3,7 @@ import { Calendar, ChevronDown, ChevronUp, Camera, MapPin, Search, Copy, FileTex
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { PumpStationLocationModal } from '../ui/PumpStationLocationModal';
+import { TankStationPhotoModal } from '../ui/TankStationPhotoModal';
 import { 
   pumpStationMeterReadingsData, 
   businessLevelOptions,
@@ -54,6 +55,8 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
   const [exportStatus, setExportStatus] = useState<string>('');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationModalData, setLocationModalData] = useState<any>(null);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [photoModalData, setPhotoModalData] = useState<any>(null);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -415,7 +418,23 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                           </button>
                           {reading.picture && (
                             <button 
-                              onClick={() => console.log('Picture clicked for pump station:', reading.pumpStationName)}
+                              onClick={() => {
+                                setPhotoModalData({
+                                  readingId: reading.id.toString(),
+                                  assetNumber: reading.pumpStationMeterNumber,
+                                  assetName: reading.pumpStationName,
+                                  assetType: 'Pump Station',
+                                  meterNumber: reading.pumpStationMeterNumber,
+                                  readingDate: reading.readingDate,
+                                  readingValue: reading.reading,
+                                  fieldReading: reading.fieldReading,
+                                  staffName: reading.staffName,
+                                  system: reading.system,
+                                  capacity: 500, // You can adjust this based on actual data
+                                  status: reading.status
+                                });
+                                setShowPhotoModal(true);
+                              }}
                               className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
                               title="View Picture"
                             >
@@ -505,7 +524,23 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
                 </button>
                 {reading.picture && (
                   <button 
-                    onClick={() => console.log('Picture clicked for pump station:', reading.pumpStationName)}
+                    onClick={() => {
+                      setPhotoModalData({
+                        readingId: reading.id.toString(),
+                        assetNumber: reading.pumpStationMeterNumber,
+                        assetName: reading.pumpStationName,
+                        assetType: 'Pump Station',
+                        meterNumber: reading.pumpStationMeterNumber,
+                        readingDate: reading.readingDate,
+                        readingValue: reading.reading,
+                        fieldReading: reading.fieldReading,
+                        staffName: reading.staffName,
+                        system: reading.system,
+                        capacity: 500, // You can adjust this based on actual data
+                        status: reading.status
+                      });
+                      setShowPhotoModal(true);
+                    }}
                     className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                     title="View Picture"
                   >
@@ -641,6 +676,29 @@ export const PumpStationMeterReadingsPage: React.FC<PumpStationMeterReadingsPage
           staffName={locationModalData.staffName}
           location={locationModalData.location}
           city={locationModalData.city}
+        />
+      )}
+
+      {/* Pump Station Photo Modal */}
+      {showPhotoModal && photoModalData && (
+        <TankStationPhotoModal
+          isOpen={showPhotoModal}
+          onClose={() => {
+            setShowPhotoModal(false);
+            setPhotoModalData(null);
+          }}
+          readingId={photoModalData.readingId}
+          assetNumber={photoModalData.assetNumber}
+          assetName={photoModalData.assetName}
+          assetType={photoModalData.assetType}
+          meterNumber={photoModalData.meterNumber}
+          readingDate={photoModalData.readingDate}
+          readingValue={photoModalData.readingValue}
+          fieldReading={photoModalData.fieldReading}
+          staffName={photoModalData.staffName}
+          system={photoModalData.system}
+          capacity={photoModalData.capacity}
+          status={photoModalData.status}
         />
       )}
     </div>

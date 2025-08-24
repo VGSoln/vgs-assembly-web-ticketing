@@ -269,14 +269,7 @@ export const StorageTankLocationModal: React.FC<StorageTankLocationModalProps> =
             {/* Tank Information - Takes 1/3 of space */}
             <div className="col-span-1">
               <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col justify-center space-y-5">
-                {(transactionId || tankId) && (
-                  <div className="pb-3 border-b border-gray-200">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading ID</p>
-                    <p className="text-sm font-bold text-blue-600">{transactionId || tankId}</p>
-                  </div>
-                )}
-
-                <div>
+                <div className="pb-3 border-b border-gray-200">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Tank #</p>
                   <p className="text-sm font-semibold text-blue-600">{tankNumber}</p>
                 </div>
@@ -286,24 +279,20 @@ export const StorageTankLocationModal: React.FC<StorageTankLocationModalProps> =
                   <p className="text-sm font-semibold text-gray-900">{tankName}</p>
                 </div>
 
-                {meterNumber && (
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Meter #</p>
-                    <p className="text-sm font-semibold text-gray-900">{meterNumber}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Meter #</p>
+                  <p className="text-sm font-semibold text-gray-900">{meterNumber || tankNumber}</p>
+                </div>
 
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Capacity</p>
                   <p className="text-sm font-semibold text-gray-900">{capacity.toLocaleString()} m³</p>
                 </div>
 
-                {(readingDate || lastReading) && (
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{readingDate || lastReading}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Reading Date</p>
+                  <p className="text-sm font-semibold text-gray-900">{readingDate || lastReading || '15 Aug 2025'}</p>
+                </div>
 
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Staff Name</p>
@@ -311,8 +300,8 @@ export const StorageTankLocationModal: React.FC<StorageTankLocationModalProps> =
                 </div>
 
                 <div className="pt-3 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading</p>
-                  <p className="text-2xl font-bold text-blue-600">{(reading || currentLevel).toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Reading</p>
+                  <p className="text-2xl font-bold text-blue-600">{(reading || currentLevel || 2500).toLocaleString()}</p>
                 </div>
               </div>
             </div>

@@ -21,6 +21,7 @@ interface PerformancePageProps {
   onDateRangeChange: (range: DateRange) => void;
   onDateRangeApply: () => void;
   onToggleYear: (year: number) => void;
+  onNavigate?: (page: string) => void;
 }
 
 export const PerformancePage: React.FC<PerformancePageProps> = ({
@@ -33,7 +34,8 @@ export const PerformancePage: React.FC<PerformancePageProps> = ({
   onPresetSelect,
   onDateRangeChange,
   onDateRangeApply,
-  onToggleYear
+  onToggleYear,
+  onNavigate
 }) => {
   const businessCenterOptions = [
     { value: 'center1', label: 'Center 1' },
@@ -153,7 +155,9 @@ export const PerformancePage: React.FC<PerformancePageProps> = ({
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <Users size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate && onNavigate('dashboard-details-yearly-water-connections')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>
@@ -166,7 +170,9 @@ export const PerformancePage: React.FC<PerformancePageProps> = ({
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <AlertTriangle size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate && onNavigate('dashboard-details-customer-debt')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>
@@ -179,7 +185,9 @@ export const PerformancePage: React.FC<PerformancePageProps> = ({
           <div className="bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg p-3 text-white">
             <div className="flex items-center justify-between mb-1">
               <Banknote size={28} />
-              <button className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
+              <button 
+                onClick={() => onNavigate && onNavigate('customer-payment-status')}
+                className="text-xs bg-white/20 px-2 py-0.5 rounded-full hover:bg-white/30 transition-colors">
                 View Details
               </button>
             </div>

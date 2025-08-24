@@ -273,7 +273,32 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
 
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Payment Date</p>
-                  <p className="text-sm font-semibold text-gray-900">{lastPaymentDate || 'N/A'}</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {(() => {
+                      if (!lastPaymentDate) return 'N/A';
+                      
+                      // Handle ISO format dates (e.g., "2025-08-01T09:08:03")
+                      if (lastPaymentDate.includes('T')) {
+                        try {
+                          const date = new Date(lastPaymentDate);
+                          const day = date.getDate();
+                          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                          const monthName = months[date.getMonth()];
+                          const year = date.getFullYear();
+                          let hours = date.getHours();
+                          const minutes = date.getMinutes().toString().padStart(2, '0');
+                          const period = hours >= 12 ? 'PM' : 'AM';
+                          hours = hours % 12 || 12;
+                          
+                          return `${day} ${monthName} ${year} ${hours}:${minutes} ${period}`;
+                        } catch (e) {
+                          return lastPaymentDate;
+                        }
+                      }
+                      
+                      return lastPaymentDate;
+                    })()}
+                  </p>
                 </div>
 
                 <div>

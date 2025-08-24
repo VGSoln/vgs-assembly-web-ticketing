@@ -55,7 +55,8 @@ export const menuItems = [
     label: 'Customers', 
     color: 'text-orange-400',
     subItems: [
-      { label: 'Customers', page: 'customers' }
+      { label: 'Customers', page: 'customers' },
+      { label: 'Reactivated Customers', page: 'reactivated-customers' }
     ]
   },
   { 
