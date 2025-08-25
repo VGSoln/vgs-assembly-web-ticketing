@@ -79,15 +79,11 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
   }, []);
 
   const handlePieClick = useCallback((data: any, index: number) => {
-    console.log('handlePieClick called with:', data, index);
-    alert(`Testing click on index ${index}`);
     if (!data) return;
     
     const legendValue = legendValues?.find(lv => lv.color === data.color);
-    console.log('Found legend value:', legendValue);
     
     if (legendValue?.onClick) {
-      alert(`Navigating to ${legendValue.label}`);
       legendValue.onClick();
     }
   }, [legendValues]);

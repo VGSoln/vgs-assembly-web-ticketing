@@ -39,12 +39,12 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
   ];
 
   const columns = [
-    { key: 'name', label: 'Name', sortable: true, width: '16%' },
-    { key: 'phone', label: 'Phone', sortable: true, width: '10%' },
-    { key: 'email', label: 'Email', sortable: true, width: '18%' },
-    { key: 'assignedZones', label: 'Zones', sortable: true, width: '8%' },
-    { key: 'role', label: 'Role', sortable: true, width: '12%' },
-    { key: 'position', label: 'Position', sortable: true, width: '16%' },
+    { key: 'name', label: 'Name', sortable: true, width: '15%' },
+    { key: 'phone', label: 'Phone', sortable: true, width: '12%' },
+    { key: 'email', label: 'Email', sortable: true, width: '16%' },
+    { key: 'assignedZones', label: 'Zones', sortable: true, width: '7%' },
+    { key: 'role', label: 'Role', sortable: true, width: '15%' },
+    { key: 'position', label: 'Position', sortable: true, width: '15%' },
     { key: 'created', label: 'Created', sortable: true, width: '10%' },
     { key: 'modified', label: 'Modified', sortable: true, width: '10%' },
     { key: 'status', label: 'Status', sortable: false, width: '10%' }
@@ -295,7 +295,7 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
                     </div>
                   </td>
                   <td className="px-3 py-3 text-11px text-slate-700 border-r border-gray-100">
-                    <div className="break-all leading-tight text-blue-600 hover:text-blue-800 overflow-hidden text-ellipsis" title={staff.email}>
+                    <div className="break-all leading-tight text-blue-600 hover:text-blue-800">
                       {staff.email}
                     </div>
                   </td>
@@ -305,12 +305,12 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
                     </span>
                   </td>
                   <td className="px-3 py-3 text-11px text-slate-800 border-r border-gray-100">
-                    <div className="break-words leading-tight text-11px font-medium text-slate-800 overflow-hidden text-ellipsis whitespace-nowrap" title={staff.role}>
+                    <div className="break-words leading-tight text-11px font-medium text-slate-800">
                       {staff.role}
                     </div>
                   </td>
                   <td className="px-3 py-3 text-11px text-slate-700 border-r border-gray-100">
-                    <div className="break-words leading-tight overflow-hidden text-ellipsis" title={staff.position}>
+                    <div className="break-words leading-tight">
                       {staff.position}
                     </div>
                   </td>
@@ -332,12 +332,20 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
                   </td>
                   <td className="px-3 py-3 text-11px text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        staff.status === 'Inactive' 
+                          ? 'bg-red-100 text-red-800' 
+                          : 'bg-green-100 text-green-800'
+                      }`}>
                         {staff.status}
                       </span>
                       <button 
                         onClick={() => onStaffSelect?.(staff.id.toString())}
-                        className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                        className={`p-2 rounded-full shadow-sm group-hover:shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer ${
+                          staff.status === 'Inactive'
+                            ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                            : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700'
+                        }`}
                         title="View Staff Details"
                       >
                         <Eye className="w-4 h-4 text-white" />
@@ -410,7 +418,11 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
                   <p className="text-blue-600 font-medium text-sm">{staff.email}</p>
                 </div>
               </div>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                staff.status === 'Inactive' 
+                  ? 'bg-red-100 text-red-800' 
+                  : 'bg-green-100 text-green-800'
+              }`}>
                 {staff.status}
               </span>
             </div>
@@ -451,7 +463,11 @@ export const StaffPage: React.FC<StaffPageProps> = ({ onStaffSelect, onAddStaff 
               <div className="flex justify-center">
                 <button 
                   onClick={() => onStaffSelect?.(staff.id.toString())}
-                  className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                  className={`p-2 rounded-full shadow-sm group-hover:shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer ${
+                    staff.status === 'Inactive'
+                      ? 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
+                      : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700'
+                  }`}
                   title="View Staff Details"
                 >
                   <Eye className="w-5 h-5 text-white" />

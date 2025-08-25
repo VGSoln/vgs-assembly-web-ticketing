@@ -32,8 +32,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onPageChange
 }) => {
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl min-h-screen transition-all duration-300 flex-shrink-0`}>
-      <div className="p-6">
+    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl h-screen transition-all duration-300 flex-shrink-0 flex flex-col`}>
+      <div className="p-6 flex-1 overflow-y-auto sidebar-scroll">
         <div className="flex items-center justify-center mb-8">
           <div className={`flex items-center space-x-3 ${!isOpen && 'justify-center'}`}>
             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
@@ -77,7 +77,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
               
               {isOpen && item.subItems && expandedMenus[item.label] && (
-                <div className="ml-8 mt-1 space-y-1">
+                <div className="ml-8 mt-1 space-y-1 max-h-64 overflow-y-auto pr-2 sidebar-scroll">
                   {item.subItems.map((subItem, subIndex) => (
                     <button
                       key={subIndex}

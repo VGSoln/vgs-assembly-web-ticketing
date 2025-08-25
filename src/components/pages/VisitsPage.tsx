@@ -17,6 +17,7 @@ interface VisitsPageProps {
   onVisitsMonthChange: (month: string) => void;
   onVisitsYearChange: (year: string) => void;
   onVisitsMonthYearApply: () => void;
+  onNavigate?: (page: string) => void;
 }
 
 export const VisitsPage: React.FC<VisitsPageProps> = ({
@@ -26,7 +27,8 @@ export const VisitsPage: React.FC<VisitsPageProps> = ({
   onVisitsMonthYearToggle,
   onVisitsMonthChange,
   onVisitsYearChange,
-  onVisitsMonthYearApply
+  onVisitsMonthYearApply,
+  onNavigate
 }) => {
   const businessLevelOptions = [
     { value: 'level1', label: 'Level 1' },
@@ -59,23 +61,23 @@ export const VisitsPage: React.FC<VisitsPageProps> = ({
   ];
 
   const customerPaymentValues = [
-    { color: '#3b82f6', label: 'Pre-Paid', value: '146 (8.95%)' },
-    { color: '#10b981', label: 'Paid', value: '148 (9.07%)' },
-    { color: '#8b5cf6', label: 'Partial Payment', value: '63 (3.86%)' },
-    { color: '#f59e0b', label: 'Visited - No Payment', value: '2 (0.12%)' },
-    { color: '#dc2626', label: 'Not Visited', value: '1,272 (77.99%)' }
+    { color: '#3b82f6', label: 'Pre-Paid', value: '146 (8.95%)', onClick: () => onNavigate && onNavigate('customer-payment-status-customers-with-negative-balances') },
+    { color: '#10b981', label: 'Paid', value: '148 (9.07%)', onClick: () => onNavigate && onNavigate('customer-payment-status-paid-customers') },
+    { color: '#8b5cf6', label: 'Partial Payment', value: '63 (3.86%)', onClick: () => onNavigate && onNavigate('customer-payment-status-partial-payment') },
+    { color: '#f59e0b', label: 'Visited - No Payment', value: '2 (0.12%)', onClick: () => onNavigate && onNavigate('customer-payment-status-visited-no-payment') },
+    { color: '#dc2626', label: 'Not Visited', value: '1,272 (77.99%)', onClick: () => onNavigate && onNavigate('customer-payment-status-not-visited') }
   ];
 
   const defaulterReasonsValues = [
-    { color: '#3b82f6', label: 'No One Home', value: '0 (0%)' },
-    { color: '#dc2626', label: 'Meter Disconnected', value: '1 (50%)' },
-    { color: '#10b981', label: 'Water Supply Issues', value: '0 (0%)' },
-    { color: '#8b5cf6', label: 'Cancelled/Stopped', value: '0 (0%)' },
-    { color: '#f59e0b', label: 'Excuses', value: '0 (0%)' },
-    { color: '#f97316', label: 'Unreadable Meter', value: '0 (0%)' },
-    { color: '#06b6d4', label: 'Inaccessible Meter', value: '0 (0%)' },
-    { color: '#1f2937', label: 'Faulty Meter', value: '0 (0%)' },
-    { color: '#6b7280', label: 'Other', value: '1 (50%)' }
+    { color: '#3b82f6', label: 'No One Home', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-no-one-home') },
+    { color: '#dc2626', label: 'Meter Disconnected', value: '1 (50%)', onClick: () => onNavigate && onNavigate('customer-visit-status-meter-disconnected') },
+    { color: '#10b981', label: 'Water Supply Issues', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-water-supply-issues') },
+    { color: '#8b5cf6', label: 'Cancelled/Stopped', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-cancelled-stopped') },
+    { color: '#f59e0b', label: 'Excuses', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-excuses') },
+    { color: '#f97316', label: 'Unreadable Meter', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-unreadable-meter') },
+    { color: '#06b6d4', label: 'Inaccessible Meter', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-inaccessible-meter') },
+    { color: '#1f2937', label: 'Faulty Meter', value: '0 (0%)', onClick: () => onNavigate && onNavigate('customer-visit-status-faulty-meter') },
+    { color: '#6b7280', label: 'Other', value: '1 (50%)', onClick: () => onNavigate && onNavigate('customer-visit-status-other') }
   ];
 
   return (

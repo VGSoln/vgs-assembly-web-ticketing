@@ -1,33 +1,33 @@
 import React, { useState } from 'react';
-import { X, User, Phone, Hash, AlertTriangle, XCircle } from 'lucide-react';
+import { X, User, Phone, Hash, AlertTriangle, CheckCircle, Mail } from 'lucide-react';
 import { ModernSelect } from './ModernSelect';
 
-interface DeactivationModalProps {
+interface StaffReactivationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  customerNumber: string;
-  customerName: string;
-  customerPhone: string;
-  meterNumber: string;
+  staffId: string;
+  staffName: string;
+  staffPhone: string;
+  staffEmail: string;
   onConfirm: (reason: string) => void;
 }
 
-export const DeactivationModal: React.FC<DeactivationModalProps> = ({
+export const StaffReactivationModal: React.FC<StaffReactivationModalProps> = ({
   isOpen,
   onClose,
-  customerNumber,
-  customerName,
-  customerPhone,
-  meterNumber,
+  staffId,
+  staffName,
+  staffPhone,
+  staffEmail,
   onConfirm
 }) => {
-  const [confirmCustomerNumber, setConfirmCustomerNumber] = useState('');
+  const [confirmStaffId, setConfirmStaffId] = useState('');
   const [confirmPhone, setConfirmPhone] = useState('');
-  const [deactivationReason, setDeactivationReason] = useState('');
+  const [reactivationReason, setReactivationReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [errors, setErrors] = useState({
-    customerNumber: '',
+    staffId: '',
     phone: '',
     reason: ''
   });
@@ -36,34 +36,38 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
 
   const validateForm = () => {
     const newErrors = {
-      customerNumber: '',
+      staffId: '',
       phone: '',
       reason: ''
     };
 
-    if (confirmCustomerNumber !== customerNumber) {
-      newErrors.customerNumber = 'Customer number does not match';
+    // Allow matching with or without leading zeros
+    const normalizedConfirmId = confirmStaffId.replace(/^0+/, '');
+    const normalizedStaffId = staffId.replace(/^0+/, '');
+    
+    if (normalizedConfirmId !== normalizedStaffId) {
+      newErrors.staffId = 'Staff ID does not match';
     }
-    if (!confirmCustomerNumber) {
-      newErrors.customerNumber = 'Customer number is required';
+    if (!confirmStaffId) {
+      newErrors.staffId = 'Staff ID is required';
     }
 
-    if (confirmPhone !== customerPhone) {
+    if (confirmPhone !== staffPhone) {
       newErrors.phone = 'Phone number does not match';
     }
     if (!confirmPhone) {
       newErrors.phone = 'Phone number is required';
     }
 
-    if (!deactivationReason.trim()) {
-      newErrors.reason = 'Deactivation reason is required';
+    if (!reactivationReason.trim()) {
+      newErrors.reason = 'Reactivation reason is required';
     }
-    if (deactivationReason === 'Other' && !otherReason.trim()) {
-      newErrors.reason = 'Please specify the reason for deactivation';
+    if (reactivationReason === 'Other' && !otherReason.trim()) {
+      newErrors.reason = 'Please specify the reason for reactivation';
     }
 
     setErrors(newErrors);
-    return !newErrors.customerNumber && !newErrors.phone && !newErrors.reason;
+    return !newErrors.staffId && !newErrors.phone && !newErrors.reason;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -74,24 +78,24 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
   };
 
   const handleFinalConfirm = () => {
-    const finalReason = deactivationReason === 'Other' ? otherReason : deactivationReason;
+    const finalReason = reactivationReason === 'Other' ? otherReason : reactivationReason;
     onConfirm(finalReason);
     handleClose();
   };
 
   const handleClose = () => {
-    setConfirmCustomerNumber('');
+    setConfirmStaffId('');
     setConfirmPhone('');
-    setDeactivationReason('');
+    setReactivationReason('');
     setOtherReason('');
     setShowConfirmDialog(false);
-    setErrors({ customerNumber: '', phone: '', reason: '' });
+    setErrors({ staffId: '', phone: '', reason: '' });
     onClose();
   };
 
   return (
     <>
-      {/* Main Deactivation Modal */}
+      {/* Main Reactivation Modal */}
       <div className="fixed inset-0 z-50 overflow-y-auto">
         <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           <div 
@@ -101,10 +105,10 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
 
           <div className="inline-block text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:w-full" style={{ maxWidth: '522px' }}>
             {/* Header */}
-            <div className="bg-gradient-to-r from-red-600 to-rose-600 px-6 py-4 rounded-t-lg">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4 rounded-t-lg">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-white">
-                  Customer Deactivation
+                  Staff Member Reactivation
                 </h3>
                 <button
                   onClick={handleClose}
@@ -117,34 +121,34 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
 
             <form onSubmit={handleSubmit}>
               <div className="px-6 py-4">
-                {/* Customer Information Display */}
+                {/* Staff Information Display */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Customer Information</h4>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Staff Information</h4>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-500">Customer #:</span>
-                      <p className="font-medium text-gray-900">{customerNumber}</p>
+                      <span className="text-gray-500">Staff ID:</span>
+                      <p className="font-medium text-gray-900">#{staffId.padStart(4, '0')}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Name:</span>
-                      <p className="font-medium text-gray-900">{customerName}</p>
+                      <p className="font-medium text-gray-900">{staffName}</p>
                     </div>
                     <div>
                       <span className="text-gray-500">Phone:</span>
-                      <p className="font-medium text-gray-900">{customerPhone}</p>
+                      <p className="font-medium text-gray-900">{staffPhone}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Meter #:</span>
-                      <p className="font-medium text-gray-900">{meterNumber}</p>
+                      <span className="text-gray-500">Email:</span>
+                      <p className="font-medium text-gray-900 text-xs break-all">{staffEmail}</p>
                     </div>
                   </div>
                 </div>
 
-                {/* Warning Box */}
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-xs text-red-700 font-medium">
-                    <AlertTriangle className="inline w-4 h-4 mr-1" />
-                    Warning: Deactivating this customer will suspend their water service.
+                {/* Info Box */}
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-xs text-green-700 font-medium">
+                    <CheckCircle className="inline w-4 h-4 mr-1" />
+                    Reactivating this staff member will restore their system access.
                   </p>
                 </div>
 
@@ -153,21 +157,21 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       <Hash className="inline w-4 h-4 mr-1" />
-                      Confirm Customer Number *
+                      Confirm Staff ID *
                     </label>
                     <input
                       type="text"
-                      value={confirmCustomerNumber}
-                      onChange={(e) => setConfirmCustomerNumber(e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
-                        errors.customerNumber ? 'border-red-500' : 'border-gray-300'
+                      value={confirmStaffId}
+                      onChange={(e) => setConfirmStaffId(e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
+                        errors.staffId ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="Enter customer number to confirm"
+                      placeholder="Enter staff ID to confirm"
                     />
-                    {errors.customerNumber && (
+                    {errors.staffId && (
                       <p className="mt-1 text-xs text-red-600 flex items-center">
                         <AlertTriangle className="w-3 h-3 mr-1" />
-                        {errors.customerNumber}
+                        {errors.staffId}
                       </p>
                     )}
                   </div>
@@ -181,7 +185,7 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                       type="text"
                       value={confirmPhone}
                       onChange={(e) => setConfirmPhone(e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                         errors.phone ? 'border-red-500' : 'border-gray-300'
                       }`}
                       placeholder="Enter phone number to confirm"
@@ -196,38 +200,39 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Reason for Deactivation *
+                      Reason for Reactivation *
                     </label>
                     <div className="mb-2">
                       <ModernSelect
                         placeholder="Select a reason..."
                         options={[
-                          { value: 'Non-payment', label: 'Non-payment' },
-                          { value: 'Customer request', label: 'Customer request' },
-                          { value: 'Property demolished', label: 'Property demolished' },
-                          { value: 'Meter tampering', label: 'Meter tampering' },
-                          { value: 'Illegal connection', label: 'Illegal connection' },
-                          { value: 'Account dormant', label: 'Account dormant' },
-                          { value: 'Customer relocated', label: 'Customer relocated' },
-                          { value: 'Customer deceased', label: 'Customer deceased' },
-                          { value: 'Building renovation', label: 'Building renovation' },
+                          { value: 'Return from leave', label: 'Return from leave' },
+                          { value: 'Rehired', label: 'Rehired' },
+                          { value: 'Contract renewed', label: 'Contract renewed' },
+                          { value: 'Suspension lifted', label: 'Suspension lifted' },
+                          { value: 'Return from medical leave', label: 'Return from medical leave' },
+                          { value: 'Transfer back', label: 'Transfer back' },
+                          { value: 'Performance improved', label: 'Performance improved' },
+                          { value: 'Administrative error', label: 'Administrative error' },
+                          { value: 'Temporary deactivation ended', label: 'Temporary deactivation ended' },
+                          { value: 'Probation completed', label: 'Probation completed' },
                           { value: 'Other', label: 'Other (specify below)' }
                         ]}
-                        value={deactivationReason}
-                        onChange={setDeactivationReason}
+                        value={reactivationReason}
+                        onChange={setReactivationReason}
                         showClear={false}
                         className={errors.reason ? 'border-red-500' : ''}
                       />
                     </div>
-                    {deactivationReason === 'Other' && (
+                    {reactivationReason === 'Other' && (
                       <textarea
                         value={otherReason}
                         onChange={(e) => setOtherReason(e.target.value)}
-                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${
                           errors.reason ? 'border-red-500' : 'border-gray-300'
                         }`}
                         rows={3}
-                        placeholder="Please specify the reason for deactivation..."
+                        placeholder="Please specify the reason for reactivation..."
                       />
                     )}
                     {errors.reason && (
@@ -243,7 +248,7 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                 <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-xs text-yellow-800">
                     <AlertTriangle className="inline w-4 h-4 mr-1" />
-                    Please verify all information carefully before proceeding with Deactivation.
+                    Please verify all information carefully before proceeding with reactivation.
                   </p>
                 </div>
               </div>
@@ -259,7 +264,7 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-rose-600 rounded-lg hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-sm"
+                  className="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-sm"
                 >
                   Proceed to Review
                 </button>
@@ -280,23 +285,23 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
 
             <div className="inline-block text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
               <div className="bg-white px-6 py-5 rounded-lg">
-                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
-                  <XCircle className="w-6 h-6 text-red-600" />
+                <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 rounded-full mb-4">
+                  <CheckCircle className="w-6 h-6 text-green-600" />
                 </div>
                 
                 <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">
-                  Confirm Deactivation
+                  Confirm Reactivation
                 </h3>
                 
                 <p className="text-sm text-gray-600 text-center mb-4">
-                  Are you sure you want to deactivate this customer account? This will suspend their water service.
+                  Are you sure you want to reactivate this staff member? They will regain access to the system.
                 </p>
 
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                  <p className="text-sm font-medium text-gray-900 mb-1">{customerName}</p>
-                  <p className="text-xs text-gray-600">Customer #: {customerNumber}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                  <p className="text-sm font-medium text-gray-900 mb-1">{staffName}</p>
+                  <p className="text-xs text-gray-600">Staff ID: #{staffId.padStart(4, '0')}</p>
                   <p className="text-xs text-gray-600 mt-2">
-                    <span className="font-medium">Reason:</span> {deactivationReason === 'Other' ? otherReason : deactivationReason}
+                    <span className="font-medium">Reason:</span> {reactivationReason === 'Other' ? otherReason : reactivationReason}
                   </p>
                 </div>
 
@@ -309,9 +314,9 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                   </button>
                   <button
                     onClick={handleFinalConfirm}
-                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-rose-600 rounded-lg hover:from-red-700 hover:to-rose-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all shadow-sm"
+                    className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all shadow-sm"
                   >
-                    Confirm Deactivation
+                    Confirm Reactivation
                   </button>
                 </div>
               </div>

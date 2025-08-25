@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { User, Edit, Mail, Send, ChevronLeft, Briefcase, Calendar, Clock } from 'lucide-react';
 import { staffData } from '@/lib/data';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
+import { StaffDeactivationModal } from '../ui/StaffDeactivationModal';
+import { StaffReactivationModal } from '../ui/StaffReactivationModal';
+import { StaffDeactivatedModal } from '../ui/StaffDeactivatedModal';
 
 interface StaffDetailsPageProps {
   staffId: string;
@@ -13,6 +16,9 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
   const staff = staffData.find(s => s.id.toString() === staffId);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [deactivationModalOpen, setDeactivationModalOpen] = useState(false);
+  const [deactivatedModalOpen, setDeactivatedModalOpen] = useState(false);
+  const [reactivationModalOpen, setReactivationModalOpen] = useState(false);
 
   const handleSendPassword = () => {
     setPasswordModalOpen(true);
@@ -20,6 +26,33 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
 
   const handleSendPin = () => {
     setPinModalOpen(true);
+  };
+
+  const handleStatusClick = () => {
+    if (staff?.status === 'Active') {
+      setDeactivationModalOpen(true);
+    } else if (staff?.status === 'Inactive') {
+      setDeactivatedModalOpen(true);
+    }
+  };
+
+  const handleReactivateClick = () => {
+    setDeactivatedModalOpen(false);
+    setReactivationModalOpen(true);
+  };
+
+  const handleConfirmDeactivation = (reason: string) => {
+    // Handle the actual deactivation logic here
+    console.log('Deactivating staff member:', staffId, 'Reason:', reason);
+    // In a real app, you would update the database here
+    setDeactivationModalOpen(false);
+  };
+
+  const handleConfirmReactivation = (reason: string) => {
+    // Handle the actual reactivation logic here
+    console.log('Reactivating staff member:', staffId, 'Reason:', reason);
+    // In a real app, you would update the database here
+    setReactivationModalOpen(false);
   };
 
   if (!staff) {
@@ -67,9 +100,17 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
             </div>
             
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                ACTIVE
-              </span>
+              <button
+                onClick={handleStatusClick}
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
+                  staff.status === 'Inactive' 
+                    ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                    : 'bg-green-100 text-green-800 hover:bg-green-200'
+                }`}
+                title={staff.status === 'Active' ? 'Click to deactivate staff member' : 'Click to view deactivation details'}
+              >
+                {staff.status.toUpperCase()}
+              </button>
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => onEdit?.(staffId)}
@@ -272,6 +313,42 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
         type="success"
         autoClose={true}
         autoCloseDelay={10000}
+      />
+
+      {/* Staff Deactivation Modal */}
+      <StaffDeactivationModal
+        isOpen={deactivationModalOpen}
+        onClose={() => setDeactivationModalOpen(false)}
+        staffId={staff.id.toString()}
+        staffName={staff.name}
+        staffPhone={staff.phone}
+        staffEmail={staff.email}
+        onConfirm={handleConfirmDeactivation}
+      />
+
+      {/* Staff Deactivated Info Modal */}
+      <StaffDeactivatedModal
+        isOpen={deactivatedModalOpen}
+        onClose={() => setDeactivatedModalOpen(false)}
+        staffId={staff.id.toString()}
+        staffName={staff.name}
+        staffPhone={staff.phone}
+        staffEmail={staff.email}
+        deactivatedDate={staff.modified}
+        deactivatedBy={staff.modifiedBy}
+        deactivationReason="As per management decision"
+        onReactivate={handleReactivateClick}
+      />
+
+      {/* Staff Reactivation Modal */}
+      <StaffReactivationModal
+        isOpen={reactivationModalOpen}
+        onClose={() => setReactivationModalOpen(false)}
+        staffId={staff.id.toString()}
+        staffName={staff.name}
+        staffPhone={staff.phone}
+        staffEmail={staff.email}
+        onConfirm={handleConfirmReactivation}
       />
     </div>
   );

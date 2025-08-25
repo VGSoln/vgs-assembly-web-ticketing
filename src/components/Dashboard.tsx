@@ -13,6 +13,21 @@ import { DashboardDetailsCustomersWithNoPaymentsPage } from './pages/DashboardDe
 import { DashboardDetailsInactiveCustomersPage } from './pages/DashboardDetailsInactiveCustomersPage';
 import { DashboardDetailsCustomersInactiveThisYearPage } from './pages/DashboardDetailsCustomersInactiveThisYearPage';
 import { CustomerPaymentStatusPage } from './pages/CustomerPaymentStatusPage';
+import { CustomerPaymentStatusPaidCustomersPage } from './pages/CustomerPaymentStatusPaidCustomersPage';
+import { CustomerPaymentStatusCustomersWithNegativeBalancesPage } from './pages/CustomerPaymentStatusCustomersWithNegativeBalancesPage';
+import { CustomerPaymentStatusPartialPaymentPage } from './pages/CustomerPaymentStatusPartialPaymentPage';
+import { CustomerPaymentStatusVisitedNoPaymentPage } from './pages/CustomerPaymentStatusVisitedNoPaymentPage';
+import { CustomerPaymentStatusNotVisitedPage } from './pages/CustomerPaymentStatusNotVisitedPage';
+import { CustomerVisitStatusNoOneHomePage } from './pages/CustomerVisitStatusNoOneHomePage';
+import { CustomerVisitStatusMeterDisconnectedPage } from './pages/CustomerVisitStatusMeterDisconnectedPage';
+import { CustomerVisitStatusWaterSupplyIssuesPage } from './pages/CustomerVisitStatusWaterSupplyIssuesPage';
+import { CustomerVisitStatusCancelledStoppedPage } from './pages/CustomerVisitStatusCancelledStoppedPage';
+import { CustomerVisitStatusExcusesPage } from './pages/CustomerVisitStatusExcusesPage';
+import { CustomerVisitStatusUnreadableMeterPage } from './pages/CustomerVisitStatusUnreadableMeterPage';
+import { CustomerVisitStatusInaccessibleMeterPage } from './pages/CustomerVisitStatusInaccessibleMeterPage';
+import { CustomerVisitStatusFaultyMeterPage } from './pages/CustomerVisitStatusFaultyMeterPage';
+import { CustomerVisitStatusOtherPage } from './pages/CustomerVisitStatusOtherPage';
+import { BillGenerationPage } from './pages/BillGenerationPage';
 import { VisitsPage } from './pages/VisitsPage';
 import { VisitsListPage } from './pages/VisitsListPage';
 import { PaymentsListPage } from './pages/PaymentsListPage';
@@ -336,6 +351,165 @@ const Dashboard = () => {
           />
         );
         
+      case 'customer-payment-status-paid-customers':
+        return <CustomerPaymentStatusPaidCustomersPage onNavigate={(page) => setCurrentPage(page as PageType)} />;
+        
+      case 'customer-payment-status-customers-with-negative-balances':
+        return <CustomerPaymentStatusCustomersWithNegativeBalancesPage onNavigate={(page) => setCurrentPage(page as PageType)} />;
+        
+      case 'customer-payment-status-partial-payment':
+        return <CustomerPaymentStatusPartialPaymentPage onNavigate={(page) => setCurrentPage(page as PageType)} />;
+        
+      case 'customer-payment-status-visited-no-payment':
+        return <CustomerPaymentStatusVisitedNoPaymentPage onNavigate={(page) => setCurrentPage(page as PageType)} />;
+        
+      case 'customer-payment-status-not-visited':
+        return <CustomerPaymentStatusNotVisitedPage onNavigate={(page) => setCurrentPage(page as PageType)} />;
+        
+      case 'customer-visit-status-no-one-home':
+        return (
+          <CustomerVisitStatusNoOneHomePage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-meter-disconnected':
+        return (
+          <CustomerVisitStatusMeterDisconnectedPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-water-supply-issues':
+        return (
+          <CustomerVisitStatusWaterSupplyIssuesPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-cancelled-stopped':
+        return (
+          <CustomerVisitStatusCancelledStoppedPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-excuses':
+        return (
+          <CustomerVisitStatusExcusesPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-unreadable-meter':
+        return (
+          <CustomerVisitStatusUnreadableMeterPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-inaccessible-meter':
+        return (
+          <CustomerVisitStatusInaccessibleMeterPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-faulty-meter':
+        return (
+          <CustomerVisitStatusFaultyMeterPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
+      case 'customer-visit-status-other':
+        return (
+          <CustomerVisitStatusOtherPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+            onNavigateBack={() => setCurrentPage('visits')}
+            onCustomerClick={handleCustomerNavigation}
+          />
+        );
+        
       case 'visits':
         return (
           <VisitsPage
@@ -346,6 +520,7 @@ const Dashboard = () => {
             onVisitsMonthChange={setSelectedVisitsMonth}
             onVisitsYearChange={setSelectedVisitsYear}
             onVisitsMonthYearApply={handleVisitsMonthYearSelect}
+            onNavigate={(page) => setCurrentPage(page as PageType)}
           />
         );
 
@@ -392,6 +567,9 @@ const Dashboard = () => {
           />
         );
 
+      case 'bill-generation':
+        return <BillGenerationPage />;
+        
       case 'pump-stations':
         return (
           <PumpStationsPage

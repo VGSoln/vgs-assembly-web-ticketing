@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, Hash, FileText } from 'lucide-react';
 
 interface VoidPaymentModalProps {
   isOpen: boolean;
@@ -26,21 +26,53 @@ export const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
   amount
 }) => {
   const [voidReason, setVoidReason] = useState('');
-  const [error, setError] = useState('');
+  const [confirmTransactionId, setConfirmTransactionId] = useState('');
+  const [confirmCustomerNumber, setConfirmCustomerNumber] = useState('');
+  const [errors, setErrors] = useState({
+    transactionId: '',
+    customerNumber: '',
+    reason: ''
+  });
+
+  const validateForm = () => {
+    const newErrors = {
+      transactionId: '',
+      customerNumber: '',
+      reason: ''
+    };
+
+    if (!confirmTransactionId.trim()) {
+      newErrors.transactionId = 'Transaction ID is required';
+    } else if (confirmTransactionId !== transactionId) {
+      newErrors.transactionId = 'Transaction ID does not match';
+    }
+
+    if (!confirmCustomerNumber.trim()) {
+      newErrors.customerNumber = 'Customer number is required';
+    } else if (confirmCustomerNumber !== customerNumber) {
+      newErrors.customerNumber = 'Customer number does not match';
+    }
+
+    if (!voidReason.trim()) {
+      newErrors.reason = 'Please provide a reason for voiding this payment';
+    }
+
+    setErrors(newErrors);
+    return !newErrors.transactionId && !newErrors.customerNumber && !newErrors.reason;
+  };
 
   const handleVoid = () => {
-    if (!voidReason.trim()) {
-      setError('Please provide a reason for voiding this payment');
-      return;
+    if (validateForm()) {
+      onConfirm(voidReason);
+      handleClose();
     }
-    onConfirm(voidReason);
-    setVoidReason('');
-    setError('');
   };
 
   const handleClose = () => {
     setVoidReason('');
-    setError('');
+    setConfirmTransactionId('');
+    setConfirmCustomerNumber('');
+    setErrors({ transactionId: '', customerNumber: '', reason: '' });
     onClose();
   };
 
@@ -68,7 +100,10 @@ export const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
           {/* Warning Message */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
             <p className="text-sm text-red-800 font-medium">
-              Warning: This action cannot be undone. The payment will be permanently voided.
+              Warning: The payment will be permanently voided.
+            </p>
+            <p className="text-xs text-red-700 mt-1">
+              Please verify all information carefully before proceeding.
             </p>
           </div>
 
@@ -108,24 +143,87 @@ export const VoidPaymentModal: React.FC<VoidPaymentModalProps> = ({
             </div>
           </div>
 
-          {/* Reason Input */}
-          <div className="mb-5">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reason for Voiding Payment <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              value={voidReason}
-              onChange={(e) => {
-                setVoidReason(e.target.value);
-                setError('');
-              }}
-              placeholder="Please provide a detailed reason for voiding this payment..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
-              rows={4}
-            />
-            {error && (
-              <p className="mt-1 text-sm text-red-600">{error}</p>
-            )}
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-5"></div>
+
+          {/* Confirmation Fields */}
+          <div className="space-y-4 mb-5">
+            {/* Confirm Transaction ID */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <FileText className="inline w-4 h-4 mr-1" />
+                Enter Transaction ID to Confirm <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={confirmTransactionId}
+                onChange={(e) => {
+                  setConfirmTransactionId(e.target.value);
+                  setErrors(prev => ({ ...prev, transactionId: '' }));
+                }}
+                placeholder="Enter transaction ID to confirm"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  errors.transactionId ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.transactionId && (
+                <p className="mt-1 text-xs text-red-600 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  {errors.transactionId}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Customer Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Hash className="inline w-4 h-4 mr-1" />
+                Enter Customer # to Confirm <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={confirmCustomerNumber}
+                onChange={(e) => {
+                  setConfirmCustomerNumber(e.target.value);
+                  setErrors(prev => ({ ...prev, customerNumber: '' }));
+                }}
+                placeholder="Enter customer number to confirm"
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 ${
+                  errors.customerNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.customerNumber && (
+                <p className="mt-1 text-xs text-red-600 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  {errors.customerNumber}
+                </p>
+              )}
+            </div>
+
+            {/* Reason Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason for Voiding Payment <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={voidReason}
+                onChange={(e) => {
+                  setVoidReason(e.target.value);
+                  setErrors(prev => ({ ...prev, reason: '' }));
+                }}
+                placeholder="Please provide a detailed reason for voiding this payment..."
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 resize-none ${
+                  errors.reason ? 'border-red-500' : 'border-gray-300'
+                }`}
+                rows={3}
+              />
+              {errors.reason && (
+                <p className="mt-1 text-xs text-red-600 flex items-center">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  {errors.reason}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}

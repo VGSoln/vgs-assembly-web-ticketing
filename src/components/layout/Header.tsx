@@ -94,6 +94,36 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Customers made Inactive this Year';
       case 'customer-payment-status':
         return 'Paid Customers';
+      case 'customer-payment-status-paid-customers':
+        return 'Paid Customers';
+      case 'customer-payment-status-customers-with-negative-balances':
+        return 'Pre-Paid Customers';
+      case 'customer-payment-status-partial-payment':
+        return 'Partial Payment';
+      case 'customer-payment-status-visited-no-payment':
+        return 'Visited - No Payment';
+      case 'customer-payment-status-not-visited':
+        return 'Not Visited';
+      case 'customer-visit-status-no-one-home':
+        return 'No One Home';
+      case 'customer-visit-status-meter-disconnected':
+        return 'Meter Disconnected';
+      case 'customer-visit-status-water-supply-issues':
+        return 'Water Supply Issues';
+      case 'customer-visit-status-cancelled-stopped':
+        return 'Cancelled/Stopped';
+      case 'customer-visit-status-excuses':
+        return 'Excuses';
+      case 'customer-visit-status-unreadable-meter':
+        return 'Unreadable Meter';
+      case 'customer-visit-status-inaccessible-meter':
+        return 'Inaccessible Meter';
+      case 'customer-visit-status-faulty-meter':
+        return 'Faulty Meter';
+      case 'customer-visit-status-other':
+        return 'Other';
+      case 'bill-generation':
+        return 'Published Reports';
       default:
         return 'Dashboard';
     }
@@ -163,6 +193,36 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Dashboard Details';
       case 'customer-payment-status':
         return 'Customer Payment Status';
+      case 'customer-payment-status-paid-customers':
+        return 'Customer Payment Status';
+      case 'customer-payment-status-customers-with-negative-balances':
+        return 'Customer Payment Status';
+      case 'customer-payment-status-partial-payment':
+        return 'Customer Payment Status';
+      case 'customer-payment-status-visited-no-payment':
+        return 'Customer Payment Status';
+      case 'customer-payment-status-not-visited':
+        return 'Customer Payment Status';
+      case 'customer-visit-status-no-one-home':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-meter-disconnected':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-water-supply-issues':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-cancelled-stopped':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-excuses':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-unreadable-meter':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-inaccessible-meter':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-faulty-meter':
+        return 'Customer Visit Status';
+      case 'customer-visit-status-other':
+        return 'Customer Visit Status';
+      case 'bill-generation':
+        return 'Reports';
       default:
         return 'Dashboard';
     }
@@ -200,9 +260,67 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {getMainTitle(currentPage)} <span className="text-sm font-normal text-gray-500">
-                {getPageTitle(currentPage, isCustomerDetails)}
-              </span>
+              {getMainTitle(currentPage)} {currentPage === 'customer-payment-status-paid-customers' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Paid Customers
+                </span>
+              ) : currentPage === 'customer-payment-status-customers-with-negative-balances' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Pre-Paid Customers
+                </span>
+              ) : currentPage === 'customer-payment-status-partial-payment' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Partial Payment
+                </span>
+              ) : currentPage === 'customer-payment-status-visited-no-payment' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Visited - No Payment
+                </span>
+              ) : currentPage === 'customer-payment-status-not-visited' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Not Visited
+                </span>
+              ) : currentPage === 'customer-visit-status-no-one-home' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  No One Home
+                </span>
+              ) : currentPage === 'customer-visit-status-meter-disconnected' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Meter Disconnected
+                </span>
+              ) : currentPage === 'customer-visit-status-water-supply-issues' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Water Supply Issues
+                </span>
+              ) : currentPage === 'customer-visit-status-cancelled-stopped' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Cancelled/Stopped
+                </span>
+              ) : currentPage === 'customer-visit-status-excuses' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Excuses
+                </span>
+              ) : currentPage === 'customer-visit-status-unreadable-meter' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Unreadable Meter
+                </span>
+              ) : currentPage === 'customer-visit-status-inaccessible-meter' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Inaccessible Meter
+                </span>
+              ) : currentPage === 'customer-visit-status-faulty-meter' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Faulty Meter
+                </span>
+              ) : currentPage === 'customer-visit-status-other' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Other
+                </span>
+              ) : (
+                <span className="text-sm font-normal text-gray-500">
+                  {getPageTitle(currentPage, isCustomerDetails)}
+                </span>
+              )}
             </h1>
           </div>
           

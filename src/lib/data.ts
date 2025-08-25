@@ -24,7 +24,7 @@ export const menuItems = [
     label: 'Reports', 
     color: 'text-green-400', 
     subItems: [
-      { label: 'Bill Generation' },
+      { label: 'Bill Generation', page: 'bill-generation' },
       { label: 'Field Attendance Report' },
       { label: 'Field Hours Worked' },
       { label: 'Daily Field Hours Worked' },
@@ -758,7 +758,7 @@ export const staffData = [
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
     modifiedBy: 'CWSA Admin',
-    status: 'Active'
+    status: 'Inactive'
   },
   {
     id: 6,
