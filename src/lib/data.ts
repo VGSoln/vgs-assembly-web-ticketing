@@ -1,4 +1,4 @@
-import { Calendar, TrendingUp, Users, DollarSign, CreditCard, AlertTriangle, ChevronDown, ChevronRight, Menu, X, Activity, ArrowUp, ArrowDown, MoreVertical, CalendarDays, FileText, Droplet, LayoutDashboard, MapPin, Gauge, Database, Banknote, LogOut, Eye } from 'lucide-react';
+import { Calendar, TrendingUp, Users, DollarSign, CreditCard, AlertTriangle, ChevronDown, ChevronRight, Menu, X, Activity, ArrowUp, ArrowDown, MoreVertical, CalendarDays, FileText, Droplet, LayoutDashboard, MapPin, Database, Banknote, LogOut, Eye, Shield } from 'lucide-react';
 
 export const menuItems = [
   { 
@@ -7,38 +7,21 @@ export const menuItems = [
     color: 'text-blue-400',
     subItems: [
       { label: 'Performance Overview', page: 'performance' },
-      { label: 'Debt Overview', page: 'debt' }
+      { label: 'Ticketing Overview', page: 'debt' },
+      { label: 'Revenue Officer Performance & Field Attendance', page: 'revenue-officer-performance' }
     ]
-  },
-  { 
-    icon: Eye, 
-    label: 'Visits', 
-    color: 'text-blue-300', 
-    subItems: [
-      { label: 'Visits Dashboard', page: 'visits' },
-      { label: 'Visits', page: 'visits-list' }
-    ] 
   },
   { 
     icon: FileText, 
     label: 'Reports', 
     color: 'text-green-400', 
     subItems: [
-      { label: 'Bill Generation', page: 'bill-generation' },
+      { label: 'Ticketing Revenue', page: 'bill-generation' },
+      { label: 'Collector Reconciliation' },
+      { label: 'Summary Collector Reconciliation' },
       { label: 'Field Attendance Report' },
       { label: 'Field Hours Worked' },
-      { label: 'Daily Field Hours Worked' },
-      { label: 'Customer Months Since Last Reading' },
-      { label: 'Customer Meter Readings' },
-      { label: 'Pump Station Readings' },
-      { label: 'Pump Station Days Since Last Reading' },
-      { label: 'System Water Losses' },
-      { label: 'Storage Tanks Readings' },
-      { label: 'Storage Tanks Days Since Last Reading' },
-      { label: 'Monthly Bill Summary Report' },
-      { label: 'Statement of Account Report' },
-      { label: 'Summary Collector Reconciliation' },
-      { label: 'Collector Reconciliation' }
+      { label: 'Daily Field Hours Worked' }
     ] 
   },
   { 
@@ -46,7 +29,7 @@ export const menuItems = [
     label: 'Payments', 
     color: 'text-purple-400',
     subItems: [
-      { label: 'Payments', page: 'payments' },
+      { label: 'Ticket Payments', page: 'ticket-payments' },
       { label: 'Bank Deposits', page: 'bank-deposits' }
     ]
   },
@@ -55,8 +38,8 @@ export const menuItems = [
     label: 'Customers', 
     color: 'text-orange-400',
     subItems: [
-      { label: 'Customers', page: 'customers' },
-      { label: 'Reactivated Customers', page: 'reactivated-customers' }
+      { label: 'Ticket Customers', page: 'ticket-customers' },
+      { label: 'Ticketing Rates', page: 'ticket-rates' },
     ]
   },
   { 
@@ -65,20 +48,9 @@ export const menuItems = [
     color: 'text-blue-400',
     subItems: [
       { label: 'Customer Locations', page: 'customer-locations' },
-      { label: 'Collector Locations', page: 'collector-locations' },
+      { label: 'Ticketing Transactions', page: 'collector-locations' },
       { label: 'Collector Paths', page: 'collector-paths' },
-      { label: 'Pump Station Locations', page: 'pump-station-locations' },
-      { label: 'Storage Tank Locations', page: 'storage-tank-locations' }
-    ]
-  },
-  { 
-    icon: Gauge, 
-    label: 'Meter Readings', 
-    color: 'text-cyan-400',
-    subItems: [
-      { label: 'Meter Readings', page: 'customer-meter-readings' },
-      { label: 'Storage Tank Meter Readings', page: 'storage-tank-meter-readings' },
-      { label: 'Pump Station Meter Readings', page: 'pump-station-meter-readings' }
+      { label: 'Market Locations', page: 'storage-tank-locations' }
     ]
   },
   { 
@@ -90,19 +62,15 @@ export const menuItems = [
     ]
   },
   { 
-    icon: Database, 
-    label: 'Storage Tanks', 
+    icon: Shield, 
+    label: 'Admin', 
     color: 'text-yellow-400',
     subItems: [
-      { label: 'Storage Tanks', page: 'storage-tanks' }
-    ]
-  },
-  { 
-    icon: Droplet, 
-    label: 'Pump Stations', 
-    color: 'text-indigo-400',
-    subItems: [
-      { label: 'Pump Stations', page: 'pump-stations' }
+      { label: 'Community', page: 'storage-tanks' },
+      { label: 'Zones', page: 'zones' },
+      { label: 'Ticket Type', page: 'ticket-type' },
+      { label: 'Location', page: 'location' },
+      { label: 'Customer Type', page: 'customer-type' }
     ]
   },
 ];
@@ -158,21 +126,22 @@ export const monthlyVisitData = [
 ];
 
 export const paidCustomersData = [
-  { name: 'Paid Customers', value: 118, color: '#10b981' },
-  { name: 'Non Paid Customers', value: 1468, color: '#dc2626' }
+  { name: 'New Paid Customers', value: 118, color: '#10b981' },
+  { name: 'Existing Paid Customers', value: 387, color: '#3b82f6' },
+  { name: 'Non Paid Customers', value: 1081, color: '#dc2626' }
 ];
 
 export const totalDebtData = [
-  { name: 'Current Debt', value: 162856, color: '#10b981' },
-  { name: 'Old Debt', value: 234052, color: '#dc2626' }
+  { name: 'New Paid Customers', value: 162856, color: '#10b981' },
+  { name: 'Existing Paid Customers', value: 234052, color: '#3b82f6' }
 ];
 
 export const debtByMonthsData = [
-  { name: 'No Debt', value: 125, color: '#10b981' },
-  { name: '1 Month Debt', value: 491, color: '#3b82f6' },
-  { name: '2 Month Debt', value: 307, color: '#8b5cf6' },
-  { name: '3 Month Debt', value: 174, color: '#f59e0b' },
-  { name: '4+ Month Debt', value: 340, color: '#dc2626' }
+  { name: 'Month Less', value: 125, color: '#10b981' },
+  { name: '1 Month', value: 491, color: '#3b82f6' },
+  { name: '2 Month', value: 307, color: '#8b5cf6' },
+  { name: '3 Month', value: 174, color: '#f59e0b' },
+  { name: '4+ Month', value: 489, color: '#dc2626' }
 ];
 
 export const visitsTransactionsData = [
@@ -306,62 +275,62 @@ export const visitsTransactionsData = [
   }
 ];
 
-export const pumpStationsData = [
+
+export const communitiesData = [
   {
-    id: 4,
-    pumpStationNumber: '4',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    pumpStationName: 'Pump Station 4',
-    status: 'Operational',
-    throughput: 60,
-    meterNumber: '20987686449',
-    lastReadingDate: '30 January, 2025',
-    daysSinceLastReading: 197,
-    lastReading: 133262,
-    location: 'Location 4',
-    gps: true
-  },
-  {
-    id: 3,
-    pumpStationNumber: '3',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    pumpStationName: 'Pump Station 3',
-    status: 'Operational',
-    throughput: 60,
-    meterNumber: '20987638007',
-    lastReadingDate: '30 January, 2025',
-    daysSinceLastReading: 197,
-    lastReading: 387686,
-    location: 'Location 3',
-    gps: true
+    id: 1,
+    communityId: 'COMM-001',
+    communityName: 'Adum Community',
+    numberOfZones: 6,
+    createdDate: '15 Jan 2024 10:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '10 Nov 2024 2:45 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
   },
   {
     id: 2,
-    pumpStationNumber: '2',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    pumpStationName: 'Pump Station 2',
-    status: 'Out of Service',
-    throughput: 60,
-    meterNumber: '20987589565',
-    lastReadingDate: '17 April, 2025',
-    daysSinceLastReading: 120,
-    lastReading: 75534,
-    location: 'Location 2',
-    gps: true
+    communityId: 'COMM-002',
+    communityName: 'Kejetia Community',
+    numberOfZones: 3,
+    createdDate: '15 Jan 2024 10:35 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '05 Oct 2024 11:20 AM',
+    modifiedBy: 'MARY SERWAA',
+    status: 'Active'
   },
   {
-    id: 1,
-    pumpStationNumber: '1',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    pumpStationName: 'Pump Station 1',
-    status: 'Operational',
-    throughput: 60,
-    meterNumber: '20086000039',
-    lastReadingDate: '30 January, 2025',
-    daysSinceLastReading: 197,
-    lastReading: 4370,
-    location: 'Location 1',
-    gps: true
+    id: 3,
+    communityId: 'COMM-003',
+    communityName: 'Bantama Community',
+    numberOfZones: 3,
+    createdDate: '15 Jan 2024 10:40 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '20 Sep 2024 4:15 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 4,
+    communityId: 'COMM-004',
+    communityName: 'Asafo Community',
+    numberOfZones: 2,
+    createdDate: '20 Jan 2024 09:15 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '15 Aug 2024 10:30 AM',
+    modifiedBy: 'MARY SERWAA',
+    status: 'Inactive'
+  },
+  {
+    id: 5,
+    communityId: 'COMM-005',
+    communityName: 'Suame Community',
+    numberOfZones: 2,
+    createdDate: '20 Jan 2024 09:20 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '12 Jul 2024 3:00 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
   }
 ];
 
@@ -417,64 +386,6 @@ export const collectorOptions = [
   { value: 'michael', label: 'MICHAEL OPOKU' }
 ];
 
-export const pumpStationMeterReadingsData = [
-  {
-    id: 1,
-    pumpStationMeterNumber: 'PSM001',
-    pumpStationName: 'Pump Station 1',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    status: 'Operational',
-    staffName: 'Francis Seguri',
-    readingDate: '15 Aug 2025',
-    serverDate: '15 Aug 2025',
-    reading: 4500,
-    fieldReading: 4500,
-    picture: true
-  },
-  {
-    id: 2,
-    pumpStationMeterNumber: 'PSM002',
-    pumpStationName: 'Pump Station 2',
-    meterType: 'Analog',
-    system: 'Kweiman-Danfa',
-    status: 'Out of Service',
-    staffName: 'Lydia Apanatinga',
-    readingDate: '14 Aug 2025',
-    serverDate: '14 Aug 2025',
-    reading: 75800,
-    fieldReading: 75800,
-    picture: true
-  },
-  {
-    id: 3,
-    pumpStationMeterNumber: 'PSM003',
-    pumpStationName: 'Pump Station 3',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    status: 'Operational',
-    staffName: 'Kubura Abdul Rahman',
-    readingDate: '13 Aug 2025',
-    serverDate: '13 Aug 2025',
-    reading: 388200,
-    fieldReading: 388200,
-    picture: true
-  },
-  {
-    id: 4,
-    pumpStationMeterNumber: 'PSM004',
-    pumpStationName: 'Pump Station 4',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    status: 'Operational',
-    staffName: 'Rapheal Kwabena Aboagye',
-    readingDate: '12 Aug 2025',
-    serverDate: '12 Aug 2025',
-    reading: 133500,
-    fieldReading: 133500,
-    picture: true
-  }
-];
 
 export const storageTankMeterReadingsData = [
   {
@@ -705,7 +616,7 @@ export const staffData = [
     position: 'Water System Manager',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -718,7 +629,7 @@ export const staffData = [
     position: 'Information Technology Specialist',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -731,12 +642,12 @@ export const staffData = [
     position: 'Data Analyst',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
     id: 4,
-    name: 'CWSA Admin',
+    name: 'AEDA Admin',
     phone: '0245335617',
     email: 'koforl@vgsolutionsltd.com',
     assignedZones: '10',
@@ -744,7 +655,7 @@ export const staffData = [
     position: 'System Admin',
     created: 'Tue, 21 Jan 2025, 04:01:26 am',
     modified: '21 Jan 2025 4:01 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -757,7 +668,7 @@ export const staffData = [
     position: 'Chief Accountant',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Inactive'
   },
   {
@@ -770,7 +681,7 @@ export const staffData = [
     position: 'Data Analyst',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -783,7 +694,7 @@ export const staffData = [
     position: 'Information Technology Coordinator',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -796,7 +707,7 @@ export const staffData = [
     position: 'Hydrologist',
     created: 'Thu, 23 Jan 2025, 11:33:58 pm',
     modified: '23 Jan 2025 11:01 PM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -809,7 +720,7 @@ export const staffData = [
     position: 'Revenue Officer',
     created: 'Thu, 23 Jan 2025, 11:25:06 pm',
     modified: '23 Jan 2025 11:01 PM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
     status: 'Active'
   },
   {
@@ -822,7 +733,279 @@ export const staffData = [
     position: 'Revenue Officer',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
-    modifiedBy: 'CWSA Admin',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  }
+];
+
+export const zonesData = [
+  {
+    id: 1,
+    zoneId: 'ZONE-001',
+    zoneName: 'Adum Central',
+    community: 'Adum Community',
+    numberOfLocations: 45,
+    createdDate: '15 Jan 2024 10:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '10 Nov 2024 2:45 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 2,
+    zoneId: 'ZONE-002',
+    zoneName: 'Adum North',
+    community: 'Adum Community',
+    numberOfLocations: 38,
+    createdDate: '15 Jan 2024 10:35 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '12 Nov 2024 9:20 AM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 3,
+    zoneId: 'ZONE-003',
+    zoneName: 'Adum South',
+    community: 'Adum Community',
+    numberOfLocations: 52,
+    createdDate: '15 Jan 2024 10:40 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '08 Nov 2024 3:15 PM',
+    modifiedBy: 'John Mensah',
+    status: 'Active'
+  },
+  {
+    id: 4,
+    zoneId: 'ZONE-004',
+    zoneName: 'Bantama East',
+    community: 'Bantama Community',
+    numberOfLocations: 67,
+    createdDate: '16 Jan 2024 11:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '15 Nov 2024 10:30 AM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 5,
+    zoneId: 'ZONE-005',
+    zoneName: 'Bantama West',
+    community: 'Bantama Community',
+    numberOfLocations: 43,
+    createdDate: '16 Jan 2024 11:15 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '14 Nov 2024 4:00 PM',
+    modifiedBy: 'Sarah Osei',
+    status: 'Inactive'
+  },
+  {
+    id: 6,
+    zoneId: 'ZONE-006',
+    zoneName: 'Asafo Market',
+    community: 'Asafo Community',
+    numberOfLocations: 89,
+    createdDate: '17 Jan 2024 9:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '16 Nov 2024 11:45 AM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 7,
+    zoneId: 'ZONE-007',
+    zoneName: 'Asafo Residential',
+    community: 'Asafo Community',
+    numberOfLocations: 34,
+    createdDate: '17 Jan 2024 9:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '13 Nov 2024 2:00 PM',
+    modifiedBy: 'Kwame Asante',
+    status: 'Active'
+  },
+  {
+    id: 8,
+    zoneId: 'ZONE-008',
+    zoneName: 'Suame Central',
+    community: 'Suame Community',
+    numberOfLocations: 72,
+    createdDate: '18 Jan 2024 10:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '17 Nov 2024 9:30 AM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  }
+];
+
+export const ticketTypesData = [
+  {
+    id: 1,
+    ticketTypeId: 'TT-001',
+    ticketTypeName: 'Lorry Park',
+    description: 'Tickets for lorry park operations and commercial vehicle parking',
+    createdDate: '10 Jan 2024 9:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '15 Nov 2024 2:30 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 2,
+    ticketTypeId: 'TT-002',
+    ticketTypeName: 'Market',
+    description: 'Tickets for market stall operations and vendor fees',
+    createdDate: '10 Jan 2024 9:15 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '18 Nov 2024 10:45 AM',
+    modifiedBy: 'John Mensah',
+    status: 'Active'
+  }
+];
+
+export const locationsData = [
+  {
+    id: 1,
+    locationId: 'LOC-001',
+    ticketType: 'Lorry Park',
+    locationName: 'Kejetia Lorry Park',
+    community: 'Adum Community',
+    zone: 'Adum Central',
+    description: 'Main lorry park serving central Kumasi',
+    createdDate: '12 Jan 2024 8:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '19 Nov 2024 3:15 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 2,
+    locationId: 'LOC-002',
+    ticketType: 'Market',
+    locationName: 'Central Market',
+    community: 'Adum Community',
+    zone: 'Adum Central',
+    description: 'Central market for fresh produce and goods',
+    createdDate: '12 Jan 2024 8:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '20 Nov 2024 10:00 AM',
+    modifiedBy: 'Sarah Osei',
+    status: 'Active'
+  },
+  {
+    id: 3,
+    locationId: 'LOC-003',
+    ticketType: 'Lorry Park',
+    locationName: 'Asafo Lorry Terminal',
+    community: 'Asafo Community',
+    zone: 'Asafo Market',
+    description: 'Terminal for intercity transportation',
+    createdDate: '13 Jan 2024 9:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '18 Nov 2024 2:45 PM',
+    modifiedBy: 'John Mensah',
+    status: 'Inactive'
+  },
+  {
+    id: 4,
+    locationId: 'LOC-004',
+    ticketType: 'Market',
+    locationName: 'Bantama Market',
+    community: 'Bantama Community',
+    zone: 'Bantama East',
+    description: 'Local market for household items and food',
+    createdDate: '14 Jan 2024 10:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '21 Nov 2024 11:30 AM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 5,
+    locationId: 'LOC-005',
+    ticketType: 'Market',
+    locationName: 'Suame Magazine Market',
+    community: 'Suame Community',
+    zone: 'Suame Central',
+    description: 'Specialized market for automotive parts and repairs',
+    createdDate: '15 Jan 2024 11:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '22 Nov 2024 9:15 AM',
+    modifiedBy: 'Kwame Asante',
+    status: 'Inactive'
+  }
+];
+
+export const customerTypesData = [
+  {
+    id: 1,
+    customerTypeId: 'CT-001',
+    ticketType: 'Lorry Park',
+    customerTypeName: 'Taxi',
+    description: 'Taxi drivers and operators at lorry parks',
+    createdDate: '10 Jan 2024 7:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '15 Nov 2024 4:00 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 2,
+    customerTypeId: 'CT-002',
+    ticketType: 'Lorry Park',
+    customerTypeName: 'Trotro',
+    description: 'Trotro (minibus) operators at lorry parks',
+    createdDate: '10 Jan 2024 7:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '16 Nov 2024 10:30 AM',
+    modifiedBy: 'John Mensah',
+    status: 'Active'
+  },
+  {
+    id: 3,
+    customerTypeId: 'CT-003',
+    ticketType: 'Lorry Park',
+    customerTypeName: 'Private',
+    description: 'Private vehicle operators at lorry parks',
+    createdDate: '10 Jan 2024 8:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '17 Nov 2024 11:15 AM',
+    modifiedBy: 'Sarah Osei',
+    status: 'Inactive'
+  },
+  {
+    id: 4,
+    customerTypeId: 'CT-004',
+    ticketType: 'Market',
+    customerTypeName: 'Hawker',
+    description: 'Mobile hawkers operating in market areas',
+    createdDate: '11 Jan 2024 8:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '17 Nov 2024 2:15 PM',
+    modifiedBy: 'AEDA Admin',
+    status: 'Active'
+  },
+  {
+    id: 5,
+    customerTypeId: 'CT-005',
+    ticketType: 'Market',
+    customerTypeName: 'Table-Top',
+    description: 'Table-top traders in the market',
+    createdDate: '11 Jan 2024 8:30 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '18 Nov 2024 11:00 AM',
+    modifiedBy: 'Kwame Asante',
+    status: 'Inactive'
+  },
+  {
+    id: 6,
+    customerTypeId: 'CT-006',
+    ticketType: 'Market',
+    customerTypeName: 'Stall',
+    description: 'Permanent stall owners in the market',
+    createdDate: '12 Jan 2024 9:00 AM',
+    createdBy: 'System Admin',
+    modifiedDate: '19 Nov 2024 3:45 PM',
+    modifiedBy: 'John Mensah',
     status: 'Active'
   }
 ];

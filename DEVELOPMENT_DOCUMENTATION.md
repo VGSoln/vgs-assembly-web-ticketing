@@ -1,13 +1,35 @@
-# CWSA Dashboard - Development Documentation
+# Municipal Assemblies Dashboard - Development Documentation
+# (Adapted from CWSA Dashboard)
 
 ## Project Overview
 
-**Project Name:** Community Water and Sanitation Agency (CWSA) Dashboard  
+**Project Name:** Municipal Assemblies Revenue Collection & Management Dashboard  
+**Original Base:** Community Water and Sanitation Agency (CWSA) Dashboard  
+**Purpose:** Comprehensive revenue collection, customer management, and financial tracking system for Municipal Assemblies in Ghana  
 **Technology Stack:** Next.js 15, TypeScript, Tailwind CSS, Recharts, Lucide React, Leaflet, React Leaflet  
-**Development Status:** Active Development  
-**Last Updated:** August 24, 2025 (Version 3.4)  
-**Package Name:** cwsa-dashboard  
-**Version:** 0.1.0
+**Development Status:** Migration & Adaptation Phase  
+**Last Updated:** September 16, 2025 (Version 4.0 - Municipal Assembly Edition)  
+**Package Name:** municipal-assembly-dashboard  
+**Version:** 1.0.0
+
+## Migration from CWSA to Municipal Assemblies
+
+### Project Transformation Overview
+This project is being adapted from the CWSA water utility management system to serve the broader needs of Municipal Assemblies in Ghana. While maintaining all existing functionality, the system will be enhanced to handle multiple revenue streams including:
+- Property rates
+- Business operating permits
+- Market tolls
+- Lorry park fees
+- Building permits
+- Other municipal levies and fees
+
+### Key Adaptation Areas
+1. **Revenue Streams** - Expand from water billing to multiple revenue categories
+2. **Customer Types** - Include property owners, business operators, market vendors, transporters
+3. **Payment Categories** - Property rates, licenses, permits, tolls, fees
+4. **Reporting** - Municipal-specific financial reporting and analytics
+5. **Compliance** - Local government regulations and requirements
+6. **Zone Management** - Electoral areas, sub-metros, and administrative zones
 
 ## Project History & Development Progress
 
@@ -682,12 +704,310 @@ npm start
 - **MAP_TESTING_GUIDE.md** - Documentation for map testing procedures
 - **gitcommittracker.csv** - Git commit history tracking
 
+## Municipal Assembly Migration Plan
+
+### Page-by-Page Review Process
+Each existing page will be systematically reviewed and adapted for Municipal Assembly requirements:
+
+#### 1. **Performance Overview Page** ⏳
+- **Current:** Water revenue and customer payments
+- **Adapt to:** Multiple revenue streams (property rates, business permits, market tolls)
+- **Changes Needed:**
+  - Add revenue stream breakdown
+  - Include IGF (Internally Generated Funds) metrics
+  - Add compliance rate indicators
+  - Multi-category collection targets
+
+#### 2. **Customer Management Pages** ⏳
+- **Current:** Water customers
+- **Adapt to:** Rate payers, business operators, vendors
+- **Changes Needed:**
+  - Customer type expansion
+  - Property/business registration numbers
+  - Multiple billing categories per customer
+  - License/permit expiry tracking
+
+#### 3. **Payment & Financial Pages** ⏳
+- **Current:** Water bill payments
+- **Adapt to:** Multi-category revenue collection
+- **Changes Needed:**
+  - Payment type categorization
+  - Revenue stream filtering
+  - Commission agent tracking
+  - Revenue point management
+
+#### 4. **Visit & Collection Pages** ⏳
+- **Current:** Meter reading visits
+- **Adapt to:** Revenue collection visits, enforcement
+- **Changes Needed:**
+  - Visit purpose categories
+  - Enforcement actions tracking
+  - Demand notice delivery
+  - Collection point visits
+
+#### 5. **Reports & Analytics** ⏳
+- **Current:** Water service analytics
+- **Adapt to:** Municipal revenue analytics
+- **Changes Needed:**
+  - Revenue stream comparison
+  - YoY growth by category
+  - Compliance rates by zone
+  - Collection efficiency metrics
+
+#### 6. **Infrastructure Pages** ⏳
+- **Current:** Pump stations, water tanks
+- **Adapt to:** Revenue collection points, markets, lorry parks
+- **Changes Needed:**
+  - Collection point management
+  - Market stall tracking
+  - Lorry park bay management
+  - Revenue point monitoring
+
+### Complete Page Inventory for Review
+
+#### Dashboard & Analytics (7 pages)
+1. ⏳ **PerformancePage** - Main dashboard overview
+2. ⏳ **DebtPage** - Debt analysis and overview
+3. ⏳ **VisitsPage** - Visit tracking and analytics
+4. ⏳ **PaymentsPage** - Payment analytics
+5. ⏳ **BankDepositsPage** - Bank deposit monitoring
+6. ⏳ **PaymentsListPage** - Detailed payment transactions
+7. ⏳ **BankDepositsListPage** - Detailed bank deposits
+
+#### Customer Management (8 pages)
+8. ⏳ **CustomersPage** - Customer list and search
+9. ⏳ **CustomerDetailsPage** - Individual customer details
+10. ⏳ **AddCustomerPage** - New customer registration
+11. ⏳ **EditCustomerPage** - Edit customer information
+12. ⏳ **CustomerReviewPage** - Review before saving
+13. ⏳ **CustomerMeterReadingsPage** - Meter reading management
+14. ⏳ **ReactivatedCustomersPage** - Reactivated customers list
+15. ⏳ **CustomerPaymentStatusPage** - Payment status tracking
+
+#### Visit Management (10 pages)
+16. ⏳ **VisitsListPage** - All visits list
+17. ⏳ **CustomerVisitStatusNoOneHomePage** - No one home visits
+18. ⏳ **CustomerVisitStatusExcusesPage** - Customer excuses tracking
+19. ⏳ **CustomerVisitStatusCancelledStoppedPage** - Cancelled/stopped visits
+20. ⏳ **CustomerVisitStatusWaterSupplyIssuesPage** - Water supply issues
+21. ⏳ **CustomerVisitStatusMeterDisconnectedPage** - Disconnected meters
+22. ⏳ **CustomerVisitStatusInaccessibleMeterPage** - Inaccessible meters
+23. ⏳ **CustomerVisitStatusFaultyMeterPage** - Faulty meters
+24. ⏳ **CustomerVisitStatusUnreadableMeterPage** - Unreadable meters
+25. ⏳ **CustomerVisitStatusOtherPage** - Other visit outcomes
+
+#### Staff Management (4 pages)
+26. ⏳ **StaffPage** - Staff overview
+27. ⏳ **StaffDetailsPage** - Individual staff details
+28. ⏳ **AddStaffPage** - Add new staff
+29. ⏳ **EditStaffPage** - Edit staff information
+
+#### Infrastructure Management (14 pages)
+30. ⏳ **PumpStationsPage** - Pump stations list
+31. ⏳ **PumpStationDetailsPage** - Pump station details
+32. ⏳ **AddPumpStationPage** - Add pump station
+33. ⏳ **EditPumpStationPage** - Edit pump station
+34. ⏳ **PumpStationReviewPage** - Review pump station
+35. ⏳ **PumpStationLocationsPage** - Pump station map
+36. ⏳ **PumpStationMeterReadingsPage** - Pump station readings
+37. ⏳ **StorageTanksPage** - Storage tanks list
+38. ⏳ **StorageTankDetailsPage** - Tank details
+39. ⏳ **AddStorageTankPage** - Add storage tank
+40. ⏳ **EditStorageTankPage** - Edit storage tank
+41. ⏳ **StorageTankReviewPage** - Review tank
+42. ⏳ **StorageTankLocationsPage** - Tank locations map
+43. ⏳ **StorageTankMeterReadingsPage** - Tank readings
+
+#### Location & Mapping (3 pages)
+44. ⏳ **CollectorLocationsPage** - Collector GPS tracking
+45. ⏳ **CollectorPathsPage** - Collector route tracking
+46. ⏳ **CustomerLocationsPage** - Customer locations map
+
+#### Dashboard Details (7 pages)
+47. ⏳ **DashboardDetailsInactiveCustomersPage** - Inactive customers
+48. ⏳ **DashboardDetailsCustomersInactiveThisYearPage** - Year's inactive
+49. ⏳ **DashboardDetailsNonPaidCustomersPage** - Non-paying customers
+50. ⏳ **DashboardDetailsPaidCustomersPage** - Paid customers
+51. ⏳ **DashboardDetailsCustomerDebtPage** - Customer debt details
+52. ⏳ **DashboardDetailsCustomersWithNoPaymentsPage** - No payment customers
+53. ⏳ **DashboardDetailsYearlyWaterConnectionsPage** - Yearly connections
+
+**Total Pages to Review: 53**
+
+### Review Status Legend
+- ✅ Completed
+- 🔄 In Progress
+- ⏳ Pending
+- 🚫 Not Applicable (to be removed)
+- 🆕 New Addition (Municipal-specific)
+
+### Page Review Checklist
+For each page, we will:
+1. ☐ Review current functionality
+2. ☐ Identify Municipal Assembly requirements
+3. ☐ Update terminology and labels
+4. ☐ Modify data structures
+5. ☐ Adapt business logic
+6. ☐ Update UI/UX for new context
+7. ☐ Test functionality
+8. ☐ Document changes
+
+## Municipal Assembly Specific Requirements
+
+### Revenue Categories
+The system must handle multiple revenue streams:
+
+1. **Property Rates**
+   - Residential properties
+   - Commercial properties
+   - Industrial properties
+   - Government properties
+   - Property valuation tracking
+   - Rate calculation based on property value
+
+2. **Business Operating Permits (BOP)**
+   - Category A, B, C, D classifications
+   - Annual renewal tracking
+   - Business type categorization
+   - Permit expiry notifications
+
+3. **Market Tolls**
+   - Daily toll collection
+   - Market stall assignments
+   - Vendor registration
+   - Market day tracking
+
+4. **Lorry Park Fees**
+   - Vehicle type categorization
+   - Daily/monthly passes
+   - Loading bay assignments
+   - Transport union integration
+
+5. **Building Permits**
+   - Residential permits
+   - Commercial permits
+   - Renovation permits
+   - Permit stage tracking
+
+6. **Other Fees & Licenses**
+   - Billboard/signage fees
+   - Temporary structure permits
+   - Event permits
+   - Cemetery fees
+   - Miscellaneous levies
+
+### Data Structure Adaptations
+
+1. **Customer/Client Entity**
+   - Property owner details
+   - Business operator information
+   - Multiple property/business linkage
+   - Tax Identification Number (TIN)
+   - Ghana Card number integration
+   - Digital address system
+
+2. **Billing & Invoicing**
+   - Multi-category billing per client
+   - Consolidated billing option
+   - Demand notice generation
+   - Rate calculation engine
+   - Penalty and interest computation
+
+3. **Collection Management**
+   - Commission agent system
+   - Collection point management
+   - Mobile money integration
+   - Bank reconciliation
+   - Receipt generation and tracking
+
+4. **Compliance & Enforcement**
+   - Compliance status tracking
+   - Enforcement action logging
+   - Court case management
+   - Distress warrant tracking
+   - Property attachment records
+
+### Reporting Requirements
+
+1. **Financial Reports**
+   - IGF performance reports
+   - Revenue stream analysis
+   - Collection efficiency reports
+   - Outstanding debt reports
+   - Commission agent performance
+
+2. **Compliance Reports**
+   - Payment compliance by zone
+   - Business permit compliance
+   - Property rate compliance
+   - Enforcement action reports
+
+3. **Operational Reports**
+   - Collector performance metrics
+   - Zone performance comparison
+   - Daily collection summaries
+   - Monthly/quarterly/annual reports
+
+### Integration Points
+
+1. **Government Systems**
+   - Ghana.GOV integration
+   - GhIPSS payment gateway
+   - Ghana Post GPS
+   - National ID system
+
+2. **Banking & Payment**
+   - Multiple bank integration
+   - Mobile money operators (MTN, Vodafone, AirtelTigo)
+   - POS terminal integration
+   - QR code payments
+
+3. **Communication**
+   - Bulk SMS for notifications
+   - Email integration
+   - WhatsApp Business API
+   - USSD platform
+
+### User Roles & Permissions
+
+1. **Assembly Management**
+   - Chief Executive
+   - Finance Officer
+   - Budget Officer
+   - Planning Officer
+
+2. **Revenue Staff**
+   - Revenue Superintendent
+   - Revenue Collectors
+   - Commission Agents
+   - Enforcement Officers
+
+3. **Support Staff**
+   - Data Entry Clerks
+   - Customer Service
+   - IT Support
+
+### Compliance & Regulatory
+
+1. **Legal Framework**
+   - Local Government Act compliance
+   - Financial Administration Act
+   - Public Financial Management Act
+   - Data Protection Act
+
+2. **Audit Requirements**
+   - Audit trail for all transactions
+   - User activity logging
+   - Document management
+   - Report archiving
+
 ## Project Status
 
 ### Current Version
-- **Version:** 3.4 (Latest)
-- **Status:** Active Development
+- **Version:** 4.0 - Municipal Assembly Edition
+- **Status:** Migration & Adaptation Phase
 - **Git Branch:** main
+- **Migration Started:** September 16, 2025
 
 ### Recent Activity
 - Multiple new modal components added
@@ -724,5 +1044,39 @@ For questions or support regarding this dashboard, please contact the developmen
 
 ---
 
+## Migration Summary
+
+### Project Scope
+- **Base System:** CWSA Water Management Dashboard
+- **Target System:** Municipal Assembly Revenue Collection System
+- **Total Pages:** 53 existing pages to be adapted
+- **Timeline:** Page-by-page systematic review and adaptation
+- **Approach:** Maintain all existing functionality while expanding for municipal needs
+
+### Key Transformations
+1. **From:** Single revenue stream (water) → **To:** Multiple revenue categories
+2. **From:** Water customers → **To:** Property owners, businesses, vendors
+3. **From:** Meter readings → **To:** Multi-purpose revenue collection visits
+4. **From:** Water infrastructure → **To:** Revenue collection points and markets
+5. **From:** Water bills → **To:** Multi-category bills and permits
+
+### Next Steps
+1. Begin systematic page-by-page review starting with Performance Overview
+2. Update branding and terminology throughout
+3. Modify data structures to support multiple revenue streams
+4. Implement Municipal Assembly specific features
+5. Test and validate each adapted page
+6. Deploy Municipal Assembly version
+
+### Success Criteria
+- ✓ All 53 pages successfully adapted for municipal use
+- ✓ Support for all 6 major revenue categories
+- ✓ Compliance with Ghana local government requirements
+- ✓ Integration with national systems (Ghana.GOV, GhIPSS, etc.)
+- ✓ Complete documentation and training materials
+
+---
+
 *This documentation is actively maintained and updated with each development session.*
-*Last comprehensive review: August 24, 2025*
+*Last comprehensive review: September 16, 2025*
+*Migration to Municipal Assembly System Initiated: September 16, 2025*

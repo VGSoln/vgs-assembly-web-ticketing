@@ -35,17 +35,19 @@ export const Header: React.FC<HeaderProps> = ({
       case 'performance':
         return 'Performance Overview';
       case 'debt':
-        return 'Debt Overview';
-      case 'visits':
-        return 'Customer Visits Overview';
-      case 'visits-list':
-        return 'Customer Visits Details';
-      case 'pump-stations':
-        return 'List of Pump Stations';
+        return 'Ticketing Overview';
+      case 'revenue-officer-performance':
+        return 'Revenue Officer Performance & Field Attendance';
       case 'storage-tanks':
-        return 'List of Storage Tanks';
-      case 'pump-station-meter-readings':
-        return 'Pump Station Meter Readings';
+        return 'Admin Panel';
+      case 'zones':
+        return 'Admin Zones';
+      case 'ticket-type':
+        return 'Admin Ticket Type';
+      case 'location':
+        return 'Admin Location';
+      case 'customer-type':
+        return 'Admin Customer Type';
       case 'storage-tank-meter-readings':
         return 'Storage Tank Meter Readings';
       case 'customer-meter-readings':
@@ -61,27 +63,25 @@ export const Header: React.FC<HeaderProps> = ({
       case 'customer-locations':
         return 'Customer Locations';
       case 'collector-locations':
-        return 'Collector Locations';
+        return 'Ticketing Transactions';
       case 'collector-paths':
         return 'Collector Paths';
-      case 'pump-station-locations':
-        return 'Pump Station Locations';
       case 'storage-tank-locations':
-        return 'Storage Tank Locations';
-      case 'customers':
-        return isCustomerDetails ? 'Customer Detail Information' : 'Customer List';
-      case 'reactivated-customers':
-        return 'Reactivated Customer List';
+        return 'Market Locations';
+      case 'ticket-customers':
+        return 'Ticket Customer List';
+      case 'ticket-rates':
+        return 'Ticketing Rates';
       case 'customer-details':
         return 'Customer Detail Information';
-      case 'payments':
-        return 'Payment Transactions';
+      case 'ticket-payments':
+        return 'Ticket Payment Transactions';
       case 'bank-deposits':
         return 'Bank Deposit Transactions';
       case 'dashboard-details-customer-debt':
         return 'Customer Debt';
       case 'dashboard-details-yearly-water-connections':
-        return 'Yearly Water Connections';
+        return 'Payment and Months Since Last Payment Information';
       case 'dashboard-details-paid-customers':
         return 'Paid Customers';
       case 'dashboard-details-non-paid-customers':
@@ -91,7 +91,9 @@ export const Header: React.FC<HeaderProps> = ({
       case 'dashboard-details-inactive-customers':
         return 'Inactive Customers';
       case 'dashboard-details-customers-inactive-this-year':
-        return 'Customers made Inactive this Year';
+        return 'Scanned Tickets Information';
+      case 'dashboard-details-counterfeited-tickets':
+        return 'Counterfeited Tickets Information';
       case 'customer-payment-status':
         return 'Paid Customers';
       case 'customer-payment-status-paid-customers':
@@ -135,16 +137,18 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Dashboard';
       case 'debt':
         return 'Dashboard';
-      case 'visits':
-        return 'Visits';
-      case 'visits-list':
-        return 'Visits';
-      case 'pump-stations':
-        return 'Pump Stations';
+      case 'revenue-officer-performance':
+        return 'Dashboard';
       case 'storage-tanks':
-        return 'Storage Tanks';
-      case 'pump-station-meter-readings':
-        return 'Meter Readings';
+        return 'Admin';
+      case 'zones':
+        return 'Admin';
+      case 'ticket-type':
+        return 'Admin';
+      case 'location':
+        return 'Admin';
+      case 'customer-type':
+        return 'Admin';
       case 'storage-tank-meter-readings':
         return 'Meter Readings';
       case 'customer-meter-readings':
@@ -163,17 +167,15 @@ export const Header: React.FC<HeaderProps> = ({
         return 'GPS';
       case 'collector-paths':
         return 'GPS';
-      case 'pump-station-locations':
-        return 'GPS';
       case 'storage-tank-locations':
         return 'GPS';
-      case 'customers':
+      case 'ticket-customers':
         return 'Customers';
-      case 'reactivated-customers':
+      case 'ticket-rates':
         return 'Customers';
       case 'customer-details':
         return 'Customers';
-      case 'payments':
+      case 'ticket-payments':
         return 'Payments';
       case 'bank-deposits':
         return 'Bank Deposits';
@@ -260,7 +262,35 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {getMainTitle(currentPage)} {currentPage === 'customer-payment-status-paid-customers' ? (
+              {getMainTitle(currentPage)} {currentPage === 'storage-tanks' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Communities
+                </span>
+              ) : currentPage === 'zones' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Zones
+                </span>
+              ) : currentPage === 'ticket-type' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Ticket Type
+                </span>
+              ) : currentPage === 'location' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Location
+                </span>
+              ) : currentPage === 'customer-type' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Customer Type
+                </span>
+              ) : currentPage === 'ticket-rates' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Ticketing Rates
+                </span>
+              ) : currentPage === 'collector-locations' ? (
+                <span className="text-sm font-normal text-gray-500">
+                  Ticketing Transactions
+                </span>
+              ) : currentPage === 'customer-payment-status-paid-customers' ? (
                 <span className="text-sm font-normal text-gray-500">
                   Paid Customers
                 </span>
@@ -328,7 +358,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-xl shadow-lg">
               <div className="text-xs uppercase tracking-wider opacity-90">Today&apos;s Payments</div>
               <div className="text-2xl font-bold">
-                GH₵<AnimatedNumber value={0} isCurrency={true} />
+                GHS <AnimatedNumber value={0} isCurrency={true} />
               </div>
               <div className="text-xs mt-1 flex items-center">
                 <ArrowUp size={12} className="mr-1" />

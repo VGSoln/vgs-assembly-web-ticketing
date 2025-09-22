@@ -96,7 +96,7 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
     
     // Format currency values
     if (tooltip.data.name === 'Current Debt' || tooltip.data.name === 'Old Debt') {
-      formattedValue = `GH₵ ${tooltip.data.value.toLocaleString()}`;
+      formattedValue = `GHS ${tooltip.data.value.toLocaleString()}`;
     }
 
     return (

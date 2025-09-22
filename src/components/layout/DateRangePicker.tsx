@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { CalendarDays, ChevronDown } from 'lucide-react';
 import { DateRange } from '@/types/dashboard';
 import { getDatePresets } from '@/lib/utils';
@@ -28,9 +28,31 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   className = ''
 }) => {
   const presets = getDatePresets();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Handle click outside to close the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        if (isOpen) {
+          onToggle(); // Close the dropdown
+        }
+      }
+    };
+
+    // Add event listener when dropdown is open
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, onToggle]);
 
   return (
-    <div className={`relative date-range-picker ${className}`}>
+    <div ref={containerRef} className={`relative date-range-picker ${className}`}>
       <button
         onClick={onToggle}
         className="w-full flex items-center px-4 py-2.5 bg-white border border-gray-300 rounded-lg hover:border-blue-300 transition-all text-left text-sm"

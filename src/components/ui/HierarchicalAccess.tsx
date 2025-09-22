@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Globe, Building, MapPin } from 'lucide-react';
+import { ChevronDown, ChevronRight, Building2, Users, MapPin } from 'lucide-react';
 
 interface AccessLevel {
   id: string;
@@ -19,44 +19,49 @@ interface HierarchicalAccessProps {
 // Mock data - in a real app, this would come from an API
 const accessData: AccessLevel[] = [
   {
-    id: 'region-1',
-    name: 'Greater Accra Region',
+    id: 'community-1',
+    name: 'Adum Community',
     children: [
-      {
-        id: 'ws-1',
-        name: 'Kweiman-Danfa Water System',
-        children: [
-          { id: 'zone-1', name: 'Zone 1' },
-          { id: 'zone-2', name: 'Zone 2' },
-          { id: 'zone-3', name: 'Zone 3' },
-          { id: 'zone-4', name: 'Zone 4' },
-          { id: 'zone-5', name: 'Zone 5' },
-          { id: 'zone-6', name: 'Zone 6' }
-        ]
-      },
-      {
-        id: 'ws-2',
-        name: 'Tema Water System',
-        children: [
-          { id: 'zone-7', name: 'Zone A' },
-          { id: 'zone-8', name: 'Zone B' },
-          { id: 'zone-9', name: 'Zone C' }
-        ]
-      }
+      { id: 'zone-1', name: 'Zone 1' },
+      { id: 'zone-2', name: 'Zone 2' },
+      { id: 'zone-3', name: 'Zone 3' },
+      { id: 'zone-4', name: 'Zone 4' },
+      { id: 'zone-5', name: 'Zone 5' },
+      { id: 'zone-6', name: 'Zone 6' }
     ]
   },
   {
-    id: 'region-2',
-    name: 'Ashanti Region',
+    id: 'community-2',
+    name: 'Kejetia Community',
     children: [
-      {
-        id: 'ws-3',
-        name: 'Kumasi Water System',
-        children: [
-          { id: 'zone-10', name: 'Zone 1' },
-          { id: 'zone-11', name: 'Zone 2' }
-        ]
-      }
+      { id: 'zone-7', name: 'Zone A' },
+      { id: 'zone-8', name: 'Zone B' },
+      { id: 'zone-9', name: 'Zone C' }
+    ]
+  },
+  {
+    id: 'community-3',
+    name: 'Bantama Community',
+    children: [
+      { id: 'zone-10', name: 'Zone 1' },
+      { id: 'zone-11', name: 'Zone 2' },
+      { id: 'zone-12', name: 'Zone 3' }
+    ]
+  },
+  {
+    id: 'community-4',
+    name: 'Asafo Community',
+    children: [
+      { id: 'zone-13', name: 'Zone 1' },
+      { id: 'zone-14', name: 'Zone 2' }
+    ]
+  },
+  {
+    id: 'community-5',
+    name: 'Suame Community',
+    children: [
+      { id: 'zone-15', name: 'Zone A' },
+      { id: 'zone-16', name: 'Zone B' }
     ]
   }
 ];
@@ -222,9 +227,8 @@ export const HierarchicalAccess: React.FC<HierarchicalAccessProps> = ({
     const hasChildren = node.children && node.children.length > 0;
 
     const getIcon = () => {
-      if (level === 0) return <Globe className="w-4 h-4 text-blue-500" />;
-      if (level === 1) return <Building className="w-4 h-4 text-green-500" />;
-      return <MapPin className="w-4 h-4 text-orange-500" />;
+      if (level === 0) return <Users className="w-4 h-4 text-green-500" />; // Community
+      return <MapPin className="w-4 h-4 text-orange-500" />; // Zones
     };
 
     return (
@@ -281,7 +285,7 @@ export const HierarchicalAccess: React.FC<HierarchicalAccessProps> = ({
 
   const getDisplayValue = () => {
     if (accessType === 'global') {
-      return 'Global Access - All Regions, Water Systems, and Zones';
+      return 'Global Access - Entire Assembly (All Communities and Zones)';
     }
     
     if (selectedItems.size === 0) {
@@ -289,19 +293,16 @@ export const HierarchicalAccess: React.FC<HierarchicalAccessProps> = ({
     }
     
     // Count by type
-    const regions = new Set<string>();
-    const waterSystems = new Set<string>();
+    const communities = new Set<string>();
     const zones = new Set<string>();
     
     selectedItems.forEach(id => {
-      if (id.startsWith('region-')) regions.add(id);
-      else if (id.startsWith('ws-')) waterSystems.add(id);
+      if (id.startsWith('community-')) communities.add(id);
       else if (id.startsWith('zone-')) zones.add(id);
     });
     
     const parts = [];
-    if (regions.size > 0) parts.push(`${regions.size} region${regions.size > 1 ? 's' : ''}`);
-    if (waterSystems.size > 0) parts.push(`${waterSystems.size} water system${waterSystems.size > 1 ? 's' : ''}`);
+    if (communities.size > 0) parts.push(`${communities.size} communit${communities.size > 1 ? 'ies' : 'y'}`);
     if (zones.size > 0) parts.push(`${zones.size} zone${zones.size > 1 ? 's' : ''}`);
     
     return parts.length > 0 ? parts.join(', ') + ' selected' : `${selectedItems.size} item(s) selected`;
@@ -344,8 +345,8 @@ export const HierarchicalAccess: React.FC<HierarchicalAccessProps> = ({
                       onChange={() => handleAccessTypeChange('global')}
                       className="text-blue-600 focus:ring-blue-500"
                     />
-                    <Globe className="w-4 h-4 text-blue-500" />
-                    <span className="text-sm text-gray-700">Global Access (All Regions, Water Systems & Zones)</span>
+                    <Building2 className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm text-gray-700">Global Access (Entire Assembly - All Communities & Zones)</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -367,7 +368,7 @@ export const HierarchicalAccess: React.FC<HierarchicalAccessProps> = ({
               <div className="p-4">
                 <div className="text-sm font-medium text-gray-700 mb-3">Select Access Permissions:</div>
                 <div className="space-y-1">
-                  {accessData.map(region => renderTreeNode(region, 0))}
+                  {accessData.map(community => renderTreeNode(community, 0))}
                 </div>
               </div>
             )}

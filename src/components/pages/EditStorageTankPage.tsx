@@ -42,11 +42,10 @@ interface StorageTankData {
 
 interface EditStorageTankPageProps {
   storageTankData: StorageTankData;
-  onBack?: () => void;
   onSave?: (storageTankData: StorageTankFormData) => void;
 }
 
-export const EditStorageTankPage: React.FC<EditStorageTankPageProps> = ({ storageTankData, onBack, onSave }) => {
+export const EditStorageTankPage: React.FC<EditStorageTankPageProps> = ({ storageTankData, onSave }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState<StorageTankFormData>({
     storageTankName: storageTankData.storageTankName || '',
@@ -197,7 +196,7 @@ export const EditStorageTankPage: React.FC<EditStorageTankPageProps> = ({ storag
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -505,7 +504,7 @@ export const EditStorageTankPage: React.FC<EditStorageTankPageProps> = ({ storag
           {/* Action Buttons */}
           <div className="flex justify-end gap-4">
             <button
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
             >
               Cancel

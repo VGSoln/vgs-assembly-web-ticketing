@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { Map, Satellite, Filter, Database } from 'lucide-react';
+import { Map, Satellite, Filter, Database, ExternalLink } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 
 interface StorageTankLocationsPageProps {}
@@ -8,7 +8,7 @@ interface StorageTankLocationsPageProps {}
 export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> = () => {
   const [selectedBusinessCenter, setSelectedBusinessCenter] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
-  const [selectedTank, setSelectedTank] = useState('');
+  const [selectedMarket, setSelectedMarket] = useState('');
   const [mapType, setMapType] = useState<'street' | 'satellite'>('street');
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
@@ -52,8 +52,8 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
           maxZoom: 20,
         }).addTo(map);
 
-        // Custom marker creation function for storage tanks
-        const createStorageTankIcon = (level: 'high' | 'medium' | 'low') => {
+        // Custom marker creation function for market locations
+        const createMarketLocationIcon = (level: 'high' | 'medium' | 'low') => {
           const colors = {
             high: '#10b981',    // Green - 70%+ full
             medium: '#f59e0b',  // Yellow - 30-70% full
@@ -102,12 +102,12 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
         };
 
         // Storage tank locations data
-        const storageTanks = [
+        const marketLocations = [
           { 
             id: 1, 
             lat: 5.6037, 
             lng: -0.1870, 
-            name: 'Main Storage Tank', 
+            name: 'Main Market Location', 
             capacity: '500,000 L',
             currentLevel: '425,000 L',
             percentage: 85,
@@ -118,7 +118,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 2, 
             lat: 5.6157, 
             lng: -0.1920, 
-            name: 'North Storage Tank', 
+            name: 'North Market Location', 
             capacity: '350,000 L',
             currentLevel: '280,000 L',
             percentage: 80,
@@ -129,7 +129,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 3, 
             lat: 5.5987, 
             lng: -0.1750, 
-            name: 'East Storage Tank', 
+            name: 'East Market Location', 
             capacity: '400,000 L',
             currentLevel: '200,000 L',
             percentage: 50,
@@ -140,7 +140,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 4, 
             lat: 5.5937, 
             lng: -0.2000, 
-            name: 'West Storage Tank', 
+            name: 'West Market Location', 
             capacity: '450,000 L',
             currentLevel: '90,000 L',
             percentage: 20,
@@ -151,7 +151,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 5, 
             lat: 5.6087, 
             lng: -0.1650, 
-            name: 'Central Storage Tank', 
+            name: 'Central Market Location', 
             capacity: '600,000 L',
             currentLevel: '360,000 L',
             percentage: 60,
@@ -162,7 +162,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 6, 
             lat: 5.5887, 
             lng: -0.1820, 
-            name: 'South Storage Tank', 
+            name: 'South Market Location', 
             capacity: '300,000 L',
             currentLevel: '45,000 L',
             percentage: 15,
@@ -173,7 +173,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 7, 
             lat: 5.6117, 
             lng: -0.1700, 
-            name: 'Reserve Tank A', 
+            name: 'Reserve Market Location A', 
             capacity: '250,000 L',
             currentLevel: '225,000 L',
             percentage: 90,
@@ -184,7 +184,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
             id: 8, 
             lat: 5.5967, 
             lng: -0.1900, 
-            name: 'Reserve Tank B', 
+            name: 'Reserve Market Location B', 
             capacity: '250,000 L',
             currentLevel: '100,000 L',
             percentage: 40,
@@ -193,10 +193,10 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
           }
         ];
 
-        // Add markers for storage tanks
-        storageTanks.forEach((tank) => {
-          const icon = createStorageTankIcon(tank.level as 'high' | 'medium' | 'low');
-          const marker = L.marker([tank.lat, tank.lng], { icon }).addTo(map);
+        // Add markers for market locations
+        marketLocations.forEach((location) => {
+          const icon = createMarketLocationIcon(location.level as 'high' | 'medium' | 'low');
+          const marker = L.marker([location.lat, location.lng], { icon }).addTo(map);
           
           // Level colors for popup
           const levelColors = {
@@ -208,27 +208,27 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
           marker.bindPopup(`
             <div style="padding: 8px; min-width: 220px;">
               <h3 style="margin: 0 0 8px 0; font-weight: bold; font-size: 14px;">
-                ${tank.name}
+                ${location.name}
               </h3>
               <div style="margin-bottom: 8px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                   <span style="font-size: 12px; color: #666;">Capacity:</span>
-                  <span style="font-size: 12px; font-weight: 600;">${tank.capacity}</span>
+                  <span style="font-size: 12px; font-weight: 600;">${location.capacity}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                   <span style="font-size: 12px; color: #666;">Current Level:</span>
-                  <span style="font-size: 12px; font-weight: 600; color: ${levelColors[tank.level as keyof typeof levelColors]};">
-                    ${tank.currentLevel}
+                  <span style="font-size: 12px; font-weight: 600; color: ${levelColors[location.level as keyof typeof levelColors]};">
+                    ${location.currentLevel}
                   </span>
                 </div>
                 <div style="width: 100%; height: 20px; background-color: #e5e7eb; border-radius: 10px; overflow: hidden; margin-top: 6px;">
-                  <div style="width: ${tank.percentage}%; height: 100%; background-color: ${levelColors[tank.level as keyof typeof levelColors]}; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-size: 11px; font-weight: bold;">${tank.percentage}%</span>
+                  <div style="width: ${location.percentage}%; height: 100%; background-color: ${levelColors[location.level as keyof typeof levelColors]}; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-size: 11px; font-weight: bold;">${location.percentage}%</span>
                   </div>
                 </div>
               </div>
               <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                Zone: <strong>${tank.zone}</strong>
+                Zone: <strong>${location.zone}</strong>
               </p>
             </div>
           `);
@@ -299,19 +299,19 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
     { value: 'zone6', label: 'Zone 6' }
   ];
 
-  const tankOptions = [
-    { value: 'main', label: 'Main Storage Tank' },
-    { value: 'north', label: 'North Storage Tank' },
-    { value: 'east', label: 'East Storage Tank' },
-    { value: 'west', label: 'West Storage Tank' },
-    { value: 'central', label: 'Central Storage Tank' },
-    { value: 'south', label: 'South Storage Tank' },
-    { value: 'reserve-a', label: 'Reserve Tank A' },
-    { value: 'reserve-b', label: 'Reserve Tank B' }
+  const marketOptions = [
+    { value: 'main', label: 'Main Market Location' },
+    { value: 'north', label: 'North Market Location' },
+    { value: 'east', label: 'East Market Location' },
+    { value: 'west', label: 'West Market Location' },
+    { value: 'central', label: 'Central Market Location' },
+    { value: 'south', label: 'South Market Location' },
+    { value: 'reserve-a', label: 'Reserve Market Location A' },
+    { value: 'reserve-b', label: 'Reserve Market Location B' }
   ];
 
-  // Tank statistics
-  const tankStats = {
+  // Market location statistics
+  const marketStats = {
     total: 8
   };
 
@@ -337,22 +337,22 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
               className="w-full sm:w-auto min-w-[150px]"
             />
             <ModernSelect
-              value={selectedTank}
-              onChange={setSelectedTank}
-              placeholder="Select Tank"
-              options={tankOptions}
+              value={selectedMarket}
+              onChange={setSelectedMarket}
+              placeholder="Select Market Location"
+              options={marketOptions}
               className="w-full sm:w-auto min-w-[200px]"
             />
           </div>
 
-          {/* Tank Counter */}
+          {/* Market Location Counter */}
           <div className="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-xl shadow-lg">
             <div className="text-center">
               <div className="text-2xl font-bold">
-                {tankStats.total}
+                {marketStats.total}
               </div>
               <div className="text-xs uppercase tracking-wider opacity-90">
-                Total Storage Tanks
+                Total Market Locations
               </div>
             </div>
           </div>
@@ -363,7 +363,7 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
       <div className="bg-white flex-1 flex flex-col w-full relative" style={{ minHeight: 0, zIndex: 1 }}>
         {/* Map Controls Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
-          <h2 className="text-lg font-semibold text-gray-900">Storage Tank Locations</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Market Locations</h2>
           
           <div className="flex items-center gap-3">
             {/* Map Type Toggle */}
@@ -391,6 +391,16 @@ export const StorageTankLocationsPage: React.FC<StorageTankLocationsPageProps> =
                 Satellite
               </button>
             </div>
+            
+            {/* Open in Browser Button */}
+            <button
+              onClick={() => window.open(window.location.href, '_blank')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              title="Open map in new browser tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in Browser
+            </button>
           </div>
         </div>
 

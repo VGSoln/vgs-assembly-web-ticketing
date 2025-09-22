@@ -48,7 +48,7 @@ interface CustomerVisitStatusNoOneHomePageProps {
 type SortConfig = {
   key: string;
   direction: 'asc' | 'desc';
-};
+}
 
 // Removed formatPaidMonth as it's not needed for this page
 
@@ -85,16 +85,16 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
     { key: 'customerNumber', label: 'Customer #', sortable: true, width: '8%' },
     { key: 'customerName', label: 'Customer Name', sortable: true, width: '11%' },
     { key: 'phone', label: 'Phone', sortable: true, width: '8%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
-    { key: 'lastVisit', label: 'Last Visit', sortable: true, width: '9%' },
-    { key: 'lastPaidDate', label: 'Last Paid Date', sortable: true, width: '9%' },
-    { key: 'lastOutcome', label: 'Last Outcome', sortable: true, width: '7%' },
+    { key: 'zone', label: 'Zone', sortable: true, width: '5%' },
+    { key: 'lastVisit', label: 'Last Visit', sortable: true, width: '8%' },
+    { key: 'lastPaidDate', label: 'Last Paid Date', sortable: true, width: '8%' },
+    { key: 'lastOutcome', label: 'Last Outcome', sortable: true, width: '10%' },
     { key: 'lastPaidMonth', label: 'Last Paid Mth', sortable: true, width: '7%' },
     { key: 'lastPaidAmount', label: 'Last Paid Amt', sortable: true, width: '8%' },
     { key: 'monthsOwed', label: 'Months Owed', sortable: true, width: '7%' },
     { key: 'amountOwed', label: 'Amount Owed', sortable: true, width: '8%' },
-    { key: 'customerComments', label: 'Customer Comments', sortable: false, width: '7%' },
-    { key: 'staffNotes', label: 'Staff Notes', sortable: false, width: '7%' },
+    { key: 'customerComments', label: 'Customer Comments', sortable: false, width: '6%' },
+    { key: 'staffNotes', label: 'Staff Notes', sortable: false, width: '6%' },
     { key: 'actions', label: 'Actions', sortable: false, width: '8%' }
   ];
 
@@ -312,20 +312,54 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
     const baseData = getDataByFilter();
     
     let filtered = baseData.filter(customer => {
-      // Apply search filter
-      return customer.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.lastVisit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.lastPaidDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.lastOutcome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.lastPaidMonth.includes(searchTerm) ||
-        customer.lastPaidAmount.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.monthsOwed.toString().includes(searchTerm) ||
-        customer.amountOwed.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerComments.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.staffNotes.toLowerCase().includes(searchTerm.toLowerCase());
+      // Date range filter - filter by lastVisit or lastPaidDate
+      if (selectedDateRange.startDate && selectedDateRange.endDate) {
+        const startDate = new Date(selectedDateRange.startDate);
+        const endDate = new Date(selectedDateRange.endDate);
+        
+        // Try to parse lastVisit date (ISO format)
+        let dateToCheck: Date | null = null;
+        
+        if (customer.lastVisit) {
+          const visitDate = new Date(customer.lastVisit);
+          if (!isNaN(visitDate.getTime())) {
+            dateToCheck = visitDate;
+          }
+        }
+        
+        // Fallback to lastPaidDate if lastVisit is not available
+        if (!dateToCheck && customer.lastPaidDate) {
+          const paidDate = new Date(customer.lastPaidDate);
+          if (!isNaN(paidDate.getTime())) {
+            dateToCheck = paidDate;
+          }
+        }
+        
+        // If we have a valid date, check if it's in range
+        if (dateToCheck && (dateToCheck < startDate || dateToCheck > endDate)) {
+          return false;
+        }
+      }
+      
+      // Search filter
+      if (searchTerm.trim()) {
+        const search = searchTerm.toLowerCase();
+        return customer.customerNumber.toLowerCase().includes(search) ||
+          customer.customerName.toLowerCase().includes(search) ||
+          customer.phone.toLowerCase().includes(search) ||
+          customer.zone.toLowerCase().includes(search) ||
+          customer.lastVisit.toLowerCase().includes(search) ||
+          customer.lastPaidDate.toLowerCase().includes(search) ||
+          customer.lastOutcome.toLowerCase().includes(search) ||
+          customer.lastPaidMonth.includes(searchTerm) ||
+          customer.lastPaidAmount.toLowerCase().includes(search) ||
+          customer.monthsOwed.toString().includes(searchTerm) ||
+          customer.amountOwed.toLowerCase().includes(search) ||
+          customer.customerComments.toLowerCase().includes(search) ||
+          customer.staffNotes.toLowerCase().includes(search);
+      }
+      
+      return true;
     });
 
     if (sortConfig) {
@@ -344,7 +378,7 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [selectedDateRange, searchTerm, sortConfig]);
 
   const totalEntries = filteredAndSortedData.length;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
@@ -375,7 +409,7 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
           <div className="text-xs text-blue-100">Total Customers</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalDebtAmount.toLocaleString()}</div>
+          <div className="text-xl font-bold">GHS {totalDebtAmount.toLocaleString()}</div>
           <div className="text-xs text-red-100">Total Amount Owed</div>
         </div>
       </div>
@@ -552,10 +586,12 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
                     <span>{formatDateTime(customer.lastPaidDate).timeStr}</span>
                   </div>
                 </td>
-                <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
-                  <span className="inline-flex px-1 py-0.5 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
-                    {customer.lastOutcome}
-                  </span>
+                <td className="px-1 py-2 text-xs border-r border-gray-100">
+                  <div className="flex justify-center">
+                    <span className="text-xs font-medium" title={customer.lastOutcome}>
+                      {customer.lastOutcome}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
                   {formatMonth(customer.lastPaidMonth)}
@@ -770,7 +806,7 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Outcome</label>
-                  <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+                  <span className="text-xs font-medium text-gray-900">
                     {customer.lastOutcome}
                   </span>
                 </div>
@@ -895,4 +931,4 @@ export const CustomerVisitStatusNoOneHomePage: React.FC<CustomerVisitStatusNoOne
       )}
     </div>
   );
-};
+}

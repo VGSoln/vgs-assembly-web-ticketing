@@ -94,7 +94,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
                 <div className="pt-4 border-t border-gray-200">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Amount Paid</p>
-                  <p className="text-2xl font-bold text-green-600">₵{amount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-green-600">GHS {amount.toLocaleString()}</p>
                 </div>
               </div>
             </div>

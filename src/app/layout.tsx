@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'CWSA Dashboard',
-  description: 'Community Water and Sanitation Agency Management Dashboard',
+  title: 'AEDA Dashboard',
+  description: 'Atiwa East District Assembly Management Dashboard',
 }
 
 export default function RootLayout({

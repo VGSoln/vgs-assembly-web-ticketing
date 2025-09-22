@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, ChevronDown, ChevronUp, MapPin, Phone, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, ArrowLeft } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, ArrowLeft } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { CustomerLocationModal } from '../ui/CustomerLocationModal';
 import { LogCustomerCallModal } from '../ui/LogCustomerCallModal';
@@ -106,17 +106,17 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
   ];
 
   const columns = [
-    { key: 'transId', label: 'Trans ID', sortable: true, width: '6%' },
-    { key: 'customerName', label: 'Customer Name', sortable: true, width: '12%' },
     { key: 'customerNumber', label: 'Customer #', sortable: true, width: '8%' },
-    { key: 'phone', label: 'Phone', sortable: true, width: '7%' },
-    { key: 'amount', label: 'Amt', sortable: true, width: '4%' },
-    { key: 'staff', label: 'Staff', sortable: true, width: '8%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '7%' },
-    { key: 'customerType', label: 'Customer Type', sortable: true, width: '7%' },
-    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '8%' },
-    { key: 'dateTime', label: 'Date & Time', sortable: true, width: '10%' },
-    { key: 'created', label: 'Created', sortable: true, width: '12%' },
+    { key: 'phone', label: 'Phone #', sortable: true, width: '8%' },
+    { key: 'ticketType', label: 'Ticket Type', sortable: true, width: '8%' },
+    { key: 'location', label: 'Location', sortable: true, width: '10%' },
+    { key: 'customerType', label: 'Customer Type', sortable: true, width: '9%' },
+    { key: 'identifier', label: 'Identifier', sortable: true, width: '8%' },
+    { key: 'community', label: 'Community', sortable: true, width: '8%' },
+    { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
+    { key: 'lastPaymentDate', label: 'Last Payment Date', sortable: true, width: '11%' },
+    { key: 'lastPaidAmount', label: 'Last Paid Amount', sortable: true, width: '9%' },
+    { key: 'monthsSinceLastPayment', label: 'Months since Last Payment', sortable: true, width: '9%' },
     { key: 'actions', label: 'Actions', sortable: false, width: '6%' }
   ];
 
@@ -229,11 +229,11 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-3 text-white">
           <div className="text-xl font-bold">{totalEntries}</div>
-          <div className="text-xs text-blue-100">Connected Customers</div>
+          <div className="text-xs text-blue-100">Customers</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalConnectionFees.toLocaleString()}</div>
-          <div className="text-xs text-teal-100">Connection Fees</div>
+          <div className="text-xl font-bold">GHS {totalConnectionFees.toLocaleString()}</div>
+          <div className="text-xs text-teal-100">Total Paid Amount</div>
         </div>
       </div>
 
@@ -364,16 +364,6 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                 index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
               }`}>
                 <td className="px-1 py-2 text-xs border-r border-gray-100">
-                  <a href="#" className="text-blue-600 hover:text-blue-800 break-all leading-tight transition-colors duration-200 hover:underline text-xs">
-                    {connection.transId}
-                  </a>
-                </td>
-                <td className="px-1 py-2 text-xs border-r border-gray-100">
-                  <a href="#" onClick={() => onCustomerClick?.(connection.customerNumber)} className="text-xs text-blue-600 hover:text-blue-800 break-words leading-tight cursor-pointer hover:underline transition-colors duration-200">
-                    {connection.customerName}
-                  </a>
-                </td>
-                <td className="px-1 py-2 text-xs border-r border-gray-100">
                   <a href="#" onClick={() => onCustomerClick?.(connection.customerNumber)} className="text-blue-600 hover:text-blue-800 break-all leading-tight transition-colors duration-200 hover:underline text-xs">
                     {connection.customerNumber}
                   </a>
@@ -383,30 +373,35 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                     {connection.phone}
                   </div>
                 </td>
-                <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
-                  <span className="text-xs">
-                    {connection.amount}
+                <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
+                  <span className="text-xs text-slate-800">
+                    {connection.ticketType || 'Market'}
                   </span>
                 </td>
                 <td className="px-1 py-2 text-xs border-r border-gray-100">
                   <div className="text-xs text-slate-800 break-words leading-tight">
-                    {connection.staff}
+                    {connection.location || 'Central Market'}
+                  </div>
+                </td>
+                <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
+                  <span className="text-xs text-slate-800">
+                    {connection.customerType === 'D' ? 'Stall' : connection.customerType === 'S' ? 'Table-Top' : connection.customerType || 'Hawker'}
+                  </span>
+                </td>
+                <td className="px-1 py-2 text-xs border-r border-gray-100">
+                  <div className="text-xs text-slate-800 break-words leading-tight">
+                    {connection.identifier || connection.meterNumber || 'S-124'}
+                  </div>
+                </td>
+                <td className="px-1 py-2 text-xs border-r border-gray-100">
+                  <div className="text-xs text-slate-800 break-words leading-tight">
+                    {connection.community || 'Adum'}
                   </div>
                 </td>
                 <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
                   <span className="text-xs font-semibold text-slate-800">
                     {connection.zone}
                   </span>
-                </td>
-                <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
-                  <span className="text-xs text-slate-800">
-                    {connection.customerType === 'D' ? 'Domestic' : connection.customerType === 'S' ? 'Stand Pipes' : connection.customerType}
-                  </span>
-                </td>
-                <td className="px-1 py-2 text-xs text-slate-700 border-r border-gray-100">
-                  <div className="text-xs break-all leading-tight">
-                    {connection.meterNumber}
-                  </div>
                 </td>
                 <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100">
                   <div className="text-xs break-words leading-tight">
@@ -421,18 +416,15 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                     })()}
                   </div>
                 </td>
-                <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100">
-                  <div className="text-xs break-words leading-tight">
-                    {(() => {
-                      const formatted = formatCreatedDate(connection.created);
-                      return (
-                        <>
-                          <span className="font-bold">{formatted.date}</span>{' '}
-                          <span>{formatted.time}</span>
-                        </>
-                      );
-                    })()}
-                  </div>
+                <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100 text-right">
+                  <span className="text-xs font-semibold">
+                    GHS {connection.amount}
+                  </span>
+                </td>
+                <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
+                  <span className="text-xs font-semibold text-red-600">
+                    {connection.monthsSinceLastPayment || Math.floor(Math.random() * 12) + 1}
+                  </span>
                 </td>
                 <td className="px-1 py-2 text-xs text-center">
                   <div className="flex flex-col items-center gap-1">
@@ -440,13 +432,14 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                       <button 
                         onClick={() => {
                           setSelectedCustomerLocation({
-                            customerName: connection.customerName,
                             customerNumber: connection.customerNumber,
                             customerPhone: connection.phone,
-                            city: connection.zone,
-                            meterNumber: connection.meterNumber,
+                            ticketType: connection.ticketType || 'Market',
+                            location: connection.location || 'Central Market',
+                            customerType: connection.customerType === 'D' ? 'Stall' : connection.customerType === 'S' ? 'Table-Top' : connection.customerType || 'Hawker',
+                            identifier: connection.identifier || connection.meterNumber || 'S-124',
                             lastPaymentDate: connection.dateTime,
-                            amountDue: connection.amount,
+                            lastPaidAmount: connection.amount,
                             // Add some variation to coordinates for demo
                             latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
                             longitude: -0.1870 + (Math.random() - 0.5) * 0.05
@@ -457,22 +450,6 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                         title="View GPS Location"
                       >
                         <MapPin className="w-3 h-3 text-white" />
-                      </button>
-                    )}
-                    {connection.photo && (
-                      <button 
-                        onClick={() => {
-                          setLogCallModalData({
-                            customerName: connection.customerName,
-                            customerNumber: connection.customerNumber,
-                            staffName: ''
-                          });
-                          setShowLogCallModal(true);
-                        }}
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 p-1.5 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer" 
-                        title="Log Customer Call"
-                      >
-                        <Phone className="w-3 h-3 text-white" />
                       </button>
                     )}
                   </div>
@@ -530,23 +507,24 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
           <div key={connection.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Trans ID: {connection.transId}</h3>
-                <a href="#" onClick={() => onCustomerClick?.(connection.customerNumber)} className="text-blue-600 hover:text-blue-800 underline font-medium">
-                  {connection.customerNumber}
-                </a>
+                <h3 className="text-lg font-semibold text-gray-900">Customer: {connection.customerNumber}</h3>
+                <p className="text-sm text-gray-600">
+                  {connection.ticketType || 'Market'} - {connection.location || 'Central Market'}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 {connection.gps && (
                   <button 
                     onClick={() => {
                       setSelectedCustomerLocation({
-                        customerName: connection.customerName,
                         customerNumber: connection.customerNumber,
                         customerPhone: connection.phone,
-                        city: connection.zone,
-                        meterNumber: connection.meterNumber,
+                        ticketType: connection.ticketType || 'Market',
+                        location: connection.location || 'Central Market',
+                        customerType: connection.customerType === 'D' ? 'Stall' : connection.customerType === 'S' ? 'Table-Top' : connection.customerType || 'Hawker',
+                        identifier: connection.identifier || connection.meterNumber || 'S-124',
                         lastPaymentDate: connection.dateTime,
-                        amountDue: connection.amount,
+                        lastPaidAmount: connection.amount,
                         // Add some variation to coordinates for demo
                         latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
                         longitude: -0.1870 + (Math.random() - 0.5) * 0.05
@@ -559,33 +537,17 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                     <MapPin className="w-5 h-5 text-white" />
                   </button>
                 )}
-                {connection.photo && (
-                  <button 
-                    onClick={() => {
-                      setLogCallModalData({
-                        customerName: connection.customerName,
-                        customerNumber: connection.customerNumber,
-                        staffName: connection.staff
-                      });
-                      setShowLogCallModal(true);
-                    }}
-                    className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                    title="Log Customer Call"
-                  >
-                    <Phone className="w-5 h-5 text-white" />
-                  </button>
-                )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Name</label>
-                  <a href="#" onClick={() => onCustomerClick?.(connection.customerNumber)} className="text-11px text-blue-600 hover:text-blue-800 break-words leading-tight cursor-pointer hover:underline transition-colors duration-200 font-medium">{connection.customerName}</a>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Type</label>
+                  <p className="text-11px text-gray-700">{connection.customerType === 'D' ? 'Stall' : connection.customerType === 'S' ? 'Table-Top' : connection.customerType || 'Hawker'}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone #</label>
                   <p className="text-11px text-gray-700">{connection.phone}</p>
                 </div>
                 <div>
@@ -595,20 +557,20 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
                   </span>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Staff</label>
-                  <p className="text-11px text-gray-700">{connection.staff}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Community</label>
+                  <p className="text-11px text-gray-700">{connection.community || 'Adum'}</p>
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Meter Number</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Identifier</label>
                   <div>
-                    <p className="text-11px font-medium text-gray-900">{connection.meterNumber}</p>
+                    <p className="text-11px font-medium text-gray-900">{connection.identifier || connection.meterNumber || 'S-124'}</p>
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Payment Date</label>
                   <p className="text-11px text-gray-700">
                     {(() => {
                       const formatted = formatDateTime(connection.dateTime);
@@ -627,22 +589,12 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</label>
-                  <p className="text-11px text-gray-700 mt-1">
-                    {(() => {
-                      const formatted = formatCreatedDate(connection.created);
-                      return (
-                        <>
-                          <span className="font-bold">{formatted.date}</span>{' '}
-                          <span>{formatted.time}</span>
-                        </>
-                      );
-                    })()}
-                  </p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Paid Amount</label>
+                  <p className="text-11px font-bold text-teal-600">GHS {connection.amount}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount</label>
-                  <p className="text-11px font-bold text-teal-600">GH₵ {connection.amount}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Months since Last Payment</label>
+                  <p className="text-11px font-bold text-red-600">{connection.monthsSinceLastPayment || Math.floor(Math.random() * 12) + 1} months</p>
                 </div>
               </div>
             </div>
@@ -713,15 +665,26 @@ export const DashboardDetailsYearlyWaterConnectionsPage: React.FC<DashboardDetai
             setShowLocationModal(false);
             setSelectedCustomerLocation(null);
           }}
-          customerName={selectedCustomerLocation.customerName}
+          customerName=""
           customerNumber={selectedCustomerLocation.customerNumber}
           customerPhone={selectedCustomerLocation.customerPhone}
-          city={selectedCustomerLocation.city}
-          meterNumber={selectedCustomerLocation.meterNumber}
+          ticketType={selectedCustomerLocation.ticketType}
+          customerType={selectedCustomerLocation.customerType}
+          city={selectedCustomerLocation.location}
+          meterNumber={selectedCustomerLocation.identifier}
           lastPaymentDate={selectedCustomerLocation.lastPaymentDate}
-          amountDue={selectedCustomerLocation.amountDue}
+          amountDue={selectedCustomerLocation.lastPaidAmount}
           latitude={selectedCustomerLocation.latitude}
           longitude={selectedCustomerLocation.longitude}
+          customerPhoneLabel="Phone #"
+          ticketTypeLabel="Ticket Type"
+          customerTypeLabel="Customer Type"
+          locationCityLabel="Location"
+          meterNumberLabel="Identifier"
+          lastPaymentDateLabel="Last Paid Date"
+          amountDueLabel="Last Paid Amount"
+          amountColorClass="text-green-600"
+          modalTitle="Customer Location"
         />
       )}
 

@@ -274,7 +274,7 @@ export const DashboardDetailsPaidCustomersPage: React.FC<DashboardDetailsPaidCus
           <div className="text-xs text-blue-100">Customers</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalPaidAmount.toLocaleString()}</div>
+          <div className="text-xl font-bold">GHS {totalPaidAmount.toLocaleString()}</div>
           <div className="text-xs text-teal-100">Total Paid Amount</div>
         </div>
       </div>

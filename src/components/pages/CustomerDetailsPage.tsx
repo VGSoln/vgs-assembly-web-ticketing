@@ -12,13 +12,11 @@ import { DeactivationModal } from '../ui/DeactivationModal';
 
 interface CustomerDetailsPageProps {
   customerId?: string;
-  onBack?: () => void;
   onEdit?: (customerId: string) => void;
 }
 
 export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({ 
   customerId = '0525-07-00372',
-  onBack,
   onEdit 
 }) => {
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -71,7 +69,7 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
     longitude: '-0.16486985',
     latitude: '5.78441568',
     created: '2024-11-01',
-    createdBy: 'CWSA Admin',
+    createdBy: 'AEDA Admin',
     lastModified: '2025-06-11',
     lastModifiedBy: 'MARY SERWAA',
     status: 'ACTIVE',
@@ -83,14 +81,14 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
 
   // Payment data
   const paymentData = [
-    { id: '0525-07-00372-mdslme2v', collector: 'CWSA Admin', type: 'ePayment', date: 'Fri, 01 Aug 2025, 09:08 am', amount: 165.56, created: 'Fri, 01 Aug 2025, 09:08 am', status: 'Paid' },
-    { id: '0525-07-00372-mcka1wva', collector: 'CWSA Admin', type: 'ePayment', date: 'Tue, 01 Jul 2025, 08:40 am', amount: 117.08, created: 'Tue, 01 Jul 2025, 08:40 am', status: 'Paid' },
-    { id: '0525-07-00372-mbdikl8o', collector: 'CWSA Admin', type: 'ePayment', date: 'Sun, 01 Jun 2025, 10:24 am', amount: 141.32, created: 'Sun, 01 Jun 2025, 10:24 am', status: 'Paid' },
-    { id: '0525-07-00372-ma5bw33p', collector: 'CWSA Admin', type: 'ePayment', date: 'Thu, 01 May 2025, 12:16 pm', amount: 189.76, created: 'Thu, 01 May 2025, 12:16 pm', status: 'Paid' },
-    { id: '0525-07-00372-m8ytjkzr', collector: 'CWSA Admin', type: 'ePayment', date: 'Tue, 01 Apr 2025, 06:17 pm', amount: 105.00, created: 'Tue, 01 Apr 2025, 06:17 pm', status: 'Paid' },
-    { id: '0525-07-00372-m84agtg3', collector: 'CWSA Admin', type: 'ePayment', date: 'Tue, 11 Mar 2025, 09:29 am', amount: 189.01, created: 'Tue, 11 Mar 2025, 09:29 am', status: 'Paid' },
+    { id: '0525-07-00372-mdslme2v', collector: 'AEDA Admin', type: 'ePayment', date: 'Fri, 01 Aug 2025, 09:08 am', amount: 165.56, created: 'Fri, 01 Aug 2025, 09:08 am', status: 'Paid' },
+    { id: '0525-07-00372-mcka1wva', collector: 'AEDA Admin', type: 'ePayment', date: 'Tue, 01 Jul 2025, 08:40 am', amount: 117.08, created: 'Tue, 01 Jul 2025, 08:40 am', status: 'Paid' },
+    { id: '0525-07-00372-mbdikl8o', collector: 'AEDA Admin', type: 'ePayment', date: 'Sun, 01 Jun 2025, 10:24 am', amount: 141.32, created: 'Sun, 01 Jun 2025, 10:24 am', status: 'Paid' },
+    { id: '0525-07-00372-ma5bw33p', collector: 'AEDA Admin', type: 'ePayment', date: 'Thu, 01 May 2025, 12:16 pm', amount: 189.76, created: 'Thu, 01 May 2025, 12:16 pm', status: 'Paid' },
+    { id: '0525-07-00372-m8ytjkzr', collector: 'AEDA Admin', type: 'ePayment', date: 'Tue, 01 Apr 2025, 06:17 pm', amount: 105.00, created: 'Tue, 01 Apr 2025, 06:17 pm', status: 'Paid' },
+    { id: '0525-07-00372-m84agtg3', collector: 'AEDA Admin', type: 'ePayment', date: 'Tue, 11 Mar 2025, 09:29 am', amount: 189.01, created: 'Tue, 11 Mar 2025, 09:29 am', status: 'Paid' },
     { id: '019-32LPKD58', collector: 'Rapheal Kwabena Aboagye', type: 'Cash', date: 'Fri, 21 Feb 2025, 11:58 am', amount: 450.00, created: 'Fri, 21 Feb 2025, 11:58 am', status: 'Paid' },
-    { id: '7ff05772-a9fb-406b-b9a1-ac263dbe0718', collector: 'CWSA Admin', type: 'Cash', date: 'Thu, 30 Jan 2025, 12:00 am', amount: 297.00, created: 'Thu, 30 Jan 2025, 12:00 am', status: 'Paid' }
+    { id: '7ff05772-a9fb-406b-b9a1-ac263dbe0718', collector: 'AEDA Admin', type: 'Cash', date: 'Thu, 30 Jan 2025, 12:00 am', amount: 297.00, created: 'Thu, 30 Jan 2025, 12:00 am', status: 'Paid' }
   ];
 
   // Bill data
@@ -317,7 +315,7 @@ export const CustomerDetailsPage: React.FC<CustomerDetailsPageProps> = ({
   // Export functions
   const exportToCSV = () => {
     const headers = ['Transaction #', 'Collector', 'Payment Type', 'Payment Date', 'Amount', 'Created', 'Status'];
-    const rows = sortedPayments.map(p => [p.id, p.collector, p.type, p.date, `GH₵ ${p.amount}`, p.created, p.status]);
+    const rows = sortedPayments.map(p => [p.id, p.collector, p.type, p.date, `GHS ${p.amount}`, p.created, p.status]);
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -337,7 +335,7 @@ Transaction #: ${p.id}
 Collector: ${p.collector}
 Payment Type: ${p.type}
 Payment Date: ${p.date}
-Amount: GH₵ ${p.amount}
+Amount: GHS ${p.amount}
 Created: ${p.created}
 Status: ${p.status}
 ----------------------------`).join('\n')}
@@ -352,7 +350,7 @@ Status: ${p.status}
 
   const handleCopy = () => {
     const text = sortedPayments.map(p => 
-      `${p.id}\t${p.collector}\t${p.type}\t${p.date}\tGH₵ ${p.amount}\t${p.created}\t${p.status}`
+      `${p.id}\t${p.collector}\t${p.type}\t${p.date}\tGHS ${p.amount}\t${p.created}\t${p.status}`
     ).join('\n');
     navigator.clipboard.writeText(text);
     alert('Payment data copied to clipboard!');
@@ -368,7 +366,7 @@ Status: ${p.status}
   // Bill Export functions
   const exportBillsToCSV = () => {
     const headers = ['Period', 'Description', 'Current Bill', 'Bill Status', 'Amount Paid', 'Amount Due'];
-    const rows = sortedBills.map(b => [b.period, b.description, `GH₵ ${b.currentBill.toFixed(2)}`, b.status, `GH₵ ${b.amountPaid.toFixed(2)}`, `GH₵ ${b.amountDue.toFixed(2)}`]);
+    const rows = sortedBills.map(b => [b.period, b.description, `GHS ${b.currentBill.toFixed(2)}`, b.status, `GHS ${b.amountPaid.toFixed(2)}`, `GHS ${b.amountDue.toFixed(2)}`]);
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
@@ -386,10 +384,10 @@ Generated: ${new Date().toLocaleDateString()}
 ${sortedBills.map(b => `
 Period: ${b.period}
 Description: ${b.description}
-Current Bill: GH₵ ${b.currentBill.toFixed(2)}
+Current Bill: GHS ${b.currentBill.toFixed(2)}
 Bill Status: ${b.status}
-Amount Paid: GH₵ ${b.amountPaid.toFixed(2)}
-Amount Due: GH₵ ${b.amountDue.toFixed(2)}
+Amount Paid: GHS ${b.amountPaid.toFixed(2)}
+Amount Due: GHS ${b.amountDue.toFixed(2)}
 ----------------------------`).join('\n')}
     `;
     const blob = new Blob([content], { type: 'text/plain' });
@@ -402,7 +400,7 @@ Amount Due: GH₵ ${b.amountDue.toFixed(2)}
 
   const handleBillCopy = () => {
     const text = sortedBills.map(b => 
-      `${b.period}\t${b.description}\tGH₵ ${b.currentBill.toFixed(2)}\t${b.status}\tGH₵ ${b.amountPaid.toFixed(2)}\tGH₵ ${b.amountDue.toFixed(2)}`
+      `${b.period}\t${b.description}\tGHS ${b.currentBill.toFixed(2)}\t${b.status}\tGHS ${b.amountPaid.toFixed(2)}\tGHS ${b.amountDue.toFixed(2)}`
     ).join('\n');
     navigator.clipboard.writeText(text);
     alert('Bill data copied to clipboard!');
@@ -550,7 +548,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button 
-                onClick={onBack}
+                onClick={() => window.history.back()}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -593,7 +591,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                   onClick={handleReceivePayment}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                 >
-                  <span className="text-sm font-medium">₵</span>
+                  <span className="text-sm font-medium">GHS</span>
                   Receive Payment
                 </button>
               </div>
@@ -625,7 +623,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                     : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                <span className={`text-sm mr-1 ${activeTab === 'rates' ? 'text-white' : 'text-green-500'}`}>₵</span>
+                <span className={`text-sm mr-1 ${activeTab === 'rates' ? 'text-white' : 'text-green-500'}`}>GHS</span>
                 Rates
               </button>
               <button 
@@ -827,11 +825,11 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Account Balance</span>
-                  <span className="text-sm font-medium text-gray-900">₵{customerData.accountBalance}</span>
+                  <span className="text-sm font-medium text-gray-900">GHS{customerData.accountBalance}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Last Payment</span>
-                  <span className="text-sm font-medium text-gray-900">₵{customerData.lastPaymentAmount}</span>
+                  <span className="text-sm font-medium text-gray-900">GHS{customerData.lastPaymentAmount}</span>
                 </div>
                 <div className="flex justify-between items-center py-2 px-3 bg-gray-50 rounded-lg">
                   <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Date</span>
@@ -888,7 +886,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                 {/* Rates Content */}
                 <div className="space-y-6">
                   <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span className="text-lg text-green-500">₵</span>
+                    <span className="text-lg text-green-500">GHS</span>
                     Rate Information
                   </h3>
                   
@@ -908,13 +906,13 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                           <td className="py-3 px-4 text-sm text-gray-900">Monthly</td>
                           <td className="py-3 px-4 text-sm text-gray-900">Fixed</td>
                           <td className="py-3 px-4 text-sm text-gray-900">Service Charge</td>
-                          <td className="py-3 px-4 text-sm text-gray-900 text-right">₵8.00 per month</td>
+                          <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS8.00 per month</td>
                         </tr>
                         <tr className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-900">Monthly</td>
                           <td className="py-3 px-4 text-sm text-gray-900">Uniform</td>
                           <td className="py-3 px-4 text-sm text-gray-900">Water Charge</td>
-                          <td className="py-3 px-4 text-sm text-gray-900 text-right">₵12.00 per cubic meter</td>
+                          <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS12.00 per cubic meter</td>
                         </tr>
                         <tr className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-900">Monthly</td>
@@ -1109,7 +1107,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                             <td className="py-3 px-4 text-sm text-gray-900">{payment.collector}</td>
                             <td className="py-3 px-4 text-sm text-gray-900">{payment.type}</td>
                             <td className="py-3 px-4 text-sm text-gray-900">{payment.date}</td>
-                            <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {payment.amount.toFixed(2)}</td>
+                            <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS {payment.amount.toFixed(2)}</td>
                             <td className="py-3 px-4 text-sm text-gray-900">{payment.created}</td>
                             <td className="py-3 px-4 text-center">
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -1222,7 +1220,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                       </div>
                       <div className="bg-white rounded-lg px-4 py-2 border border-yellow-200">
                         <p className="text-sm text-gray-500 mb-1">Outstanding</p>
-                        <p className="text-2xl font-bold text-red-600">GH₵ 450.00</p>
+                        <p className="text-2xl font-bold text-red-600">GHS 450.00</p>
                       </div>
                       <div className="bg-white rounded-lg px-4 py-2 border border-yellow-200">
                         <p className="text-sm text-gray-500 mb-1">Last Bill Date</p>
@@ -1378,7 +1376,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                             <tr key={bill.period} className="border-b border-gray-100 hover:bg-gray-50">
                               <td className="py-3 px-4 text-sm text-gray-900">{bill.period}</td>
                               <td className="py-3 px-4 text-sm text-gray-900">{bill.description}</td>
-                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.currentBill.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS {bill.currentBill.toFixed(2)}</td>
                               <td className="py-3 px-4 text-sm text-center">
                                 <span className={`px-2 py-1 text-xs font-medium ${
                                   bill.status === 'Paid'
@@ -1388,8 +1386,8 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                                   {bill.status} {bill.status === 'Paid' ? '✓' : '✗'}
                                 </span>
                               </td>
-                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.amountPaid.toFixed(2)}</td>
-                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GH₵ {bill.amountDue.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS {bill.amountPaid.toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS {bill.amountDue.toFixed(2)}</td>
                               <td className="py-3 px-4 text-sm text-center">
                                 <button className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-sm font-medium">
                                   Bill Issued

@@ -8,11 +8,17 @@ interface LocationModalProps {
   customerName: string;
   customerNumber: string;
   phoneNumber: string;
+  customerType?: string;
   transactionId: string;
   amount: number;
   date?: string;
   latitude?: number;
   longitude?: number;
+  modalTitle?: string;
+  customerNameLabel?: string;
+  customerNumberLabel?: string;
+  phoneNumberLabel?: string;
+  customerTypeLabel?: string;
 }
 
 export const LocationModal: React.FC<LocationModalProps> = ({
@@ -21,11 +27,17 @@ export const LocationModal: React.FC<LocationModalProps> = ({
   customerName,
   customerNumber,
   phoneNumber,
+  customerType,
   transactionId,
   amount,
   date,
   latitude = 5.6037,
-  longitude = -0.1870
+  longitude = -0.1870,
+  modalTitle = 'Customer Location',
+  customerNameLabel = 'Customer Name',
+  customerNumberLabel = 'Customer Number',
+  phoneNumberLabel = 'Phone Number',
+  customerTypeLabel = 'Customer Type'
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -96,10 +108,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                 Payment Location
               </h3>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Customer: <strong>${customerName}</strong>
+                Location: <strong>${customerName}</strong>
               </p>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Amount: <strong>₵${amount.toLocaleString()}</strong>
+                Amount: <strong>GHS ${amount.toLocaleString()}</strong>
               </p>
               <p style="margin: 4px 0 0 0; color: #666; font-size: 11px;">
                 Lat: ${latitude.toFixed(6)}, Lng: ${longitude.toFixed(6)}
@@ -180,7 +192,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         <div className="bg-blue-600 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-white" />
-            <h2 className="text-lg font-semibold text-white">Customer Location</h2>
+            <h2 className="text-lg font-semibold text-white">{modalTitle}</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -248,45 +260,56 @@ export const LocationModal: React.FC<LocationModalProps> = ({
 
             {/* Customer Information - Takes 1/3 of space */}
             <div className="col-span-1">
-              <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col justify-center space-y-6">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Transaction ID</p>
-                  <p className="text-sm font-bold text-blue-600">{transactionId}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Name</p>
-                  <p className="text-sm font-semibold text-gray-900">{customerName}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Number</p>
-                  <p className="text-sm font-semibold text-gray-900">{customerNumber}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
-                  <p className="text-sm font-semibold text-gray-900">{phoneNumber}</p>
-                </div>
-
-                {date && (
+              <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col justify-between">
+                <div className="space-y-3">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Payment Date</p>
-                    <p className="text-sm font-semibold text-gray-900">{date}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Transaction ID</p>
+                    <p className="text-sm font-bold text-blue-600">{transactionId}</p>
                   </div>
-                )}
 
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Location</p>
-                  <p className="text-sm font-semibold text-gray-900">
-                    Lat: {latitude.toFixed(6)}<br />
-                    Lng: {longitude.toFixed(6)}
-                  </p>
+                  {customerName && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerNameLabel}</p>
+                      <p className="text-sm font-semibold text-gray-900">{customerName}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerNumberLabel}</p>
+                    <p className="text-sm font-semibold text-gray-900">{customerNumber}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{phoneNumberLabel}</p>
+                    <p className="text-sm font-semibold text-gray-900">{phoneNumber}</p>
+                  </div>
+
+                  {customerType && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerTypeLabel}</p>
+                      <p className="text-sm font-semibold text-gray-900">{customerType}</p>
+                    </div>
+                  )}
+
+                  {date && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Payment Date</p>
+                      <p className="text-sm font-semibold text-gray-900">{date}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">GPS Location</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Lat: {latitude.toFixed(6)}<br />
+                      Lng: {longitude.toFixed(6)}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-3 border-t border-gray-200">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Amount Paid</p>
-                  <p className="text-2xl font-bold text-green-600">₵{amount.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-green-600">GHS {amount.toLocaleString()}</p>
                 </div>
               </div>
             </div>

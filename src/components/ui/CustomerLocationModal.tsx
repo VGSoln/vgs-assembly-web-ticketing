@@ -8,12 +8,23 @@ interface CustomerLocationModalProps {
   customerName: string;
   customerNumber: string;
   customerPhone: string;
+  customerType?: string;
   city?: string;
   meterNumber?: string;
   lastPaymentDate?: string;
   amountDue?: number;
   latitude?: number;
   longitude?: number;
+  // Custom labels for fields
+  customerNameLabel?: string;
+  customerPhoneLabel?: string;
+  customerTypeLabel?: string;
+  meterNumberLabel?: string;
+  lastPaymentDateLabel?: string;
+  locationCityLabel?: string;
+  amountDueLabel?: string;
+  amountColorClass?: string;
+  modalTitle?: string;
 }
 
 export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
@@ -22,12 +33,22 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
   customerName,
   customerNumber,
   customerPhone,
+  customerType,
   city = 'N/A',
   meterNumber,
   lastPaymentDate,
   amountDue = 0,
   latitude = 5.6037,
-  longitude = -0.1870
+  longitude = -0.1870,
+  customerNameLabel = 'Customer Name',
+  customerPhoneLabel = 'Customer Phone',
+  customerTypeLabel = 'Customer Type',
+  meterNumberLabel = 'Meter #',
+  lastPaymentDateLabel = 'Last Payment Date',
+  locationCityLabel = 'Location City',
+  amountDueLabel = 'Amount Due',
+  amountColorClass = 'text-red-600',
+  modalTitle = 'Customer Location'
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
@@ -98,7 +119,7 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
                 Customer Location
               </h3>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Customer: <strong>${customerName}</strong>
+                Phone #: <strong>${customerPhone}</strong>
               </p>
               <p style="margin: 0; color: #666; font-size: 12px;">
                 Customer #: <strong>${customerNumber}</strong>
@@ -182,7 +203,7 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
         <div className="bg-blue-600 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-white" />
-            <h2 className="text-lg font-semibold text-white">Customer Location</h2>
+            <h2 className="text-lg font-semibold text-white">{modalTitle}</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -250,29 +271,48 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
 
             {/* Customer Information - Takes 1/3 of space */}
             <div className="col-span-1">
-              <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col justify-center space-y-6">
+              <div className="bg-gray-50 rounded-lg p-4 h-[500px] flex flex-col justify-center space-y-4">
+                {/* Customer # */}
                 <div>
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer #</p>
                   <p className="text-sm font-semibold text-blue-600">{customerNumber}</p>
                 </div>
 
+                {/* Phone # */}
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Name</p>
-                  <p className="text-sm font-semibold text-gray-900">{customerName}</p>
-                </div>
-
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Phone</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerPhoneLabel}</p>
                   <p className="text-sm font-semibold text-gray-900">{customerPhone}</p>
                 </div>
 
+                {/* Ticket Type */}
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Meter #</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{locationCityLabel}</p>
+                  <p className="text-sm font-semibold text-gray-900">{city}</p>
+                </div>
+
+                {/* Location */}
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerNameLabel}</p>
+                  <p className="text-sm font-semibold text-gray-900">{customerName}</p>
+                </div>
+
+                {/* Customer Type */}
+                {customerType && (
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{customerTypeLabel}</p>
+                    <p className="text-sm font-semibold text-gray-900">{customerType}</p>
+                  </div>
+                )}
+
+                {/* Identifier */}
+                <div>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{meterNumberLabel}</p>
                   <p className="text-sm font-semibold text-gray-900">{meterNumber || 'N/A'}</p>
                 </div>
 
+                {/* Last Payment Date */}
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Last Payment Date</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{lastPaymentDateLabel}</p>
                   <p className="text-sm font-semibold text-gray-900">
                     {(() => {
                       if (!lastPaymentDate) return 'N/A';
@@ -301,14 +341,10 @@ export const CustomerLocationModal: React.FC<CustomerLocationModalProps> = ({
                   </p>
                 </div>
 
-                <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Location City</p>
-                  <p className="text-sm font-semibold text-gray-900">{city}</p>
-                </div>
-
+                {/* Last Paid Amount */}
                 <div className="pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Amount Due</p>
-                  <p className="text-2xl font-bold text-red-600">₵{amountDue.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{amountDueLabel}</p>
+                  <p className={`text-2xl font-bold ${amountColorClass}`}>GHS {amountDue.toLocaleString()}</p>
                 </div>
               </div>
             </div>

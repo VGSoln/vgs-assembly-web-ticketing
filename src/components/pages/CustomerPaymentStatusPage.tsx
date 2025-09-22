@@ -141,22 +141,60 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = customerDebtData.filter(debt =>
-      debt.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.meterNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.lastPaidDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.lastPaidAmount.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.lastPaidMonth.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.lastVisit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.lastVisitOutcome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      debt.visitsSinceLastPayment.toString().includes(searchTerm) ||
-      debt.monthsOwed.toString().includes(searchTerm) ||
-      debt.totalAmountOwed.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = customerDebtData.filter(debt => {
+      // Date range filter - filter by lastPaidDate or lastVisit
+      if (selectedDateRange.startDate && selectedDateRange.endDate) {
+        const startDate = new Date(selectedDateRange.startDate);
+        const endDate = new Date(selectedDateRange.endDate);
+        
+        // Try to parse lastPaidDate (format may vary)
+        let dateToCheck: Date | null = null;
+        
+        if (debt.lastPaidDate && debt.lastPaidDate !== 'N/A' && debt.lastPaidDate !== 'Never') {
+          // Try parsing different date formats
+          const paidDate = new Date(debt.lastPaidDate);
+          if (!isNaN(paidDate.getTime())) {
+            dateToCheck = paidDate;
+          }
+        }
+        
+        // Fallback to lastVisit if lastPaidDate is not available or invalid
+        if (!dateToCheck && debt.lastVisit && debt.lastVisit !== 'N/A' && debt.lastVisit !== 'Never') {
+          const visitDate = new Date(debt.lastVisit);
+          if (!isNaN(visitDate.getTime())) {
+            dateToCheck = visitDate;
+          }
+        }
+        
+        // If we have a valid date, check if it's in range
+        if (dateToCheck && (dateToCheck < startDate || dateToCheck > endDate)) {
+          return false;
+        }
+      }
+      
+      // Search filter
+      if (searchTerm.trim()) {
+        const search = searchTerm.toLowerCase();
+        return (
+          debt.customerNumber.toLowerCase().includes(search) ||
+          debt.customerName.toLowerCase().includes(search) ||
+          debt.phone.toLowerCase().includes(search) ||
+          debt.meterNumber.toLowerCase().includes(search) ||
+          debt.customerType.toLowerCase().includes(search) ||
+          debt.zone.toLowerCase().includes(search) ||
+          debt.lastPaidDate.toLowerCase().includes(search) ||
+          debt.lastPaidAmount.toLowerCase().includes(search) ||
+          debt.lastPaidMonth.toLowerCase().includes(search) ||
+          debt.lastVisit.toLowerCase().includes(search) ||
+          debt.lastVisitOutcome.toLowerCase().includes(search) ||
+          debt.visitsSinceLastPayment.toString().includes(searchTerm) ||
+          debt.monthsOwed.toString().includes(searchTerm) ||
+          debt.totalAmountOwed.toLowerCase().includes(search)
+        );
+      }
+      
+      return true;
+    });
 
     if (sortConfig) {
       filtered.sort((a, b) => {
@@ -174,7 +212,7 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [selectedDateRange, searchTerm, sortConfig]);
 
   const totalEntries = filteredAndSortedData.length;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
@@ -205,7 +243,7 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
           <div className="text-xs text-blue-100">Total Customers</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalDebtAmount.toLocaleString()}</div>
+          <div className="text-xl font-bold">GHS {totalDebtAmount.toLocaleString()}</div>
           <div className="text-xs text-red-100">Total Customer Debt</div>
         </div>
       </div>

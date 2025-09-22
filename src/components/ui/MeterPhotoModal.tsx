@@ -82,7 +82,7 @@ export const MeterPhotoModal: React.FC<MeterPhotoModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="p-5 max-h-[calc(90vh-80px)] overflow-y-auto">
           <div className="grid grid-cols-3 gap-5">
             {/* Image - Takes 2/3 of space */}
             <div className="col-span-2">
@@ -101,7 +101,7 @@ export const MeterPhotoModal: React.FC<MeterPhotoModalProps> = ({
 
             {/* Meter Information - Takes 1/3 of space */}
             <div className="col-span-1">
-              <div className="bg-gray-50 rounded-lg p-4 h-[550px] flex flex-col justify-start space-y-5 pt-6">
+              <div className="bg-gray-50 rounded-lg p-4 min-h-[550px] flex flex-col justify-start space-y-4">
                 {readingId && (
                   <div className="pb-3 border-b border-gray-200">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading ID</p>

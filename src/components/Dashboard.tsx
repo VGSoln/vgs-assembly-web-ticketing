@@ -5,6 +5,7 @@ import { Header } from './layout/Header';
 import { Footer } from './layout/Footer';
 import { PerformancePage } from './pages/PerformancePage';
 import { DebtPage } from './pages/DebtPage';
+import { RevenueOfficerPerformancePage } from './pages/RevenueOfficerPerformancePage';
 import { DashboardDetailsCustomerDebtPage } from './pages/DashboardDetailsCustomerDebtPage';
 import { DashboardDetailsYearlyWaterConnectionsPage } from './pages/DashboardDetailsYearlyWaterConnectionsPage';
 import { DashboardDetailsPaidCustomersPage } from './pages/DashboardDetailsPaidCustomersPage';
@@ -12,6 +13,7 @@ import { DashboardDetailsNonPaidCustomersPage } from './pages/DashboardDetailsNo
 import { DashboardDetailsCustomersWithNoPaymentsPage } from './pages/DashboardDetailsCustomersWithNoPaymentsPage';
 import { DashboardDetailsInactiveCustomersPage } from './pages/DashboardDetailsInactiveCustomersPage';
 import { DashboardDetailsCustomersInactiveThisYearPage } from './pages/DashboardDetailsCustomersInactiveThisYearPage';
+import { DashboardDetailsCounterfeitedTicketsPage } from './pages/DashboardDetailsCounterfeitedTicketsPage';
 import { CustomerPaymentStatusPage } from './pages/CustomerPaymentStatusPage';
 import { CustomerPaymentStatusPaidCustomersPage } from './pages/CustomerPaymentStatusPaidCustomersPage';
 import { CustomerPaymentStatusCustomersWithNegativeBalancesPage } from './pages/CustomerPaymentStatusCustomersWithNegativeBalancesPage';
@@ -28,13 +30,13 @@ import { CustomerVisitStatusInaccessibleMeterPage } from './pages/CustomerVisitS
 import { CustomerVisitStatusFaultyMeterPage } from './pages/CustomerVisitStatusFaultyMeterPage';
 import { CustomerVisitStatusOtherPage } from './pages/CustomerVisitStatusOtherPage';
 import { BillGenerationPage } from './pages/BillGenerationPage';
-import { VisitsPage } from './pages/VisitsPage';
-import { VisitsListPage } from './pages/VisitsListPage';
-import { PaymentsListPage } from './pages/PaymentsListPage';
+import { TicketPaymentsPage } from './pages/TicketPaymentsPage';
 import { BankDepositsListPage } from './pages/BankDepositsListPage';
-import { PumpStationsPage } from './pages/PumpStationsPage';
-import { StorageTanksPage } from './pages/StorageTanksPage';
-import { PumpStationMeterReadingsPage } from './pages/PumpStationMeterReadingsPage';
+import { CommunityPage } from './pages/CommunityPage';
+import { ZonesPage } from './pages/ZonesPage';
+import { TicketTypePage } from './pages/TicketTypePage';
+import { LocationPage } from './pages/LocationPage';
+import { CustomerTypePage } from './pages/CustomerTypePage';
 import { StorageTankMeterReadingsPage } from './pages/StorageTankMeterReadingsPage';
 import { CustomerMeterReadingsPage } from './pages/CustomerMeterReadingsPage';
 import { StaffPage } from './pages/StaffPage';
@@ -44,10 +46,9 @@ import { AddStaffPage } from './pages/AddStaffPage';
 import { CustomerLocationsPage } from './pages/CustomerLocationsPage';
 import { CollectorPathsPage } from './pages/CollectorPathsPage';
 import { CollectorLocationsPage } from './pages/CollectorLocationsPage';
-import { PumpStationLocationsPage } from './pages/PumpStationLocationsPage';
 import { StorageTankLocationsPage } from './pages/StorageTankLocationsPage';
-import { CustomersPage } from './pages/CustomersPage';
-import { ReactivatedCustomersPage } from './pages/ReactivatedCustomersPage';
+import { TicketCustomersPage } from './pages/TicketCustomersPage';
+import { TicketRatesPage } from './pages/TicketRatesPage';
 import { PageType, DateRange, ActiveYears } from '@/types/dashboard';
 import { formatDate } from '@/lib/utils';
 import { menuItems } from '@/lib/data';
@@ -233,19 +234,35 @@ const Dashboard = () => {
       case 'debt':
         return (
           <DebtPage
-            selectedMonth={selectedMonth}
-            selectedYear={selectedYear}
-            monthYearPickerOpen={monthYearPickerOpen}
-            onMonthYearToggle={() => setMonthYearPickerOpen(!monthYearPickerOpen)}
-            onMonthChange={setSelectedMonth}
-            onYearChange={setSelectedYear}
-            onMonthYearApply={handleMonthYearSelect}
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
             onNavigate={(page, filter) => {
               if (filter && filter.monthsOwed !== undefined) {
                 sessionStorage.setItem('customerDebtFilter', JSON.stringify({ monthsOwed: filter.monthsOwed }));
               }
               setCurrentPage(page as PageType);
             }}
+          />
+        );
+        
+      case 'revenue-officer-performance':
+      case 'dashboard-details-revenue-officer-field-attendance':
+        return (
+          <RevenueOfficerPerformancePage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
           />
         );
         
@@ -334,6 +351,9 @@ const Dashboard = () => {
         
       case 'dashboard-details-customers-inactive-this-year':
         return <DashboardDetailsCustomersInactiveThisYearPage onNavigate={setCurrentPage} />;
+        
+      case 'dashboard-details-counterfeited-tickets':
+        return <DashboardDetailsCounterfeitedTicketsPage onNavigate={setCurrentPage} />;
         
       case 'customer-payment-status':
         return (
@@ -510,23 +530,9 @@ const Dashboard = () => {
           />
         );
         
-      case 'visits':
+      case 'ticket-payments':
         return (
-          <VisitsPage
-            selectedVisitsMonth={selectedVisitsMonth}
-            selectedVisitsYear={selectedVisitsYear}
-            visitsMonthYearPickerOpen={visitsMonthYearPickerOpen}
-            onVisitsMonthYearToggle={() => setVisitsMonthYearPickerOpen(!visitsMonthYearPickerOpen)}
-            onVisitsMonthChange={setSelectedVisitsMonth}
-            onVisitsYearChange={setSelectedVisitsYear}
-            onVisitsMonthYearApply={handleVisitsMonthYearSelect}
-            onNavigate={(page) => setCurrentPage(page as PageType)}
-          />
-        );
-
-      case 'payments':
-        return (
-          <PaymentsListPage
+          <TicketPaymentsPage
             selectedDateRange={selectedDateRange}
             displayDateRange={displayDateRange}
             activePreset={activePreset}
@@ -535,7 +541,6 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
-            onCustomerClick={handleCustomerNavigation}
           />
         );
 
@@ -553,26 +558,12 @@ const Dashboard = () => {
           />
         );
 
-      case 'visits-list':
-        return (
-          <VisitsListPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-          />
-        );
-
       case 'bill-generation':
         return <BillGenerationPage />;
         
-      case 'pump-stations':
+      case 'storage-tanks':
         return (
-          <PumpStationsPage
+          <CommunityPage
             selectedDateRange={selectedDateRange}
             displayDateRange={displayDateRange}
             activePreset={activePreset}
@@ -584,9 +575,9 @@ const Dashboard = () => {
           />
         );
 
-      case 'storage-tanks':
+      case 'zones':
         return (
-          <StorageTanksPage
+          <ZonesPage
             selectedDateRange={selectedDateRange}
             displayDateRange={displayDateRange}
             activePreset={activePreset}
@@ -597,10 +588,38 @@ const Dashboard = () => {
             onDateRangeApply={handleDateRangeSelect}
           />
         );
-        
-      case 'pump-station-meter-readings':
+
+      case 'ticket-type':
         return (
-          <PumpStationMeterReadingsPage
+          <TicketTypePage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+          />
+        );
+
+      case 'location':
+        return (
+          <LocationPage
+            selectedDateRange={selectedDateRange}
+            displayDateRange={displayDateRange}
+            activePreset={activePreset}
+            dateRangeOpen={dateRangeOpen}
+            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
+            onPresetSelect={handlePresetSelect}
+            onDateRangeChange={setSelectedDateRange}
+            onDateRangeApply={handleDateRangeSelect}
+          />
+        );
+
+      case 'customer-type':
+        return (
+          <CustomerTypePage
             selectedDateRange={selectedDateRange}
             displayDateRange={displayDateRange}
             activePreset={activePreset}
@@ -661,24 +680,21 @@ const Dashboard = () => {
       case 'collector-paths':
         return <CollectorPathsPage />;
 
-      case 'pump-station-locations':
-        return <PumpStationLocationsPage />;
-
       case 'storage-tank-locations':
         return <StorageTankLocationsPage />;
 
-      case 'customers':
       case 'customer-details':
-        return <CustomersPage 
-          initialCustomerId={selectedCustomerId}
-          initialShowDetails={showCustomerDetails}
-        />;
+        return null; // Page removed
         
-      case 'reactivated-customers':
-        return <ReactivatedCustomersPage 
+      case 'ticket-customers':
+        return <TicketCustomersPage 
           initialCustomerId={selectedCustomerId}
           initialShowDetails={showCustomerDetails}
         />;
+      
+      case 'ticket-rates':
+        return <TicketRatesPage />;
+        
         
       default:
         return null;
@@ -706,7 +722,6 @@ const Dashboard = () => {
           {currentPage === 'customer-locations' || 
            currentPage === 'collector-locations' || 
            currentPage === 'collector-paths' || 
-           currentPage === 'pump-station-locations' || 
            currentPage === 'storage-tank-locations' ||
            currentPage === 'customer-details' ? (
             <>

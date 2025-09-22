@@ -6,11 +6,11 @@ import { ModernSelect } from '../ui/ModernSelect';
 
 interface EditStaffPageProps {
   staffId: string;
-  onBack: () => void;
   onSave?: (staffData: any) => void;
+  onBack?: () => void;
 }
 
-export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onBack, onSave }) => {
+export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onSave, onBack }) => {
   const originalStaff = staffData.find(s => s.id.toString() === staffId);
   
   const [formData, setFormData] = useState({
@@ -54,7 +54,7 @@ export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onBack, o
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Staff Not Found</h2>
           <button 
-            onClick={onBack}
+            onClick={() => window.history.back()}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -135,7 +135,11 @@ export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onBack, o
       
       // Show success message (you might want to add toast notification)
       console.log('Staff updated successfully:', formData);
-      onBack();
+      if (onBack) {
+        onBack();
+      } else {
+        window.history.back();
+      }
     } catch (error) {
       console.error('Error updating staff:', error);
     } finally {
@@ -184,7 +188,13 @@ export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onBack, o
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => {
+                if (onBack) {
+                  onBack();
+                } else {
+                  window.history.back();
+                }
+              }}
               className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -415,7 +425,7 @@ export const EditStaffPage: React.FC<EditStaffPageProps> = ({ staffId, onBack, o
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex justify-end gap-3">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
               Cancel

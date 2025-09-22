@@ -4,11 +4,11 @@ import { HierarchicalAccess } from '../ui/HierarchicalAccess';
 import { ModernSelect } from '../ui/ModernSelect';
 
 interface AddStaffPageProps {
-  onBack: () => void;
   onSave?: (staffData: any) => void;
+  onBack?: () => void;
 }
 
-export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) => {
+export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -173,7 +173,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => {
+                if (onBack) {
+                  onBack();
+                } else {
+                  window.history.back();
+                }
+              }}
               className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -405,7 +411,13 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onBack, onSave }) =>
             </button>
             <button 
               type="button"
-              onClick={onBack}
+              onClick={() => {
+                if (onBack) {
+                  onBack();
+                } else {
+                  window.history.back();
+                }
+              }}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Cancel

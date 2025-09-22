@@ -41,7 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {isOpen && (
               <div>
-                <h2 className="font-bold text-lg text-white">CWSA Admin</h2>
+                <h2 className="font-bold text-lg text-white">AEDA Admin</h2>
                 <p className="text-xs text-gray-400">System Admin</p>
               </div>
             )}
@@ -49,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         
         <div className="text-xs text-gray-500 mb-4">
-          {isOpen && "Community Water and Sanitation Agency"}
+          {isOpen && "Atiwa East District Assembly"}
         </div>
         
         <nav className="space-y-1">

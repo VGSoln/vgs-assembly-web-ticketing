@@ -5,7 +5,6 @@ import { ModernSelect } from '../ui/ModernSelect';
 import { AddCustomerPage } from './AddCustomerPage';
 import { CustomerDetailsPage } from './CustomerDetailsPage';
 import { CustomerLocationModal } from '../ui/CustomerLocationModal';
-import { ReactivationModal } from '../ui/ReactivationModal';
 import { 
   businessLevelOptions, 
   zoneOptions
@@ -13,19 +12,20 @@ import {
 
 interface Customer {
   id: number;
-  customerNumber: string;
-  customerName: string;
+  scanId: string;
+  scanDate: string;
+  scanStatus: 'Expired' | 'Active';
+  daysExpired: number;
+  scanBy: string;
+  ticketType: string;
+  location: string;
   customerPhone: string;
-  customerType: 'Domestic' | 'Non-Residential';
-  meterType: 'Manual' | 'Digital';
-  meterNumber: string;
-  city: string;
-  zone: string;
-  lastPaymentDate: string;
-  amountDue: number;
-  created: string;
-  status: 'Active' | 'Inactive';
-  inactiveReason: string;
+  customerType: string;
+  identifier: string;
+  ticketId: string;
+  ticketDate: string;
+  ticketAmount: number;
+  revenueOfficer: string;
 }
 
 type SortConfig = {
@@ -45,16 +45,14 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialCustomerId || '');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedCustomerLocation, setSelectedCustomerLocation] = useState<any>(null);
-  const [showReactivationModal, setShowReactivationModal] = useState(false);
-  const [selectedReactivationCustomer, setSelectedReactivationCustomer] = useState<Customer | null>(null);
   
   // Update document title and body attribute based on view
   useEffect(() => {
     if (showCustomerDetails) {
-      document.title = 'CWSA - Customer Detail Information';
+      document.title = 'AEDA Admin - Customer Detail Information';
       document.body.setAttribute('data-customer-view', 'details');
     } else {
-      document.title = 'CWSA - Customer List';
+      document.title = 'AEDA Admin - Customer List';
       document.body.setAttribute('data-customer-view', 'list');
     }
     
@@ -65,8 +63,8 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   }, [showCustomerDetails]);
   
   // Navigation handler for customer details
-  const handleViewCustomerDetails = React.useCallback((customerNumber: string, customerName: string) => {
-    setSelectedCustomerId(customerNumber);
+  const handleViewCustomerDetails = React.useCallback((scanId: string) => {
+    setSelectedCustomerId(scanId);
     setShowCustomerDetails(true);
   }, []);
 
@@ -96,19 +94,11 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
     setShowAddCustomer(false);
   };
 
-  const handleReactivateCustomer = (customer: Customer) => {
-    setSelectedReactivationCustomer(customer);
-    setShowReactivationModal(true);
+  const handleViewTicketDetails = (customer: Customer) => {
+    // View ticket details functionality
+    console.log('View ticket details:', customer.ticketId);
   };
 
-  const handleConfirmReactivation = (reason: string) => {
-    console.log('Reactivating customer:', selectedReactivationCustomer?.customerNumber);
-    console.log('Reason:', reason);
-    // Here you would typically send the reactivation request to your API
-    // After successful reactivation, you could refresh the list or remove the customer
-    setShowReactivationModal(false);
-    setSelectedReactivationCustomer(null);
-  };
 
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
@@ -119,167 +109,177 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
 
-  // Inactive customers data
+  // Scanned tickets data
   const customersData: Customer[] = [
     {
       id: 1,
-      customerNumber: '0512-03-00892',
-      customerName: 'KWAME ASANTE MENSAH',
+      scanId: 'SC-2025-001',
+      scanDate: '15 Jan 2025 09:30 AM',
+      scanStatus: 'Expired',
+      daysExpired: 5,
+      scanBy: 'John Mensah',
+      ticketType: 'Market',
+      location: 'Central Market',
       customerPhone: '0249876543',
-      customerType: 'Domestic',
-      meterType: 'Manual',
-      meterNumber: '200405612',
-      city: 'MADINA',
-      zone: 'ZONE 3',
-      lastPaymentDate: '15 Mar 2024',
-      amountDue: 2456.78,
-      created: '10 Jan 2025 09:30 AM',
-      status: 'Inactive',
-      inactiveReason: 'Non-payment for 10 months'
+      customerType: 'Trader',
+      identifier: 'MKT-A-101',
+      ticketId: 'TK-2024-8892',
+      ticketDate: '10 Jan 2025',
+      ticketAmount: 50.00,
+      revenueOfficer: 'Samuel Osei'
     },
     {
       id: 2,
-      customerNumber: '0487-02-00145',
-      customerName: 'PATRICIA OSEI BONSU',
+      scanId: 'SC-2025-002',
+      scanDate: '15 Jan 2025 10:15 AM',
+      scanStatus: 'Active',
+      daysExpired: 0,
+      scanBy: 'Mary Asante',
+      ticketType: 'Lorry Park',
+      location: 'Main Lorry Park',
       customerPhone: '0551234567',
-      customerType: 'Non-Residential',
-      meterType: 'Digital',
-      meterNumber: '220178934',
-      city: 'ACHIMOTA',
-      zone: 'ZONE 2',
-      lastPaymentDate: '28 Feb 2024',
-      amountDue: 5678.90,
-      created: '05 Jan 2025 02:15 PM',
-      status: 'Inactive',
-      inactiveReason: 'Business closed down'
+      customerType: 'Driver',
+      identifier: 'LP-B-045',
+      ticketId: 'TK-2025-0145',
+      ticketDate: '15 Jan 2025',
+      ticketAmount: 20.00,
+      revenueOfficer: 'Patricia Bonsu'
     },
     {
       id: 3,
-      customerNumber: '0512-04-00456',
-      customerName: 'FATIMA ABDUL RAHMAN',
+      scanId: 'SC-2025-003',
+      scanDate: '15 Jan 2025 11:45 AM',
+      scanStatus: 'Expired',
+      daysExpired: 2,
+      scanBy: 'John Mensah',
+      ticketType: 'Market',
+      location: 'Nima Market',
       customerPhone: '0244567890',
-      customerType: 'Domestic',
-      meterType: 'Digital',
-      meterNumber: '200789012',
-      city: 'NIMA',
-      zone: 'ZONE 4',
-      lastPaymentDate: '12 Apr 2024',
-      amountDue: 1245.50,
-      created: '08 Jan 2025 11:45 AM',
-      status: 'Inactive',
-      inactiveReason: 'Non-payment for 8 months'
+      customerType: 'Vendor',
+      identifier: 'NM-C-234',
+      ticketId: 'TK-2025-0456',
+      ticketDate: '13 Jan 2025',
+      ticketAmount: 30.00,
+      revenueOfficer: 'Fatima Rahman'
     },
     {
       id: 4,
-      customerNumber: '0489-01-00321',
-      customerName: 'EMMANUEL KWAKU BOATENG',
+      scanId: 'SC-2025-004',
+      scanDate: '15 Jan 2025 02:20 PM',
+      scanStatus: 'Expired',
+      daysExpired: 10,
+      scanBy: 'Mary Asante',
+      ticketType: 'Lorry Park',
+      location: 'East Station',
       customerPhone: '0509876543',
-      customerType: 'Non-Residential',
-      meterType: 'Manual',
-      meterNumber: '180456789',
-      city: 'EAST LEGON',
-      zone: 'ZONE 1',
-      lastPaymentDate: '18 Jan 2024',
-      amountDue: 3456.78,
-      created: '12 Jan 2025 03:20 PM',
-      status: 'Inactive',
-      inactiveReason: 'Property demolished'
+      customerType: 'Driver',
+      identifier: 'ES-D-321',
+      ticketId: 'TK-2025-0321',
+      ticketDate: '05 Jan 2025',
+      ticketAmount: 25.00,
+      revenueOfficer: 'Emmanuel Boateng'
     },
     {
       id: 5,
-      customerNumber: '0523-02-00789',
-      customerName: 'GRACE AKOSUA MENSAH',
+      scanId: 'SC-2025-005',
+      scanDate: '15 Jan 2025 03:45 PM',
+      scanStatus: 'Active',
+      daysExpired: 0,
+      scanBy: 'John Mensah',
+      ticketType: 'Market',
+      location: 'Tema Market',
       customerPhone: '0277654321',
-      customerType: 'Domestic',
-      meterType: 'Digital',
-      meterNumber: '210987654',
-      city: 'TEMA',
-      zone: 'ZONE 2',
-      lastPaymentDate: '05 Sep 2024',
-      amountDue: 892.45,
-      created: '15 Jan 2025 08:30 AM',
-      status: 'Inactive',
-      inactiveReason: 'Customer relocated'
+      customerType: 'Trader',
+      identifier: 'TM-E-789',
+      ticketId: 'TK-2025-0789',
+      ticketDate: '15 Jan 2025',
+      ticketAmount: 45.00,
+      revenueOfficer: 'Grace Mensah'
     },
     {
       id: 6,
-      customerNumber: '0567-03-01234',
-      customerName: 'SAMUEL NANA OPOKU',
+      scanId: 'SC-2025-006',
+      scanDate: '16 Jan 2025 08:30 AM',
+      scanStatus: 'Expired',
+      daysExpired: 7,
+      scanBy: 'Mary Asante',
+      ticketType: 'Lorry Park',
+      location: 'Spintex Station',
       customerPhone: '0201234567',
-      customerType: 'Non-Residential',
-      meterType: 'Manual',
-      meterNumber: '190234567',
-      city: 'SPINTEX',
-      zone: 'ZONE 3',
-      lastPaymentDate: '22 Jun 2024',
-      amountDue: 5678.90,
-      created: '18 Jan 2025 01:15 PM',
-      status: 'Inactive',
-      inactiveReason: 'Meter tampering detected'
+      customerType: 'Driver',
+      identifier: 'SP-F-234',
+      ticketId: 'TK-2025-1234',
+      ticketDate: '09 Jan 2025',
+      ticketAmount: 35.00,
+      revenueOfficer: 'Samuel Opoku'
     },
     {
       id: 7,
-      customerNumber: '0434-01-00987',
-      customerName: 'MARY ADWOA FRIMPONG',
+      scanId: 'SC-2025-007',
+      scanDate: '16 Jan 2025 10:00 AM',
+      scanStatus: 'Active',
+      daysExpired: 0,
+      scanBy: 'John Mensah',
+      ticketType: 'Market',
+      location: 'Kotobabi Market',
       customerPhone: '0551987654',
-      customerType: 'Domestic',
-      meterType: 'Digital',
-      meterNumber: '200567891',
-      city: 'KOTOBABI',
-      zone: 'ZONE 1',
-      lastPaymentDate: '14 Mar 2024',
-      amountDue: 1567.33,
-      created: '22 Jan 2025 10:00 AM',
-      status: 'Inactive',
-      inactiveReason: 'Service disconnection requested'
+      customerType: 'Vendor',
+      identifier: 'KB-G-987',
+      ticketId: 'TK-2025-0987',
+      ticketDate: '16 Jan 2025',
+      ticketAmount: 40.00,
+      revenueOfficer: 'Mary Frimpong'
     },
     {
       id: 8,
-      customerNumber: '0445-02-00654',
-      customerName: 'JOSEPH KWABENA ASANTE',
+      scanId: 'SC-2025-008',
+      scanDate: '16 Jan 2025 02:45 PM',
+      scanStatus: 'Expired',
+      daysExpired: 3,
+      scanBy: 'Mary Asante',
+      ticketType: 'Market',
+      location: 'Dansoman Market',
       customerPhone: '0266543210',
-      customerType: 'Domestic',
-      meterType: 'Manual',
-      meterNumber: '180345678',
-      city: 'DANSOMAN',
-      zone: 'ZONE 2',
-      lastPaymentDate: '28 May 2024',
-      amountDue: 2890.67,
-      created: '25 Jan 2025 04:45 PM',
-      status: 'Inactive',
-      inactiveReason: 'Account dormant'
+      customerType: 'Trader',
+      identifier: 'DM-H-654',
+      ticketId: 'TK-2025-0654',
+      ticketDate: '13 Jan 2025',
+      ticketAmount: 55.00,
+      revenueOfficer: 'Joseph Asante'
     },
     {
       id: 9,
-      customerNumber: '0398-04-00112',
-      customerName: 'REBECCA YABA ANSAH',
+      scanId: 'SC-2025-009',
+      scanDate: '17 Jan 2025 09:20 AM',
+      scanStatus: 'Expired',
+      daysExpired: 15,
+      scanBy: 'John Mensah',
+      ticketType: 'Lorry Park',
+      location: 'Airport Station',
       customerPhone: '0245678901',
-      customerType: 'Non-Residential',
-      meterType: 'Digital',
-      meterNumber: '220678901',
-      city: 'AIRPORT',
-      zone: 'ZONE 4',
-      lastPaymentDate: '30 Nov 2024',
-      amountDue: 4567.89,
-      created: '28 Jan 2025 09:20 AM',
-      status: 'Inactive',
-      inactiveReason: 'Building under renovation'
+      customerType: 'Driver',
+      identifier: 'AP-I-112',
+      ticketId: 'TK-2025-0112',
+      ticketDate: '02 Jan 2025',
+      ticketAmount: 30.00,
+      revenueOfficer: 'Rebecca Ansah'
     },
     {
       id: 10,
-      customerNumber: '0512-01-00888',
-      customerName: 'AKWASI OSEI TUTU',
+      scanId: 'SC-2025-010',
+      scanDate: '17 Jan 2025 11:10 AM',
+      scanStatus: 'Active',
+      daysExpired: 0,
+      scanBy: 'Mary Asante',
+      ticketType: 'Market',
+      location: 'Kaneshie Market',
       customerPhone: '0203456789',
-      customerType: 'Domestic',
-      meterType: 'Manual',
-      meterNumber: '190123456',
-      city: 'KANESHIE',
-      zone: 'ZONE 1',
-      lastPaymentDate: '16 Feb 2024',
-      amountDue: 7234.12,
-      created: '30 Jan 2025 07:10 AM',
-      status: 'Inactive',
-      inactiveReason: 'Non-payment for 11 months'
+      customerType: 'Vendor',
+      identifier: 'KM-J-888',
+      ticketId: 'TK-2025-0888',
+      ticketDate: '17 Jan 2025',
+      ticketAmount: 60.00,
+      revenueOfficer: 'Akwasi Tutu'
     }
   ];
 
@@ -299,18 +299,20 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   ];
 
   const columns = [
-    { key: 'customerNumber', label: 'Customer #', sortable: true, width: '11%' },
-    { key: 'customerName', label: 'Name', sortable: true, width: '13%' },
-    { key: 'customerPhone', label: 'Phone', sortable: true, width: '9%' },
-    { key: 'customerType', label: 'Type', sortable: true, width: '7%' },
-    { key: 'meterNumber', label: 'Meter #', sortable: true, width: '9%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
-    { key: 'lastPaymentDate', label: 'Last Payment', sortable: true, width: '10%' },
-    { key: 'amountDue', label: 'Amount Due', sortable: true, width: '8%' },
-    { key: 'created', label: 'Inactive Date', sortable: true, width: '9%' },
-    { key: 'inactiveReason', label: 'Inactive Reason', sortable: true, width: '10%' },
-    { key: 'status', label: 'Status', sortable: false, width: '5%' },
-    { key: 'actions', label: 'Actions', sortable: false, width: '5%' }
+    { key: 'scanId', label: 'Scan ID', sortable: true, width: '7%' },
+    { key: 'scanDate', label: 'Scan Date', sortable: true, width: '8%' },
+    { key: 'scanStatus', label: 'Scanned Ticket Status', sortable: true, width: '10%' },
+    { key: 'daysExpired', label: '# of Days Expired', sortable: true, width: '8%' },
+    { key: 'scanBy', label: 'Scan By', sortable: true, width: '7%' },
+    { key: 'ticketType', label: 'Ticket Type', sortable: true, width: '7%' },
+    { key: 'location', label: 'Location', sortable: true, width: '7%' },
+    { key: 'customerPhone', label: 'Customer Phone', sortable: true, width: '8%' },
+    { key: 'customerType', label: 'Customer Type', sortable: true, width: '8%' },
+    { key: 'identifier', label: 'Identifier', sortable: true, width: '7%' },
+    { key: 'ticketId', label: 'Ticket ID', sortable: true, width: '7%' },
+    { key: 'ticketDate', label: 'Ticket Date', sortable: true, width: '8%' },
+    { key: 'ticketAmount', label: 'Ticket Amount', sortable: true, width: '8%' },
+    { key: 'revenueOfficer', label: 'Revenue Officer', sortable: true, width: '8%' }
   ];
 
   // Sorting function
@@ -338,19 +340,21 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
     let filtered = customersData.filter(customer => {
       const matchesSearch = 
         customer.id.toString().includes(searchTerm) ||
-        customer.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.scanId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.scanDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.scanStatus.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.scanBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.ticketType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.customerPhone.includes(searchTerm) ||
         customer.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.meterNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.lastPaymentDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.amountDue.toString().includes(searchTerm) ||
-        customer.created.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.inactiveReason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.status.toLowerCase().includes(searchTerm.toLowerCase());
+        customer.identifier.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.ticketId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.ticketDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.ticketAmount.toString().includes(searchTerm) ||
+        customer.revenueOfficer.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesZone = !selectedZone || customer.zone === selectedZone;
+      const matchesZone = !selectedZone || true; // Remove zone filter for now
       
       return matchesSearch && matchesZone;
     });
@@ -370,7 +374,7 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   }, [searchTerm, selectedZone, sortConfig, customersData]);
 
   const totalEntries = filteredAndSortedData.length;
-  const totalOwed = filteredAndSortedData.reduce((sum, customer) => sum + customer.amountDue, 0);
+  const totalOwed = filteredAndSortedData.reduce((sum, customer) => sum + customer.ticketAmount, 0);
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
   const endEntry = Math.min(currentPage * parseInt(entriesPerPage), totalEntries);
   const totalPages = Math.ceil(totalEntries / parseInt(entriesPerPage));
@@ -382,9 +386,7 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   };
 
   const getAmountColor = (amount: number) => {
-    if (amount < 0) return 'text-green-600';
-    if (amount > 0) return 'text-red-600';
-    return 'text-gray-900';
+    return 'text-green-600';
   };
 
   // Show AddCustomerPage if showAddCustomer is true
@@ -425,11 +427,11 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-3 text-white">
           <div className="text-xl font-bold">{totalEntries}</div>
-          <div className="text-xs text-blue-100">Total Customers</div>
+          <div className="text-xs text-blue-100">Scanned Tickets</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 text-white text-right">
           <div className="text-xl font-bold">GHS {totalOwed.toLocaleString()}</div>
-          <div className="text-xs text-red-100">Total Owed</div>
+          <div className="text-xs text-red-100">Total Ticket Amount</div>
         </div>
       </div>
 
@@ -500,7 +502,7 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Search visits, customers"
+              placeholder="Search tickets, scans"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64"
@@ -560,77 +562,93 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
                 <tr key={customer.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                 }`}>
+                  {/* Scan ID */}
                   <td className="px-2 py-2 text-xs border-r border-gray-100">
-                    <button 
-                      onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
-                      className="text-blue-600 hover:text-blue-800 break-all leading-tight transition-colors duration-200 hover:underline text-left"
-                    >
-                      {customer.customerNumber}
-                    </button>
+                    <div className="font-mono text-blue-600 font-semibold">
+                      {customer.scanId}
+                    </div>
                   </td>
+                  {/* Scan Date */}
                   <td className="px-2 py-2 text-xs border-r border-gray-100">
-                    <button 
-                      onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
-                      className="text-blue-600 hover:text-blue-800 break-words leading-tight transition-colors duration-200 hover:underline group-hover:text-blue-800 text-left"
-                    >
-                      {customer.customerName}
-                    </button>
+                    <div className="text-slate-800">
+                      {customer.scanDate}
+                    </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
-                    <div className="break-all leading-tight font-mono text-10px bg-slate-100 px-1 py-0.5 rounded text-center">
+                  {/* Scanned Ticket Status */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
+                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${
+                      customer.scanStatus === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}>
+                      {customer.scanStatus}
+                    </span>
+                  </td>
+                  {/* # of Days Expired */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
+                    <span className={`font-semibold ${
+                      customer.daysExpired === 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {customer.daysExpired}
+                    </span>
+                  </td>
+                  {/* Scan By */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="text-slate-700">
+                      {customer.scanBy}
+                    </div>
+                  </td>
+                  {/* Ticket Type */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="font-medium text-slate-800">
+                      {customer.ticketType}
+                    </div>
+                  </td>
+                  {/* Location */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="text-slate-700">
+                      {customer.location}
+                    </div>
+                  </td>
+                  {/* Customer Phone */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="font-mono text-10px bg-slate-100 px-1 py-0.5 rounded text-center">
                       {customer.customerPhone}
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 font-medium">
-                    <div className="break-words leading-tight">
+                  {/* Customer Type */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="text-slate-800">
                       {customer.customerType}
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
-                    <div className="break-all leading-tight font-mono text-10px bg-slate-100 px-1 py-0.5 rounded text-center">
-                      {customer.meterNumber}
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
-                    <span className="text-xs font-semibold text-slate-800">
-                      {customer.zone.replace('ZONE ', '')}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100">
-                    <div className="leading-tight text-center break-words font-semibold">
-                      {customer.lastPaymentDate}
-                    </div>
-                  </td>
-                  <td className={`px-2 py-2 text-xs border-r border-gray-100 text-center font-bold ${getAmountColor(customer.amountDue)}`}>
-                    {formatCurrency(customer.amountDue)}
-                  </td>
-                  <td className="px-2 py-2 text-xs text-slate-600 border-r border-gray-100">
-                    <div className="leading-tight text-center break-words">
-                      <div className="font-bold text-slate-800">{customer.created.split(' ').slice(0, 3).join(' ')}</div>
-                      <div className="text-xs text-slate-500">{customer.created.split(' ').slice(3).join(' ')}</div>
-                    </div>
-                  </td>
+                  {/* Identifier */}
                   <td className="px-2 py-2 text-xs border-r border-gray-100">
-                    <div className="text-xs text-slate-700 break-words px-1">
-                      {customer.inactiveReason}
+                    <div className="font-mono text-10px bg-blue-50 px-1 py-0.5 rounded text-center">
+                      {customer.identifier}
                     </div>
                   </td>
-                  <td className="px-2 py-2 border-r border-gray-100">
-                    <div className="flex justify-center">
-                      <span className="inline-flex px-1 py-0.5 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                        {customer.status}
-                      </span>
+                  {/* Ticket ID */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="font-mono text-blue-600">
+                      {customer.ticketId}
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-center">
-                    <button 
-                      type="button"
-                      onClick={() => handleReactivateCustomer(customer)}
-                      className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                      title={`Reactivate ${customer.customerName}`}
-                    >
-                      <RefreshCw className="w-4 h-4 text-white" />
-                    </button>
+                  {/* Ticket Date */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100">
+                    <div className="text-slate-700">
+                      {customer.ticketDate}
+                    </div>
+                  </td>
+                  {/* Ticket Amount */}
+                  <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
+                    <div className="font-bold text-green-600">
+                      {formatCurrency(customer.ticketAmount)}
+                    </div>
+                  </td>
+                  {/* Revenue Officer */}
+                  <td className="px-2 py-2 text-xs">
+                    <div className="text-slate-700">
+                      {customer.revenueOfficer}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -685,75 +703,70 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
           <div key={customer.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{customer.customerName}</h3>
-                <button 
-                  onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerName)}
-                  className="text-blue-600 hover:text-blue-800 underline font-medium text-sm text-left"
-                >
-                  {customer.customerNumber}
-                </button>
+                <h3 className="text-lg font-semibold text-gray-900">{customer.scanId}</h3>
+                <p className="text-sm text-gray-600">{customer.scanDate}</p>
               </div>
-              <div className="flex flex-col items-center gap-2">
-                <button 
-                  type="button"
-                  onClick={() => handleReactivateCustomer(customer)}
-                  className="bg-gradient-to-r from-green-500 to-emerald-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-green-600 hover:to-emerald-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  title={`Reactivate ${customer.customerName}`}
-                >
-                  <RefreshCw className="w-5 h-5 text-white" />
-                </button>
+              <div>
+                <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${
+                  customer.scanStatus === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {customer.scanStatus}
+                </span>
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</label>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Days Expired</label>
+                  <p className={`text-sm font-bold ${
+                    customer.daysExpired === 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>{customer.daysExpired} days</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Scan By</label>
+                  <p className="text-sm text-gray-700">{customer.scanBy}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket Type</label>
+                  <p className="text-sm font-medium text-gray-900">{customer.ticketType}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</label>
+                  <p className="text-sm text-gray-700">{customer.location}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Phone</label>
                   <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.customerPhone}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Type</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.customerType}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Meter Number</label>
-                  <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.meterNumber}</p>
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Zone</label>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {customer.zone}
-                  </span>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Type</label>
+                  <p className="text-sm font-medium text-gray-900">{customer.customerType}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Payment Date</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.lastPaymentDate}</p>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Identifier</label>
+                  <p className="text-sm font-mono bg-blue-50 px-2 py-1 rounded">{customer.identifier}</p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Amount Due</label>
-                  <p className={`text-sm font-bold ${getAmountColor(customer.amountDue)}`}>
-                    {formatCurrency(customer.amountDue)}
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket ID</label>
+                  <p className="text-sm font-mono text-blue-600">{customer.ticketId}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket Date</label>
+                  <p className="text-sm text-gray-700">{customer.ticketDate}</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket Amount</label>
+                  <p className="text-lg font-bold text-green-600">
+                    {formatCurrency(customer.ticketAmount)}
                   </p>
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inactive Date</label>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{customer.created.split(' ').slice(0, 3).join(' ')}</p>
-                    <p className="text-xs text-gray-500">{customer.created.split(' ').slice(3).join(' ')}</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inactive Reason</label>
-                  <p className="text-sm text-gray-700">{customer.inactiveReason}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
-                  <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                    {customer.status}
-                  </span>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenue Officer</label>
+                  <p className="text-sm text-gray-700">{customer.revenueOfficer}</p>
                 </div>
               </div>
             </div>
@@ -814,21 +827,6 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
         </div>
       </div>
 
-      {/* Reactivation Modal */}
-      {showReactivationModal && selectedReactivationCustomer && (
-        <ReactivationModal
-          isOpen={showReactivationModal}
-          onClose={() => {
-            setShowReactivationModal(false);
-            setSelectedReactivationCustomer(null);
-          }}
-          customerNumber={selectedReactivationCustomer.customerNumber}
-          customerName={selectedReactivationCustomer.customerName}
-          customerPhone={selectedReactivationCustomer.customerPhone}
-          meterNumber={selectedReactivationCustomer.meterNumber}
-          onConfirm={handleConfirmReactivation}
-        />
-      )}
     </div>
   );
 };

@@ -48,10 +48,10 @@ export const CustomerPaymentStatusPaidCustomersPage: React.FC<CustomerPaymentSta
   // Update document title and body attribute based on view
   useEffect(() => {
     if (showCustomerDetails) {
-      document.title = 'CWSA - Customer Detail Information';
+      document.title = 'AEDA Admin - Customer Detail Information';
       document.body.setAttribute('data-customer-view', 'details');
     } else {
-      document.title = 'CWSA - Customer List';
+      document.title = 'AEDA Admin - Customer List';
       document.body.setAttribute('data-customer-view', 'list');
     }
     

@@ -7,9 +7,9 @@ interface TankStationPhotoModalProps {
   isOpen: boolean;
   onClose: () => void;
   readingId?: string;
-  assetNumber: string; // Tank or Station number
-  assetName: string; // Tank or Station name
-  assetType: 'Storage Tank' | 'Pump Station';
+  assetNumber: string; // Tank number
+  assetName: string; // Tank name
+  assetType: 'Storage Tank';
   meterNumber?: string;
   readingDate: string;
   readingValue: number;
@@ -105,7 +105,7 @@ export const TankStationPhotoModal: React.FC<TankStationPhotoModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="p-5 max-h-[calc(90vh-80px)] overflow-y-auto">
           <div className="grid grid-cols-3 gap-5">
             {/* Image - Takes 2/3 of space */}
             <div className="col-span-2">
@@ -124,7 +124,7 @@ export const TankStationPhotoModal: React.FC<TankStationPhotoModalProps> = ({
 
             {/* Asset Information - Takes 1/3 of space */}
             <div className="col-span-1">
-              <div className="bg-gray-50 rounded-lg p-4 h-[550px] flex flex-col justify-start space-y-5 pt-6">
+              <div className="bg-gray-50 rounded-lg p-4 min-h-[550px] flex flex-col justify-start space-y-4">
                 {readingId && (
                   <div className="pb-3 border-b border-gray-200">
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Reading ID</p>
@@ -190,19 +190,9 @@ export const TankStationPhotoModal: React.FC<TankStationPhotoModalProps> = ({
 
                 <div className="pt-3 border-t border-gray-200">
                   <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Current Reading</p>
-                  <p className="text-2xl font-bold text-blue-600">{readingValue.toLocaleString()}</p>
-                </div>
-
-                {fieldReading !== undefined && (
-                  <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Field Reading</p>
-                    <p className="text-lg font-bold text-green-600">{fieldReading.toLocaleString()}</p>
-                  </div>
-                )}
-
-                <div className="mt-auto pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Photo Taken</p>
-                  <p className="text-sm text-gray-600">{readingDate}</p>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {readingValue.toLocaleString()} m³
+                  </p>
                 </div>
               </div>
             </div>

@@ -8,11 +8,11 @@ import { StaffDeactivatedModal } from '../ui/StaffDeactivatedModal';
 
 interface StaffDetailsPageProps {
   staffId: string;
-  onBack: () => void;
   onEdit?: (staffId: string) => void;
+  onBack?: () => void;
 }
 
-export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onBack, onEdit }) => {
+export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onEdit, onBack }) => {
   const staff = staffData.find(s => s.id.toString() === staffId);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
@@ -65,7 +65,13 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
           <h2 className="text-xl font-bold text-gray-900 mb-2">Staff Not Found</h2>
           <p className="text-sm text-gray-600 mb-6">The requested staff member could not be found.</p>
           <button 
-            onClick={onBack}
+            onClick={() => {
+              if (onBack) {
+                onBack();
+              } else {
+                window.history.back();
+              }
+            }}
             className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -88,7 +94,13 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onB
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button 
-                onClick={onBack}
+                onClick={() => {
+                  if (onBack) {
+                    onBack();
+                  } else {
+                    window.history.back();
+                  }
+                }}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-300"
               >
                 <ChevronLeft className="w-4 h-4" />

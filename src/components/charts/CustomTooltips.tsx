@@ -16,7 +16,7 @@ export const CustomTooltip = ({ active, payload, label }: any) => {
               className="w-3 h-3 rounded-full mr-2" 
               style={{ backgroundColor: entry.color }}
             ></span>
-            {entry.dataKey}: GH₵{(entry.value * 1000).toLocaleString()}
+            {entry.dataKey}: GHS {(entry.value * 1000).toLocaleString()}
           </p>
         ))}
       </div>
@@ -101,7 +101,7 @@ export const CustomPieTooltip = ({ active, payload }: any) => {
     // Format value
     let formattedValue = value.toLocaleString();
     if (name === 'Current Debt' || name === 'Old Debt') {
-      formattedValue = `GH₵ ${value.toLocaleString()}`;
+      formattedValue = `GHS ${value.toLocaleString()}`;
     }
 
     return (

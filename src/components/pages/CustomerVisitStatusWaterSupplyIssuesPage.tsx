@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useMemo } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Phone, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, ArrowLeft } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
@@ -48,7 +49,7 @@ interface CustomerVisitStatusWaterSupplyIssuesPageProps {
 type SortConfig = {
   key: string;
   direction: 'asc' | 'desc';
-};
+}
 
 // Removed formatPaidMonth as it's not needed for this page
 
@@ -85,16 +86,16 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
     { key: 'customerNumber', label: 'Customer #', sortable: true, width: '8%' },
     { key: 'customerName', label: 'Customer Name', sortable: true, width: '11%' },
     { key: 'phone', label: 'Phone', sortable: true, width: '8%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
-    { key: 'lastVisit', label: 'Last Visit', sortable: true, width: '9%' },
-    { key: 'lastPaidDate', label: 'Last Paid Date', sortable: true, width: '9%' },
-    { key: 'lastOutcome', label: 'Last Outcome', sortable: true, width: '7%' },
+    { key: 'zone', label: 'Zone', sortable: true, width: '5%' },
+    { key: 'lastVisit', label: 'Last Visit', sortable: true, width: '8%' },
+    { key: 'lastPaidDate', label: 'Last Paid Date', sortable: true, width: '8%' },
+    { key: 'lastOutcome', label: 'Last Outcome', sortable: true, width: '10%' },
     { key: 'lastPaidMonth', label: 'Last Paid Mth', sortable: true, width: '7%' },
     { key: 'lastPaidAmount', label: 'Last Paid Amt', sortable: true, width: '8%' },
     { key: 'monthsOwed', label: 'Months Owed', sortable: true, width: '7%' },
     { key: 'amountOwed', label: 'Amount Owed', sortable: true, width: '8%' },
-    { key: 'customerComments', label: 'Customer Comments', sortable: false, width: '7%' },
-    { key: 'staffNotes', label: 'Staff Notes', sortable: false, width: '7%' },
+    { key: 'customerComments', label: 'Customer Comments', sortable: false, width: '6%' },
+    { key: 'staffNotes', label: 'Staff Notes', sortable: false, width: '6%' },
     { key: 'actions', label: 'Actions', sortable: false, width: '8%' }
   ];
 
@@ -344,7 +345,7 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [selectedDateRange, searchTerm, sortConfig]);
 
   const totalEntries = filteredAndSortedData.length;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
@@ -375,7 +376,7 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
           <div className="text-xs text-blue-100">Total Customers</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalDebtAmount.toLocaleString()}</div>
+          <div className="text-xl font-bold">GHS {totalDebtAmount.toLocaleString()}</div>
           <div className="text-xs text-red-100">Total Amount Owed</div>
         </div>
       </div>
@@ -401,8 +402,7 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
                 <Check className="w-4 h-4" />
                 <span className="text-sm">{exportStatus}</span>
               </div>
-            )}
-          </div>
+                      )}
 
           <div className="flex flex-wrap items-center gap-2">
             <button 
@@ -541,21 +541,23 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
                 <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100">
                   <div className="leading-tight text-center break-words text-10px">
                     <span className="font-bold">{formatDateTime(customer.lastVisit).dateStr}</span>
-                    <br />
+                  <br />
                     <span>{formatDateTime(customer.lastVisit).timeStr}</span>
                   </div>
                 </td>
                 <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100">
                   <div className="leading-tight text-center break-words text-10px">
                     <span className="font-bold">{formatDateTime(customer.lastPaidDate).dateStr}</span>
-                    <br />
+                  <br />
                     <span>{formatDateTime(customer.lastPaidDate).timeStr}</span>
                   </div>
                 </td>
                 <td className="px-1 py-2 text-xs border-r border-gray-100 text-center">
-                  <span className="inline-flex px-1 py-0.5 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+                  <div className="flex justify-center">
+                    <span className="text-xs font-medium" title={customer.lastOutcome}>
                     {customer.lastOutcome}
                   </span>
+                  </div>
                 </td>
                 <td className="px-1 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
                   {formatMonth(customer.lastPaidMonth)}
@@ -638,7 +640,6 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
                 {sortConfig && (
                   <span className="font-medium">Sorted by <span className="font-bold text-blue-300">{columns.find(c => c.key === sortConfig.key)?.label}</span> ({sortConfig.direction})</span>
                 )}
-              </div>
             </div>
           </div>
         </div>
@@ -753,7 +754,7 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Visit</label>
                   <p className="text-11px font-medium text-gray-900">
                     <span className="font-bold">{formatDateTime(customer.lastVisit).dateStr}</span>
-                    <br />
+                  <br />
                     <span className="font-normal">{formatDateTime(customer.lastVisit).timeStr}</span>
                   </p>
                 </div>
@@ -764,13 +765,13 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Paid Date</label>
                   <p className="text-11px font-medium text-gray-900">
                     <span className="font-bold">{formatDateTime(customer.lastPaidDate).dateStr}</span>
-                    <br />
+                  <br />
                     <span className="font-normal">{formatDateTime(customer.lastPaidDate).timeStr}</span>
                   </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Outcome</label>
-                  <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-800">
+                  <span className="text-xs font-medium text-gray-900">
                     {customer.lastOutcome}
                   </span>
                 </div>
@@ -894,5 +895,8 @@ export const CustomerVisitStatusWaterSupplyIssuesPage: React.FC<CustomerVisitSta
         />
       )}
     </div>
+  </div>
+  </div>
   );
 };
+

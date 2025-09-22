@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { Map, Satellite, Filter } from 'lucide-react';
+import { Map, Satellite, Filter, ExternalLink } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 
 interface CustomerLocationsPageProps {}
@@ -229,7 +229,7 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
             <ModernSelect
               value={selectedMonthsOwed}
               onChange={setSelectedMonthsOwed}
-              placeholder="Months Owed"
+              placeholder="Months since Last Payment"
               options={monthsOwedOptions}
               className="w-full sm:w-auto min-w-[180px]"
             />
@@ -281,6 +281,16 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
                 Satellite
               </button>
             </div>
+            
+            {/* Open in Browser Button */}
+            <button
+              onClick={() => window.open(window.location.href, '_blank')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              title="Open map in new browser tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in Browser
+            </button>
           </div>
         </div>
 
@@ -310,23 +320,23 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
           <h3 className="text-xs font-medium text-gray-700">Legend:</h3>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-green-500 border border-white shadow-sm"></div>
-            <span className="text-xs text-gray-600">Paid ({customerStats.paid})</span>
+            <span className="text-xs text-gray-600">Month Less ({customerStats.paid})</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-blue-500 border border-white shadow-sm"></div>
-            <span className="text-xs text-gray-600">1 Month Debt ({customerStats['1-month-debt']})</span>
+            <span className="text-xs text-gray-600">1 Month ({customerStats['1-month-debt']})</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-purple-500 border border-white shadow-sm"></div>
-            <span className="text-xs text-gray-600">2 Months Debt ({customerStats['2-month-debt']})</span>
+            <span className="text-xs text-gray-600">2 Months ({customerStats['2-month-debt']})</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-yellow-500 border border-white shadow-sm"></div>
-            <span className="text-xs text-gray-600">3 Months Debt ({customerStats['3-month-debt']})</span>
+            <span className="text-xs text-gray-600">3 Months ({customerStats['3-month-debt']})</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-full bg-red-500 border border-white shadow-sm"></div>
-            <span className="text-xs text-gray-600">4+ Month Debt ({customerStats['4-plus-debt']})</span>
+            <span className="text-xs text-gray-600">4+ Month ({customerStats['4-plus-debt']})</span>
           </div>
         </div>
       </div>

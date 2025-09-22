@@ -18,13 +18,11 @@ interface StorageTankData {
 
 interface StorageTankDetailsPageProps {
   storageTankData: StorageTankData;
-  onBack: () => void;
   onEdit: () => void;
 }
 
 export const StorageTankDetailsPage: React.FC<StorageTankDetailsPageProps> = ({ 
   storageTankData, 
-  onBack, 
   onEdit 
 }) => {
   const formatValue = (value: string | number, fallback: string = 'Not provided') => {
@@ -66,7 +64,7 @@ export const StorageTankDetailsPage: React.FC<StorageTankDetailsPageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -250,7 +248,7 @@ export const StorageTankDetailsPage: React.FC<StorageTankDetailsPageProps> = ({
           {/* Action Buttons */}
           <div className="flex justify-start items-center pt-6">
             <button
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />

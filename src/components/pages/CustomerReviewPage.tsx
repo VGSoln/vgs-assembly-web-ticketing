@@ -24,14 +24,12 @@ interface CustomerFormData {
 
 interface CustomerReviewPageProps {
   customerData: CustomerFormData;
-  onBack: () => void;
   onConfirm: () => void;
   onEdit?: () => void;
 }
 
 export const CustomerReviewPage: React.FC<CustomerReviewPageProps> = ({ 
   customerData, 
-  onBack, 
   onConfirm, 
   onEdit 
 }) => {
@@ -106,7 +104,7 @@ export const CustomerReviewPage: React.FC<CustomerReviewPageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -284,7 +282,7 @@ export const CustomerReviewPage: React.FC<CustomerReviewPageProps> = ({
           {/* Action Buttons */}
           <div className="flex justify-between items-center pt-6">
             <button
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />

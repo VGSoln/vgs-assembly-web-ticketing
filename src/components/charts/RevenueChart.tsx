@@ -31,7 +31,7 @@ const RevenueTooltip = ({ active, payload, label }: any) => {
               className="w-3 h-3 rounded-full mr-2" 
               style={{ backgroundColor: entry.color }}
             ></span>
-            {entry.dataKey}: GH₵{(entry.value * 1000).toLocaleString()}
+            {entry.dataKey}: GHS {(entry.value * 1000).toLocaleString()}
           </p>
         ))}
       </div>

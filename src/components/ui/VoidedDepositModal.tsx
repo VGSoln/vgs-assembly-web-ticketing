@@ -10,7 +10,6 @@ interface VoidedDepositModalProps {
   bankName: string;
   accountNumber: string;
   depositAmount: number;
-  zone: string;
   collector: string;
   voidReason: string;
   voidedDate: string;
@@ -25,7 +24,6 @@ export const VoidedDepositModal: React.FC<VoidedDepositModalProps> = ({
   bankName,
   accountNumber,
   depositAmount,
-  zone,
   collector,
   voidReason,
   voidedDate,
@@ -83,20 +81,14 @@ export const VoidedDepositModal: React.FC<VoidedDepositModalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Zone</p>
-                <p className="text-sm font-semibold text-gray-900">{zone}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Collector</p>
-                <p className="text-sm font-semibold text-gray-900">{collector}</p>
-              </div>
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Collector</p>
+              <p className="text-sm font-semibold text-gray-900">{collector}</p>
             </div>
 
             <div>
               <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Voided Amount</p>
-              <p className="text-lg font-bold text-red-600">₵{depositAmount.toLocaleString()}</p>
+              <p className="text-lg font-bold text-red-600">GHS {depositAmount.toLocaleString()}</p>
             </div>
 
             {/* Void Information */}

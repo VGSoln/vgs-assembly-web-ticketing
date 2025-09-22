@@ -72,23 +72,23 @@ export const VoidDetailsModal: React.FC<VoidDetailsModalProps> = ({
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Name</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Location</p>
                 <p className="text-sm font-semibold text-gray-900">{customerName}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Customer Number</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
                 <p className="text-sm font-semibold text-gray-900">{customerNumber}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Phone Number</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Identifier</p>
                 <p className="text-sm font-semibold text-gray-900">{phoneNumber}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Voided Amount</p>
-                <p className="text-lg font-bold text-red-600">₵{amount.toLocaleString()}</p>
+                <p className="text-lg font-bold text-red-600">GHS {amount.toLocaleString()}</p>
               </div>
             </div>
 

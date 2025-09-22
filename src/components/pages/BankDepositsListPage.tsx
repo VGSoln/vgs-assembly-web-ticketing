@@ -237,12 +237,11 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
 
   const columns = [
     { key: 'transId', label: 'Trans ID', sortable: true, width: '6%' },
-    { key: 'dateTime', label: 'Date & Time', sortable: true, width: '10%' },
-    { key: 'bankName', label: 'Bank Name', sortable: true, width: '13%' },
-    { key: 'accountNumber', label: 'Account #', sortable: true, width: '10%' },
-    { key: 'depositAmount', label: 'Deposit Amt', sortable: true, width: '7%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '7%' },
-    { key: 'collector', label: 'Collector', sortable: true, width: '11%' },
+    { key: 'dateTime', label: 'Date & Time', sortable: true, width: '12%' },
+    { key: 'bankName', label: 'Bank Name', sortable: true, width: '15%' },
+    { key: 'accountNumber', label: 'Account #', sortable: true, width: '12%' },
+    { key: 'depositAmount', label: 'Deposit Amt', sortable: true, width: '8%' },
+    { key: 'collector', label: 'Collector', sortable: true, width: '13%' },
     { key: 'depositType', label: 'Deposit Type', sortable: true, width: '13%' },
     { key: 'created', label: 'Created', sortable: true, width: '10%' },
     { key: 'status', label: 'Status', sortable: true, width: '7%' },
@@ -409,7 +408,7 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
           <div className="text-xs text-blue-100">Total Deposits</div>
         </div>
         <div className="lg:col-start-4 bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-3 text-white text-right">
-          <div className="text-xl font-bold">GH₵ {totalDepositAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="text-xl font-bold">GHS {totalDepositAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           <div className="text-xs text-green-100">Total Bank Deposits</div>
         </div>
       </div>
@@ -564,11 +563,6 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                 <td className="px-1 py-1 text-xs border-r border-gray-100 text-right font-semibold">
                   {deposit.depositAmount.toFixed(0)}
                 </td>
-                <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
-                  <span className="text-xs font-semibold text-slate-800">
-                    {deposit.zone.replace('ZONE ', '')}
-                  </span>
-                </td>
                 <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
                   <div>
                     {deposit.collector}
@@ -595,7 +589,6 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                           bankName: deposit.bankName,
                           accountNumber: deposit.accountNumber,
                           depositAmount: deposit.depositAmount,
-                          zone: deposit.zone,
                           collector: deposit.collector,
                           voidReason: (deposit as any).voidReason || 'Not specified',
                           voidedDate: (deposit as any).voidedDate || 'Unknown',
@@ -794,7 +787,7 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Amount</label>
-                  <p className="text-lg font-bold text-green-600">GH₵ {deposit.depositAmount.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-green-600">GHS {deposit.depositAmount.toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Zone</label>

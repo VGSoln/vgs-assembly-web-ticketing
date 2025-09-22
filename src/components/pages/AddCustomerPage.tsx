@@ -29,11 +29,10 @@ interface CustomerFormData {
 }
 
 interface AddCustomerPageProps {
-  onBack?: () => void;
   onSave?: (customerData: CustomerFormData) => void;
 }
 
-export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave }) => {
+export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onSave }) => {
   const [showReview, setShowReview] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [formData, setFormData] = useState<CustomerFormData>({
@@ -157,7 +156,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
       initialReading: ''
     });
     setShowReview(false);
-    onBack?.();
+    window.history.back();
   };
 
 
@@ -262,7 +261,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -584,7 +583,7 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onBack, onSave
           {/* Action Buttons */}
           <div className="flex justify-end gap-4">
             <button
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200"
             >
               Cancel

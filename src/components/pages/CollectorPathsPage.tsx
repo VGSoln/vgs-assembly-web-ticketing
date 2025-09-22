@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { Map, Satellite, Filter, Calendar } from 'lucide-react';
+import { Map, Satellite, Filter, Calendar, ExternalLink } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { ModernDatePicker } from '../ui/ModernDatePicker';
 import { collectorOptions } from '@/lib/data';
@@ -355,6 +355,16 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
                 Satellite
               </button>
             </div>
+            
+            {/* Open in Browser Button */}
+            <button
+              onClick={() => window.open(window.location.href, '_blank')}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm"
+              title="Open map in new browser tab"
+            >
+              <ExternalLink className="w-4 h-4" />
+              Open in Browser
+            </button>
           </div>
         </div>
 

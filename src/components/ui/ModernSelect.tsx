@@ -5,6 +5,10 @@ import { ChevronDown, Check } from 'lucide-react';
 interface Option {
   value: string;
   label: string;
+  isGroup?: boolean;
+  group?: string;
+  indented?: boolean;
+  isBold?: boolean;
 }
 
 interface ModernSelectProps {
@@ -98,18 +102,28 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
               <button
                 key={option.value}
                 type="button"
-                onClick={() => handleSelect(option)}
+                onClick={() => !option.isGroup && handleSelect(option)}
+                disabled={option.isGroup}
                 className={`
-                  w-full flex items-center justify-between px-4 py-3 text-left text-sm
+                  w-full flex items-center justify-between text-left text-sm
                   transition-colors duration-150
-                  ${selectedOption?.value === option.value
+                  ${option.isGroup 
+                    ? 'px-4 py-2 font-semibold text-gray-700 bg-gray-50 cursor-default' 
+                    : option.indented 
+                      ? 'px-8 py-3' 
+                      : 'px-4 py-3'
+                  }
+                  ${option.isBold ? 'font-semibold' : ''}
+                  ${!option.isGroup && selectedOption?.value === option.value
                     ? 'bg-blue-50 text-blue-900 font-medium'
-                    : 'text-gray-900 hover:bg-gray-50'
+                    : !option.isGroup 
+                      ? 'text-gray-900 hover:bg-gray-50'
+                      : ''
                   }
                 `}
               >
                 <span className="truncate">{option.label}</span>
-                {selectedOption?.value === option.value && (
+                {!option.isGroup && selectedOption?.value === option.value && (
                   <Check className="h-4 w-4 text-blue-600 ml-2 flex-shrink-0" />
                 )}
               </button>

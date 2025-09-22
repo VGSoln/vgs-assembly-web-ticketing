@@ -30,13 +30,11 @@ interface CustomerFormData {
 
 interface EditCustomerPageProps {
   customerId?: string;
-  onBack?: () => void;
   onSave?: (customerData: CustomerFormData) => void;
 }
 
 export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({ 
   customerId = '0525-07-00372',
-  onBack, 
   onSave 
 }) => {
   const [showReview, setShowReview] = useState(false);
@@ -150,7 +148,7 @@ export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({
     console.log('❌ Closing success modal');
     setShowSuccessModal(false);
     setShowReview(false);
-    onBack?.();
+    window.history.back();
   };
 
   // Helper function to format zone display
@@ -255,7 +253,7 @@ export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button 
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -585,7 +583,7 @@ export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({
           {/* Action Buttons */}
           <div className="flex justify-end gap-4">
             <button
-              onClick={onBack}
+              onClick={() => window.history.back()}
               className="px-6 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
