@@ -162,11 +162,11 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
     );
   }
 
-  // Generate initials for avatar
-  const initials = staff.name.split(' ').map(n => n[0]).join('').toUpperCase();
-  const usernamePrefix = staff.name.split(' ').map(n => n.charAt(0)).join('').toLowerCase();
-  const username = usernamePrefix + staff.id;
-  const usernameElided = usernamePrefix + formatGUID(staff.id);
+  // Format GUID to show elided version (e.g., "4444...4446")
+  const formatGUID = (guid: string) => {
+    if (!guid || guid.length <= 8) return guid;
+    return `${guid.slice(0, 4)}...${guid.slice(-4)}`;
+  };
 
   // Format date helper
   const formatDate = (dateString?: string) => {
@@ -185,11 +185,11 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
     }
   };
 
-  // Format GUID to show elided version (e.g., "4444...4446")
-  const formatGUID = (guid: string) => {
-    if (!guid || guid.length <= 8) return guid;
-    return `${guid.slice(0, 4)}...${guid.slice(-4)}`;
-  };
+  // Generate initials for avatar
+  const initials = staff.name.split(' ').map(n => n[0]).join('').toUpperCase();
+  const usernamePrefix = staff.name.split(' ').map(n => n.charAt(0)).join('').toLowerCase();
+  const username = usernamePrefix + staff.id;
+  const usernameElided = usernamePrefix + formatGUID(staff.id);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
