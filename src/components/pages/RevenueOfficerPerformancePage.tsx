@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Award, Users, UserCheck, UserX, TrendingUp, Trophy, TrendingDown, ChevronUp, ChevronDown, Download, Search } from 'lucide-react';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { ModernSelect } from '../ui/ModernSelect';
@@ -6,6 +6,8 @@ import { StatsCard } from '../ui/StatsCard';
 import { Card } from '../ui/Card';
 import { AnimatedNumber } from '../charts/AnimatedNumber';
 import { DateRange } from '@/types/dashboard';
+import { useAuth } from '@/contexts/AuthContext';
+import { getOfficerPerformance } from '@/lib/api';
 
 interface RevenueOfficerPerformancePageProps {
   selectedDateRange: DateRange;
@@ -36,6 +38,21 @@ interface OfficerData {
   todayStatus: 'Present' | 'Absent';
 }
 
+interface APIResponseItem {
+  'officer-name': string;
+  'expected-customers': number;
+  'paid-customers': number;
+  'performance': number;
+  'expected-revenue': number;
+  'revenue-collected': number;
+  'revenue-performance': number;
+  'work-days': number;
+  'days-present': number;
+  'days-absent': number;
+  'attendance-rate': number;
+  'today-status': string;
+}
+
 export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePageProps> = ({
   selectedDateRange,
   displayDateRange,
@@ -46,22 +63,56 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
   onDateRangeChange,
   onDateRangeApply
 }) => {
+  const { user } = useAuth();
   const [sortField, setSortField] = useState<SortField>('attendanceRate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [officerData, setOfficerData] = useState<OfficerData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const officerData: OfficerData[] = [
-    { name: 'John Doe', expectedCustomers: 650, paidCustomers: 582, performance: 89.5, expectedRevenue: 8600, revenueCollected: 8450, revenuePerformance: 98.2, workDays: 22, daysPresent: 22, daysAbsent: 0, attendanceRate: 100, todayStatus: 'Present' },
-    { name: 'Jane Smith', expectedCustomers: 500, paidCustomers: 456, performance: 91.2, expectedRevenue: 7800, revenueCollected: 7200, revenuePerformance: 92.5, workDays: 22, daysPresent: 22, daysAbsent: 0, attendanceRate: 100, todayStatus: 'Present' },
-    { name: 'Michael Johnson', expectedCustomers: 450, paidCustomers: 389, performance: 86.4, expectedRevenue: 7900, revenueCollected: 6890, revenuePerformance: 87.3, workDays: 22, daysPresent: 14, daysAbsent: 8, attendanceRate: 63.6, todayStatus: 'Absent' },
-    { name: 'Sarah Williams', expectedCustomers: 520, paidCustomers: 468, performance: 90.0, expectedRevenue: 8200, revenueCollected: 7850, revenuePerformance: 95.7, workDays: 22, daysPresent: 22, daysAbsent: 0, attendanceRate: 100, todayStatus: 'Present' },
-    { name: 'Robert Brown', expectedCustomers: 480, paidCustomers: 422, performance: 87.9, expectedRevenue: 7500, revenueCollected: 6950, revenuePerformance: 92.7, workDays: 22, daysPresent: 19, daysAbsent: 3, attendanceRate: 86.4, todayStatus: 'Present' },
-    { name: 'Emily Davis', expectedCustomers: 550, paidCustomers: 495, performance: 90.0, expectedRevenue: 9100, revenueCollected: 8645, revenuePerformance: 95.0, workDays: 22, daysPresent: 20, daysAbsent: 2, attendanceRate: 90.9, todayStatus: 'Present' },
-    { name: 'David Wilson', expectedCustomers: 410, paidCustomers: 361, performance: 88.0, expectedRevenue: 6800, revenueCollected: 6120, revenuePerformance: 90.0, workDays: 22, daysPresent: 21, daysAbsent: 1, attendanceRate: 95.5, todayStatus: 'Present' },
-    { name: 'Lisa Anderson', expectedCustomers: 470, paidCustomers: 418, performance: 88.9, expectedRevenue: 7600, revenueCollected: 7220, revenuePerformance: 95.0, workDays: 22, daysPresent: 18, daysAbsent: 4, attendanceRate: 81.8, todayStatus: 'Present' },
-    { name: 'James Martinez', expectedCustomers: 590, paidCustomers: 525, performance: 89.0, expectedRevenue: 9500, revenueCollected: 8740, revenuePerformance: 92.0, workDays: 22, daysPresent: 22, daysAbsent: 0, attendanceRate: 100, todayStatus: 'Absent' },
-    { name: 'Patricia Garcia', expectedCustomers: 430, paidCustomers: 376, performance: 87.4, expectedRevenue: 7200, revenueCollected: 6480, revenuePerformance: 90.0, workDays: 22, daysPresent: 17, daysAbsent: 5, attendanceRate: 77.3, todayStatus: 'Present' }
-  ];
+  // Fetch officer performance data
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await getOfficerPerformance({
+          'assembly-id': user['assembly-id'],
+          'start-date': selectedDateRange.start,
+          'end-date': selectedDateRange.end,
+        });
+
+        // Map API response to component state
+        const mappedData: OfficerData[] = response.map((item: APIResponseItem) => ({
+          name: item['officer-name'],
+          expectedCustomers: item['expected-customers'],
+          paidCustomers: item['paid-customers'],
+          performance: item['performance'],
+          expectedRevenue: item['expected-revenue'],
+          revenueCollected: item['revenue-collected'],
+          revenuePerformance: item['revenue-performance'],
+          workDays: item['work-days'],
+          daysPresent: item['days-present'],
+          daysAbsent: item['days-absent'],
+          attendanceRate: item['attendance-rate'],
+          todayStatus: item['today-status'] === 'Present' ? 'Present' : 'Absent',
+        }));
+
+        setOfficerData(mappedData);
+      } catch (err) {
+        console.error('Failed to fetch officer performance:', err);
+        setError('Failed to load officer performance data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPerformanceData();
+  }, [user, selectedDateRange]);
 
   const filteredAndSortedData = useMemo(() => {
     // First filter based on search query
@@ -113,11 +164,45 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
     return sorted;
   }, [searchQuery, sortField, sortDirection]);
 
-  // Calculate average collection per officer
-  const averageCollection = useMemo(() => {
+  // Calculate statistics from real data
+  const stats = useMemo(() => {
+    if (officerData.length === 0) {
+      return {
+        totalOfficers: 0,
+        presentToday: 0,
+        absentToday: 0,
+        averageCollection: 0,
+        averageExpected: 0,
+        topPerformer: null,
+        lowestPerformer: null,
+      };
+    }
+
     const totalRevenue = officerData.reduce((sum, officer) => sum + officer.revenueCollected, 0);
-    return Math.round(totalRevenue / officerData.length);
-  }, []);
+    const totalExpected = officerData.reduce((sum, officer) => sum + officer.expectedRevenue, 0);
+    const presentToday = officerData.filter(o => o.todayStatus === 'Present').length;
+    const absentToday = officerData.filter(o => o.todayStatus === 'Absent').length;
+
+    // Sort by performance to find top and lowest
+    const sortedByPerformance = [...officerData].sort((a, b) => b.performance - a.performance);
+
+    return {
+      totalOfficers: officerData.length,
+      presentToday,
+      absentToday,
+      averageCollection: Math.round(totalRevenue / officerData.length),
+      averageExpected: Math.round(totalExpected / officerData.length),
+      topPerformer: sortedByPerformance[0],
+      lowestPerformer: sortedByPerformance[sortedByPerformance.length - 1],
+    };
+  }, [officerData]);
+
+  // Get top 3 performers for the card
+  const topPerformers = useMemo(() => {
+    return [...officerData]
+      .sort((a, b) => b.performance - a.performance)
+      .slice(0, 3);
+  }, [officerData]);
 
   const handleSort = (field: SortField) => {
     if (field === sortField) {
@@ -258,69 +343,73 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <StatsCard
               title="Total Officers"
-              value={10}
+              value={stats.totalOfficers}
               percentage="100%"
               subtitle="Active Revenue Officers"
               gradient="from-blue-500 to-cyan-600"
               icon={Users}
               animated
             />
-            
+
             <StatsCard
               title="Present Today"
-              value={8}
-              percentage="80%"
+              value={stats.presentToday}
+              percentage={stats.totalOfficers > 0 ? `${((stats.presentToday / stats.totalOfficers) * 100).toFixed(1)}%` : '0%'}
               subtitle="Attendance Rate"
               gradient="from-green-500 to-emerald-600"
               icon={UserCheck}
               animated
             />
-            
+
             <StatsCard
               title="Absent Today"
-              value={2}
-              percentage="20%"
+              value={stats.absentToday}
+              percentage={stats.totalOfficers > 0 ? `${((stats.absentToday / stats.totalOfficers) * 100).toFixed(1)}%` : '0%'}
               subtitle="Absence Rate"
               gradient="from-red-500 to-rose-600"
               icon={UserX}
               animated
             />
           </div>
-          
+
           {/* Second row - Performance Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <StatsCard
               title="Average Collection"
-              value={averageCollection}
-              percentage={`${((averageCollection / (officerData.reduce((sum, o) => sum + o.expectedRevenue, 0) / officerData.length)) * 100).toFixed(1)}%`}
+              value={stats.averageCollection}
+              percentage={stats.averageExpected > 0 ? `${((stats.averageCollection / stats.averageExpected) * 100).toFixed(1)}%` : '0%'}
               subtitle="Per Officer (GHS)"
               gradient="from-purple-500 to-indigo-600"
               icon={TrendingUp}
               animated
               isCurrency
             />
-            
+
             <StatsCard
               title="Top Performer"
               value={
-                <>
-                  Jane Smith <span className="text-lg font-normal">(91.2%)</span>
-                </>
+                stats.topPerformer ? (
+                  <>
+                    {stats.topPerformer.name} <span className="text-lg font-normal">({stats.topPerformer.performance?.toFixed(1) || '0.0'}%)</span>
+                  </>
+                ) : 'N/A'
               }
-              subtitle="456 of 500 customers paid"
+              subtitle={stats.topPerformer ? `${stats.topPerformer.paidCustomers || 0} of ${stats.topPerformer.expectedCustomers || 0} customers paid` : 'No data'}
               gradient="from-orange-500 to-amber-600"
               icon={Trophy}
               animated={false}
             />
-            
+
             <StatsCard
               title="Lowest Performer"
               value={
-                <>
-                  Michael Johnson <span className="text-lg font-normal">(86.4%)</span>
-                </>
+                stats.lowestPerformer ? (
+                  <>
+                    {stats.lowestPerformer.name} <span className="text-lg font-normal">({stats.lowestPerformer.performance?.toFixed(1) || '0.0'}%)</span>
+                  </>
+                ) : 'N/A'
               }
-              subtitle="389 of 450 customers paid"
+              subtitle={stats.lowestPerformer ? `${stats.lowestPerformer.paidCustomers || 0} of ${stats.lowestPerformer.expectedCustomers || 0} customers paid` : 'No data'}
               gradient="from-gray-500 to-slate-600"
               icon={TrendingDown}
               animated={false}
@@ -330,7 +419,7 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
         
         {/* Right side - Top Performers Card */}
         <div className="lg:col-span-1">
-          <Card 
+          <Card
             title={
               <>
                 Top Performers{' '}
@@ -340,33 +429,31 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
             className="h-full"
           >
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="flex items-center space-x-2">
-                  <Award className="h-5 w-5 text-yellow-600" />
-                  <span className="font-medium text-gray-900">
-                    Jane Smith <span className="text-sm font-normal">(456)</span>
-                  </span>
-                </div>
-                <span className="font-semibold text-green-600">91.2%</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-700">
-                    2. John Doe <span className="text-sm font-normal">(582)</span>
-                  </span>
-                </div>
-                <span className="font-semibold text-yellow-600">89.5%</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <span className="font-medium text-gray-700">
-                    3. Michael Johnson <span className="text-sm font-normal">(389)</span>
-                  </span>
-                </div>
-                <span className="font-semibold text-yellow-600">86.4%</span>
-              </div>
+              {topPerformers.length === 0 ? (
+                <div className="text-center text-gray-500 py-4">No data available</div>
+              ) : (
+                topPerformers.map((officer, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center justify-between p-2 rounded-lg ${
+                      index === 0
+                        ? 'bg-yellow-50 border border-yellow-200'
+                        : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      {index === 0 && <Award className="h-5 w-5 text-yellow-600" />}
+                      <span className={`font-medium ${index === 0 ? 'text-gray-900' : 'text-gray-700'}`}>
+                        {index > 0 && `${index + 1}. `}{officer.name}{' '}
+                        <span className="text-sm font-normal">({officer.paidCustomers})</span>
+                      </span>
+                    </div>
+                    <span className={`font-semibold ${index === 0 ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {officer.performance.toFixed(1)}%
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
@@ -414,12 +501,26 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
           </div>
         )}
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            <p className="font-medium">Error</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 border-b border-gray-700">
+                <tr>
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center space-x-1">
@@ -429,8 +530,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('expectedCustomers')}
                 >
                   <div className="flex items-center space-x-1">
@@ -440,8 +541,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('paidCustomers')}
                 >
                   <div className="flex items-center space-x-1">
@@ -451,8 +552,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-2 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('performance')}
                 >
                   <div className="flex items-center space-x-1">
@@ -462,8 +563,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[110px]"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600 min-w-[110px]"
                   onClick={() => handleSort('expectedRevenue')}
                 >
                   <div className="flex items-center space-x-1">
@@ -473,8 +574,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 min-w-[110px]"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600 min-w-[110px]"
                   onClick={() => handleSort('revenueCollected')}
                 >
                   <div className="flex items-center space-x-1">
@@ -484,8 +585,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-2 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('revenuePerformance')}
                 >
                   <div className="flex items-center space-x-1">
@@ -495,8 +596,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-blue-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-bold text-blue-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('workDays')}
                 >
                   <div className="flex items-center space-x-1">
@@ -506,8 +607,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-green-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-bold text-green-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('daysPresent')}
                 >
                   <div className="flex items-center space-x-1">
@@ -517,8 +618,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-bold text-red-700 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-bold text-red-300 uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('daysAbsent')}
                 >
                   <div className="flex items-center space-x-1">
@@ -528,8 +629,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('attendanceRate')}
                 >
                   <div className="flex items-center space-x-1">
@@ -539,8 +640,8 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                     )}
                   </div>
                 </th>
-                <th 
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                <th
+                  className="px-4 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-slate-600"
                   onClick={() => handleSort('todayStatus')}
                 >
                   <div className="flex items-center space-x-1">
@@ -596,6 +697,7 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
             </tbody>
           </table>
         </div>
+        )}
       </Card>
     </div>
   );

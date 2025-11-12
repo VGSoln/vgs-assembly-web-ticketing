@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
@@ -8,20 +8,20 @@ import { ChequeModal } from '../ui/ChequeModal';
 import { VoidPaymentModal } from '../ui/VoidPaymentModal';
 import { VoidDetailsModal } from '../ui/VoidDetailsModal';
 import { SuccessModal } from '../ui/SuccessModal';
-import { 
-  businessLevelOptions, 
-  zoneOptions, 
-  collectorOptions 
+import { useAuth } from '@/contexts/AuthContext';
+import { getTransactions } from '@/lib/api';
+import {
+  businessLevelOptions,
+  zoneOptions,
+  collectorOptions
 } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
-import { 
-  copyToClipboard, 
-  printData, 
-  exportToExcel, 
-  exportToCSV, 
-  exportToPDF, 
-  formatDataForExport, 
-  exportHeaders 
+import {
+  copyToClipboard,
+  printData,
+  exportToExcel,
+  exportToCSV,
+  exportToPDF
 } from '@/lib/exportUtils';
 
 // Ticket payments data - this will be different from regular payments
@@ -193,6 +193,30 @@ interface TicketPaymentsPageProps {
   onCustomerClick?: (customerId: string) => void;
 }
 
+type Transaction = {
+  id: string;
+  'transaction-id': string;
+  'ticket-type': string;
+  'location-name': string;
+  'customer-phone': string;
+  'customer-type': string;
+  identifier: string;
+  'transaction-date': string;
+  amount: number;
+  'payment-type': string;
+  'user-name': string;
+  'zone-name': string;
+  'created-at': string;
+  status: string;
+  'gps-latitude'?: number;
+  'gps-longitude'?: number;
+  'receipt-photo-url'?: string;
+  'cheque-number'?: string;
+  'voided-at'?: string;
+  'voided-by'?: string;
+  'void-reason'?: string;
+};
+
 type SortConfig = {
   key: string;
   direction: 'asc' | 'desc';
@@ -230,6 +254,38 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  // API state
+  const { user: currentUser } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch transactions from backend
+  useEffect(() => {
+    if (currentUser) {
+      const fetchTransactions = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await getTransactions({
+            'assembly-id': currentUser['assembly-id'],
+            'start-date': selectedDateRange.start,
+            'end-date': selectedDateRange.end,
+          });
+          setTransactions(data);
+        } catch (err) {
+          console.error('Failed to fetch transactions:', err);
+          setError(err instanceof Error ? err.message : 'Failed to fetch transactions');
+          // Don't set transactions on error - leave empty to show error state
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchTransactions();
+    }
+  }, [currentUser, selectedDateRange]);
+
   const entriesOptions = [
     { value: '10', label: '10' },
     { value: '25', label: '25' },
@@ -265,93 +321,163 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
     setCurrentPage(1);
   };
 
+  // Export headers for ticket payments
+  const ticketPaymentsExportHeaders = [
+    'Ticket ID',
+    'Ticket Type',
+    'Location Name',
+    'Customer Phone',
+    'Customer Type',
+    'Identifier',
+    'Community',
+    'Zone',
+    'Date',
+    'Amount',
+    'Payment Type',
+    'Revenue Officer',
+    'Created Date',
+    'Status'
+  ];
+
+  // Transform API data to export format
+  const transformForExport = (transactions: Transaction[]) => {
+    return transactions.map(txn => ({
+      'Ticket ID': txn['transaction-id'],
+      'Ticket Type': txn['ticket-type'],
+      'Location Name': txn['location-name'],
+      'Customer Phone': txn['customer-phone'],
+      'Customer Type': txn['customer-type'],
+      'Identifier': txn.identifier || '',
+      'Community': '', // Community mapping needs to be added
+      'Zone': txn['zone-name'] || '',
+      'Date': new Date(txn['transaction-date']).toLocaleString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }),
+      'Amount': txn.amount.toFixed(2),
+      'Payment Type': txn['payment-type'],
+      'Revenue Officer': txn['user-name'],
+      'Created Date': new Date(txn['created-at']).toLocaleString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      }),
+      'Status': txn.status
+    }));
+  };
+
   // Export functions
   const handleExport = async (type: string) => {
-    const exportData = formatDataForExport(filteredAndSortedData);
+    const exportData = transformForExport(filteredAndSortedData);
     setExportStatus(`Exporting ${type}...`);
-    
+
     try {
       switch (type) {
         case 'copy':
-          const success = await copyToClipboard(exportData, exportHeaders);
+          const success = await copyToClipboard(exportData, ticketPaymentsExportHeaders);
           setExportStatus(success ? 'Copied to clipboard!' : 'Failed to copy');
           break;
         case 'print':
-          printData(exportData, exportHeaders, 'Ticket Payments Report');
+          printData(exportData, ticketPaymentsExportHeaders, 'Ticket Payments Report');
           setExportStatus('Print dialog opened');
           break;
         case 'excel':
-          exportToExcel(exportData, exportHeaders, 'ticket-payments');
+          exportToExcel(exportData, ticketPaymentsExportHeaders, 'ticket-payments');
           setExportStatus('Excel file downloaded');
           break;
         case 'csv':
-          exportToCSV(exportData, exportHeaders, 'ticket-payments');
+          exportToCSV(exportData, ticketPaymentsExportHeaders, 'ticket-payments');
           setExportStatus('CSV file downloaded');
           break;
         case 'pdf':
-          await exportToPDF(exportData, exportHeaders, 'ticket-payments');
+          await exportToPDF(exportData, ticketPaymentsExportHeaders, 'ticket-payments');
           setExportStatus('PDF export opened');
           break;
       }
     } catch (error) {
       setExportStatus('Export failed');
     }
-    
+
     setTimeout(() => setExportStatus(''), 3000);
   };
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = ticketPaymentsData.filter(payment => {
+    // Use API data if available, otherwise fall back to mock data
+    const dataSource = transactions.length > 0 ? transactions : ticketPaymentsData.map(p => ({
+      id: p.id.toString(),
+      'transaction-id': p.ticketId,
+      'ticket-type': p.ticketType,
+      'location-name': p.locationName,
+      'customer-phone': p.customerPhone,
+      'customer-type': p.customerCategory,
+      identifier: p.identifier,
+      'transaction-date': p.date,
+      amount: p.amount,
+      'payment-type': p.paymentType,
+      'user-name': p.revenueOfficer,
+      'zone-name': p.zone,
+      'created-at': p.createdDate,
+      status: p.status,
+      'gps-latitude': p.gps ? 5.6037 : undefined,
+      'gps-longitude': p.gps ? -0.1870 : undefined,
+      community: p.community
+    }));
+
+    let filtered = dataSource.filter(payment => {
       // Date range filter
       if (selectedDateRange.start && selectedDateRange.end) {
-        // Parse payment date from "20 Aug 2025 06:47 PM" format
-        const paymentDateStr = payment.date.split(' ').slice(0, 3).join(' '); // "20 Aug 2025"
-        const paymentDate = new Date(paymentDateStr);
+        const paymentDate = new Date(payment['transaction-date']);
         const startDate = new Date(selectedDateRange.start);
         const endDate = new Date(selectedDateRange.end);
-        
+
         if (isNaN(paymentDate.getTime()) || paymentDate < startDate || paymentDate > endDate) {
           return false;
         }
       }
-      
+
       // Business Level filter (ticket type)
-      if (selectedBusinessLevel && payment.ticketType !== selectedBusinessLevel) {
+      if (selectedBusinessLevel && payment['ticket-type'] !== selectedBusinessLevel) {
         return false;
       }
-      
+
       // Zone filter
-      if (selectedZone && payment.zone !== selectedZone) {
+      if (selectedZone && payment['zone-name'] !== selectedZone) {
         return false;
       }
-      
+
       // Collector filter (revenue officer)
-      if (selectedCollector && payment.revenueOfficer !== selectedCollector) {
+      if (selectedCollector && payment['user-name'] !== selectedCollector) {
         return false;
       }
-      
+
       // Search filter
       if (searchTerm.trim()) {
         const search = searchTerm.toLowerCase();
         return (
           payment.id.toString().includes(searchTerm) ||
-          payment.ticketId.toLowerCase().includes(search) ||
-          payment.ticketType.toLowerCase().includes(search) ||
-          payment.locationName.toLowerCase().includes(search) ||
-          payment.customerPhone.includes(searchTerm) ||
-          payment.customerCategory.toLowerCase().includes(search) ||
-          payment.identifier.toLowerCase().includes(search) ||
-          payment.community?.toLowerCase().includes(search) ||
-          payment.date.toLowerCase().includes(search) ||
+          payment['transaction-id'].toLowerCase().includes(search) ||
+          payment['ticket-type'].toLowerCase().includes(search) ||
+          payment['location-name'].toLowerCase().includes(search) ||
+          payment['customer-phone'].includes(searchTerm) ||
+          payment['customer-type'].toLowerCase().includes(search) ||
+          payment.identifier?.toLowerCase().includes(search) ||
+          payment['transaction-date'].toLowerCase().includes(search) ||
           payment.amount.toString().includes(searchTerm) ||
-          (payment.paymentType && payment.paymentType.toLowerCase().includes(search)) ||
-          payment.revenueOfficer.toLowerCase().includes(search) ||
-          payment.zone.toLowerCase().includes(search) ||
-          payment.createdDate.toLowerCase().includes(search)
+          (payment['payment-type'] && payment['payment-type'].toLowerCase().includes(search)) ||
+          payment['user-name'].toLowerCase().includes(search) ||
+          payment['zone-name']?.toLowerCase().includes(search) ||
+          payment['created-at'].toLowerCase().includes(search)
         );
       }
-      
+
       return true;
     });
 
@@ -359,7 +485,7 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
       filtered.sort((a, b) => {
         const aValue = a[sortConfig.key as keyof typeof a];
         const bValue = b[sortConfig.key as keyof typeof b];
-        
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -371,7 +497,7 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
     }
 
     return filtered;
-  }, [selectedDateRange, selectedBusinessLevel, selectedZone, selectedCollector, searchTerm, sortConfig]);
+  }, [transactions, selectedDateRange, selectedBusinessLevel, selectedZone, selectedCollector, searchTerm, sortConfig]);
 
   const totalEntries = filteredAndSortedData.length;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
@@ -384,6 +510,37 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
 
   return (
     <div className="space-y-3">
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-3">
+          <div className="flex items-center gap-2 text-blue-700">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700"></div>
+            <span className="text-sm font-medium">Loading transactions from backend...</span>
+          </div>
+        </div>
+      )}
+
+      {error && !loading && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3">
+          <div className="flex items-center gap-2 text-yellow-800">
+            <AlertCircle className="w-5 h-5" />
+            <div>
+              <p className="text-sm font-medium">API Connection Issue</p>
+              <p className="text-xs">Using mock data. {error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!loading && transactions.length > 0 && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-3">
+          <div className="flex items-center gap-2 text-green-700">
+            <Check className="w-5 h-5" />
+            <span className="text-sm font-medium">Connected to backend - Showing {transactions.length} transactions</span>
+          </div>
+        </div>
+      )}
+
       {/* Filters Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-3">
         <DateRangePicker
@@ -529,7 +686,7 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
             <thead className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800">
               <tr>
                 {columns.map((column) => (
-                  <th 
+                  <th
                     key={column.key}
                     style={{ width: column.width }}
                     className={`px-1 py-3 text-left text-xs font-bold text-white border-r border-slate-600 last:border-r-0 relative ${
@@ -561,171 +718,182 @@ export const TicketPaymentsPage: React.FC<TicketPaymentsPageProps> = ({
               </tr>
             </thead>
           <tbody className="bg-white">
-            {currentData.map((payment, index) => (
-              <tr key={payment.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
-                index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-              }`}>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
-                  <div className="text-xs font-mono">
-                    {payment.ticketId}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
-                  <span className={`text-xs font-medium ${
-                    payment.ticketType === 'Market' ? 'text-green-600' : 'text-blue-600'
-                  }`}>
-                    {payment.ticketType}
-                  </span>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
-                  <div className="text-xs">
-                    {payment.locationName}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
-                  <div className="font-mono text-xs">
-                    {payment.customerPhone}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100 font-medium">
-                  <div className="text-xs">
-                    {payment.customerCategory}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
-                  <div className="text-xs">
-                    {payment.identifier}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100 text-center">
-                  {payment.community || '-'}
-                </td>
-                <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
-                  <span className="text-xs font-semibold text-slate-800">
-                    {payment.zone}
-                  </span>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
-                  <div className="text-xs">
-                    <span className="font-semibold">{payment.date.split(' ').slice(0, 3).join(' ')}</span>
-                    <span className="font-normal"> {payment.date.split(' ').slice(3).join(' ')}</span>
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs border-r border-gray-100 text-right font-semibold">
-                  {payment.amount.toFixed(2)}
-                </td>
-                <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
-                  <span className={`text-xs font-medium ${
-                    payment.paymentType === 'Cash' ? 'text-green-600' : 
-                    payment.paymentType === 'e-Payment' ? 'text-blue-600' : 
-                    'text-purple-600'
-                  }`}>
-                    {payment.paymentType}
-                  </span>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
-                  <div className="text-xs">
-                    {payment.revenueOfficer}
-                  </div>
-                </td>
-                <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
-                  <div className="text-xs">
-                    <span className="font-semibold">{payment.createdDate.split(' ').slice(0, 3).join(' ')}</span>
-                    <span className="font-normal"> {payment.createdDate.split(' ').slice(3).join(' ')}</span>
-                  </div>
-                </td>
-                <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
-                  <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                    payment.status === 'Paid' 
-                      ? 'bg-green-100 text-green-800' 
-                      : payment.status === 'Voided'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {payment.status}
-                  </span>
-                </td>
-                <td className="px-1 py-2 text-xs text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    {payment.gps && (
-                      <button 
-                        onClick={() => {
-                          setLocationModalData({
-                            customerName: payment.locationName,
-                            customerNumber: payment.customerPhone,
-                            phoneNumber: payment.identifier,
-                            customerType: payment.customerCategory,
-                            transactionId: payment.ticketId,
-                            amount: payment.amount,
-                            date: payment.createdDate,
-                            latitude: 5.6037 + (Math.random() - 0.5) * 0.02,
-                            longitude: -0.1870 + (Math.random() - 0.5) * 0.02
-                          });
-                          setShowLocationModal(true);
-                        }}
-                        className="p-1 rounded-full transition-all duration-200 bg-blue-500 hover:bg-blue-600"
-                        title="View GPS Location"
-                      >
-                        <MapPin className="w-4 h-4 text-white" />
-                      </button>
-                    )}
-                    {payment.status === 'Voided' ? (
-                      <button 
-                        onClick={() => {
-                          // Show void details for already voided transactions
-                          setVoidDetailsData({
-                            transactionId: payment.ticketId,
-                            originalAmount: payment.amount,
-                            voidedBy: 'Admin User',
-                            voidedDate: 'Aug 25, 2025 10:30 AM',
-                            voidReason: 'Duplicate payment entry',
-                            customerName: payment.locationName,
-                            customerNumber: payment.customerPhone,
-                            phoneNumber: payment.identifier,
-                            originalDate: payment.date
-                          });
-                          setShowVoidDetailsModal(true);
-                        }}
-                        className="group relative"
-                        title="View Void Details"
-                      >
-                        <div className="relative">
-                          <div className="w-5 h-5 rounded-full bg-red-100"></div>
-                          <Ban className="w-5 h-5 absolute inset-0 text-red-600" strokeWidth={1.5} />
-                        </div>
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => {
-                          // Show void modal for active transactions
-                          setVoidModalData({
-                            ticketId: payment.ticketId,
-                            ticketType: payment.ticketType,
-                            locationName: payment.locationName,
-                            customerPhone: payment.customerPhone,
-                            customerCategory: payment.customerCategory,
-                            identifier: payment.identifier,
-                            amount: payment.amount,
-                            paymentType: payment.paymentType,
-                            revenueOfficer: payment.revenueOfficer,
-                            date: payment.date,
-                            createdDate: payment.createdDate
-                          });
-                          setShowVoidModal(true);
-                        }}
-                        className="group relative"
-                        title="Void Transaction"
-                      >
-                        <div className="relative">
-                          <div className="w-5 h-5 rounded-full bg-gray-100"></div>
-                          <Ban className="w-5 h-5 absolute inset-0 text-gray-300 opacity-50" strokeWidth={1.5} />
-                        </div>
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {currentData.map((payment, index) => {
+              // Format dates for display
+              const transactionDate = new Date(payment['transaction-date']);
+              const createdDate = new Date(payment['created-at']);
+              const formatDisplayDate = (date: Date) => {
+                const dateStr = date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+                const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                return { date: dateStr, time: timeStr };
+              };
+              const txnDisplay = formatDisplayDate(transactionDate);
+              const createdDisplay = formatDisplayDate(createdDate);
+
+              return (
+                <tr key={payment.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
+                  index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                }`}>
+                  <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
+                    <div className="text-xs font-mono">
+                      {payment['transaction-id']}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
+                    <span className={`text-xs font-medium ${
+                      payment['ticket-type'] === 'Market' ? 'text-green-600' : 'text-blue-600'
+                    }`}>
+                      {payment['ticket-type']}
+                    </span>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="text-xs">
+                      {payment['location-name']}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="font-mono text-xs">
+                      {payment['customer-phone']}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100 font-medium">
+                    <div className="text-xs">
+                      {payment['customer-type']}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="text-xs">
+                      {payment.identifier || '-'}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100 text-center">
+                    {(payment as any).community || '-'}
+                  </td>
+                  <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
+                    <span className="text-xs font-semibold text-slate-800">
+                      {payment['zone-name'] || '-'}
+                    </span>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
+                    <div className="text-xs">
+                      <span className="font-semibold">{txnDisplay.date}</span>
+                      <span className="font-normal"> {txnDisplay.time}</span>
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs border-r border-gray-100 text-right font-semibold">
+                    {payment.amount.toFixed(2)}
+                  </td>
+                  <td className="px-1 py-1 text-xs border-r border-gray-100 text-center">
+                    <span className={`text-xs font-medium ${
+                      payment['payment-type'] === 'Cash' ? 'text-green-600' :
+                      payment['payment-type'] === 'e-Payment' ? 'text-blue-600' :
+                      'text-purple-600'
+                    }`}>
+                      {payment['payment-type']}
+                    </span>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
+                    <div className="text-xs">
+                      {payment['user-name']}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
+                    <div className="text-xs">
+                      <span className="font-semibold">{createdDisplay.date}</span>
+                      <span className="font-normal"> {createdDisplay.time}</span>
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                      payment.status === 'Paid'
+                        ? 'bg-green-100 text-green-800'
+                        : payment.status === 'Voided'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    }`}>
+                      {payment.status}
+                    </span>
+                  </td>
+                  <td className="px-1 py-2 text-xs text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {(payment['gps-latitude'] && payment['gps-longitude']) && (
+                        <button
+                          onClick={() => {
+                            setLocationModalData({
+                              customerName: payment['location-name'],
+                              customerNumber: payment['customer-phone'],
+                              phoneNumber: payment.identifier || '',
+                              customerType: payment['customer-type'],
+                              transactionId: payment['transaction-id'],
+                              amount: payment.amount,
+                              date: createdDisplay.date + ' ' + createdDisplay.time,
+                              latitude: payment['gps-latitude'],
+                              longitude: payment['gps-longitude']
+                            });
+                            setShowLocationModal(true);
+                          }}
+                          className="p-1 rounded-full transition-all duration-200 bg-blue-500 hover:bg-blue-600"
+                          title="View GPS Location"
+                        >
+                          <MapPin className="w-4 h-4 text-white" />
+                        </button>
+                      )}
+                      {payment.status === 'Voided' ? (
+                        <button
+                          onClick={() => {
+                            setVoidDetailsData({
+                              transactionId: payment['transaction-id'],
+                              originalAmount: payment.amount,
+                              voidedBy: payment['voided-by'] || 'Admin User',
+                              voidedDate: payment['voided-at'] ? new Date(payment['voided-at']).toLocaleString('en-US') : 'N/A',
+                              voidReason: payment['void-reason'] || 'No reason provided',
+                              customerName: payment['location-name'],
+                              customerNumber: payment['customer-phone'],
+                              phoneNumber: payment.identifier || '',
+                              originalDate: txnDisplay.date + ' ' + txnDisplay.time
+                            });
+                            setShowVoidDetailsModal(true);
+                          }}
+                          className="group relative"
+                          title="View Void Details"
+                        >
+                          <div className="relative">
+                            <div className="w-5 h-5 rounded-full bg-red-100"></div>
+                            <Ban className="w-5 h-5 absolute inset-0 text-red-600" strokeWidth={1.5} />
+                          </div>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setVoidModalData({
+                              ticketId: payment['transaction-id'],
+                              ticketType: payment['ticket-type'],
+                              locationName: payment['location-name'],
+                              customerPhone: payment['customer-phone'],
+                              customerCategory: payment['customer-type'],
+                              identifier: payment.identifier || '',
+                              amount: payment.amount,
+                              paymentType: payment['payment-type'],
+                              revenueOfficer: payment['user-name'],
+                              date: txnDisplay.date + ' ' + txnDisplay.time,
+                              createdDate: createdDisplay.date + ' ' + createdDisplay.time
+                            });
+                            setShowVoidModal(true);
+                          }}
+                          className="group relative"
+                          title="Void Transaction"
+                        >
+                          <div className="relative">
+                            <div className="w-5 h-5 rounded-full bg-gray-100"></div>
+                            <Ban className="w-5 h-5 absolute inset-0 text-gray-300 opacity-50" strokeWidth={1.5} />
+                          </div>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
           </table>
           </div>
