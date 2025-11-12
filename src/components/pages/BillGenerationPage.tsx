@@ -21,7 +21,7 @@ export const BillGenerationPage: React.FC<BillGenerationPageProps> = () => {
 
   const businessCenterOptions = [
     { value: '', label: 'Select Business Center' },
-    { value: 'kweiman-danfa', label: 'Kweiman-Danfa Water System' },
+    { value: 'kweiman-danfa', label: 'Kweiman-Danfa Business Center' },
     { value: 'center2', label: 'Business Center 2' },
     { value: 'center3', label: 'Business Center 3' },
     { value: 'center4', label: 'Business Center 4' },
@@ -298,8 +298,8 @@ export const BillGenerationPage: React.FC<BillGenerationPageProps> = () => {
                 {/* Sample Bill Content */}
                 <div className="p-8">
                   <div className="text-center mb-6">
-                    <h1 className="text-xl font-bold">Community Water & Sanitation Agency</h1>
-                    <p className="text-sm">Kweiman-Danfa Water System</p>
+                    <h1 className="text-xl font-bold">Municipal Assembly</h1>
+                    <p className="text-sm">Kweiman-Danfa Business Center</p>
                     <p className="text-sm">GM-234-1979, Kweiman, Greater Accra</p>
                     <p className="text-sm">0202199626</p>
                     <p className="text-sm">kweimandanfa@gmail.com</p>
@@ -337,7 +337,7 @@ export const BillGenerationPage: React.FC<BillGenerationPageProps> = () => {
                   </div>
 
                   <div className="mb-4">
-                    <h3 className="font-bold mb-2">Meter Reading and Water Consumption</h3>
+                    <h3 className="font-bold mb-2">Ticket Collection Information</h3>
                     <table className="w-full border">
                       <thead>
                         <tr className="bg-gray-100">

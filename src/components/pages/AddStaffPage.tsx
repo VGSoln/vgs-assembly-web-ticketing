@@ -134,7 +134,7 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
   };
 
   const positionOptions = [
-    { value: 'Water System Manager', label: 'Water System Manager' },
+    { value: 'Revenue Operations Manager', label: 'Revenue Operations Manager' },
     { value: 'Information Technology Specialist', label: 'Information Technology Specialist' },
     { value: 'Data Analyst', label: 'Data Analyst' },
     { value: 'System Admin', label: 'System Admin' },
@@ -149,7 +149,7 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
   const businessLevelOptions = [
     { value: 'Head Office', label: 'Head Office' },
     { value: 'Regional Office', label: 'Regional Office' },
-    { value: 'Water System Office', label: 'Water System Office' }
+    { value: 'Ticketing Operations Office', label: 'Ticketing Operations Office' }
   ];
 
   const roleOptions = [

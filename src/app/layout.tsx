@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
-  title: 'AEDA Dashboard',
-  description: 'Atiwa East District Assembly Management Dashboard',
+  title: 'VGS Assembly Ticketing',
+  description: 'VGS Municipal Assembly Web Ticketing System',
 }
 
 export default function RootLayout({
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="h-screen overflow-hidden">{children}</body>
+      <body className="h-screen overflow-hidden">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }

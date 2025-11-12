@@ -3,12 +3,28 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Map, Satellite, Filter, Calendar, ExternalLink } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { ModernDatePicker } from '../ui/ModernDatePicker';
-import { collectorOptions } from '@/lib/data';
+import { useAuth } from '@/contexts/AuthContext';
+import { getOfficerPaths, getUsers, getZones } from '@/lib/api';
 
 interface CollectorPathsPageProps {}
 
+interface PathPoint {
+  'gps-latitude': number;
+  'gps-longitude': number;
+  timestamp: string;
+}
+
+interface OfficerPath {
+  'user-id': string;
+  'user-name': string;
+  date: string;
+  path: PathPoint[];
+  'transaction-count': number;
+  'total-distance-km': number;
+}
+
 export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
-  const [selectedBusinessCenter, setSelectedBusinessCenter] = useState('');
+  const { user } = useAuth();
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedCollector, setSelectedCollector] = useState('');
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -17,9 +33,61 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
   });
   const [mapType, setMapType] = useState<'street' | 'satellite'>('street');
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pathData, setPathData] = useState<OfficerPath[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [zones, setZones] = useState<any[]>([]);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
+  // Fetch users and zones on mount
+  useEffect(() => {
+    if (!user?.['assembly-id']) return;
+
+    const fetchFilters = async () => {
+      try {
+        const [usersData, zonesData] = await Promise.all([
+          getUsers({ 'assembly-id': user['assembly-id'], role: 'officer' }),
+          getZones({ 'assembly-id': user['assembly-id'], 'active-only': true })
+        ]);
+        setUsers(usersData);
+        setZones(zonesData);
+      } catch (err) {
+        console.error('Error fetching filters:', err);
+      }
+    };
+
+    fetchFilters();
+  }, [user]);
+
+  // Fetch path data when filters change
+  useEffect(() => {
+    if (!user?.['assembly-id'] || !selectedCollector || !selectedDate) return;
+
+    const fetchPaths = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getOfficerPaths({
+          'assembly-id': user['assembly-id'],
+          'user-id': selectedCollector,
+          date: selectedDate
+        });
+        setPathData(Array.isArray(data) ? data : [data]);
+      } catch (err) {
+        console.error('Error fetching paths:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load path data');
+        setPathData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPaths();
+  }, [user, selectedCollector, selectedDate]);
+
+  // Initialize map
   useEffect(() => {
     let mounted = true;
 
@@ -29,7 +97,7 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
       try {
         // Import Leaflet
         const L = (await import('leaflet')).default;
-        
+
         // Fix default icon paths
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
@@ -58,6 +126,49 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
           maxZoom: 20,
         }).addTo(map);
 
+        mapInstanceRef.current = { map, tileLayer, layers: [] };
+
+        if (mounted) {
+          setMapLoaded(true);
+        }
+      } catch (error) {
+        console.error('Error loading map:', error);
+      }
+    };
+
+    // Load map after component mounts
+    const timer = setTimeout(() => {
+      loadMap();
+    }, 100);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+      if (mapInstanceRef.current?.map) {
+        mapInstanceRef.current.map.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [mapType]);
+
+  // Update map with path data
+  useEffect(() => {
+    if (!mapInstanceRef.current?.map || !pathData.length) return;
+
+    const updateMapPaths = async () => {
+      try {
+        const L = (await import('leaflet')).default;
+        const { map, layers } = mapInstanceRef.current;
+
+        // Clear existing path layers
+        if (layers && layers.length > 0) {
+          layers.forEach((layer: any) => map.removeLayer(layer));
+          mapInstanceRef.current.layers = [];
+        }
+
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+        const newLayers: any[] = [];
+
         // Custom marker creation function
         const createCustomIcon = (color: string, label: string) => {
           return L.divIcon({
@@ -82,101 +193,62 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
           });
         };
 
-        // Collector paths data - multiple paths showing different routes
-        const collectorPaths = [
-          {
-            id: 1,
-            name: 'Collector John Doe',
-            color: '#3b82f6',
-            path: [
-              [5.6037, -0.1870],
-              [5.6057, -0.1850],
-              [5.6077, -0.1830],
-              [5.6097, -0.1810],
-              [5.6117, -0.1820],
-              [5.6137, -0.1840],
-              [5.6157, -0.1820],
-            ],
-            stops: 12,
-            distance: '5.2 km'
-          },
-          {
-            id: 2,
-            name: 'Collector Jane Smith',
-            color: '#10b981',
-            path: [
-              [5.5987, -0.2000],
-              [5.5997, -0.1980],
-              [5.6007, -0.1960],
-              [5.6017, -0.1940],
-              [5.6027, -0.1920],
-              [5.6037, -0.1900],
-              [5.6047, -0.1880],
-            ],
-            stops: 15,
-            distance: '4.8 km'
-          },
-          {
-            id: 3,
-            name: 'Collector Bob Johnson',
-            color: '#f59e0b',
-            path: [
-              [5.5937, -0.1950],
-              [5.5947, -0.1930],
-              [5.5957, -0.1910],
-              [5.5967, -0.1890],
-              [5.5977, -0.1870],
-              [5.5987, -0.1850],
-              [5.5997, -0.1830],
-            ],
-            stops: 10,
-            distance: '3.7 km'
-          }
-        ];
+        // Add paths and markers for each officer
+        pathData.forEach((officerPath, index) => {
+          const color = colors[index % colors.length];
+          const pathCoords = officerPath.path.map(p => [p['gps-latitude'], p['gps-longitude']] as [number, number]);
 
-        // Add paths and markers for each collector
-        collectorPaths.forEach((collector, index) => {
+          if (pathCoords.length === 0) return;
+
           // Draw the path
-          const polyline = L.polyline(collector.path as [number, number][], {
-            color: collector.color,
+          const polyline = L.polyline(pathCoords, {
+            color: color,
             weight: 4,
             opacity: 0.7,
             smoothFactor: 1
           }).addTo(map);
+          newLayers.push(polyline);
 
           // Add start marker
-          const startIcon = createCustomIcon(collector.color, 'S');
-          const startMarker = L.marker(collector.path[0] as [number, number], { icon: startIcon }).addTo(map);
+          const startIcon = createCustomIcon(color, 'S');
+          const startMarker = L.marker(pathCoords[0], { icon: startIcon }).addTo(map);
           startMarker.bindPopup(`
             <div style="padding: 8px; min-width: 180px;">
               <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">
-                ${collector.name} - Start
+                ${officerPath['user-name']} - Start
               </h3>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Route Distance: <strong>${collector.distance}</strong>
+                Route Distance: <strong>${officerPath['total-distance-km']?.toFixed(2) || '0.00'} km</strong>
               </p>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Stops: <strong>${collector.stops}</strong>
+                Transactions: <strong>${officerPath['transaction-count'] || 0}</strong>
+              </p>
+              <p style="margin: 0; color: #666; font-size: 12px;">
+                Time: <strong>${officerPath.path[0]?.timestamp ? new Date(officerPath.path[0].timestamp).toLocaleTimeString() : 'N/A'}</strong>
               </p>
             </div>
           `);
+          newLayers.push(startMarker);
 
           // Add end marker
-          const endIcon = createCustomIcon(collector.color, 'E');
-          const endMarker = L.marker(collector.path[collector.path.length - 1] as [number, number], { icon: endIcon }).addTo(map);
-          endMarker.bindPopup(`
-            <div style="padding: 8px; min-width: 180px;">
-              <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">
-                ${collector.name} - End
-              </h3>
-              <p style="margin: 0; color: #666; font-size: 12px;">
-                Route Completed
-              </p>
-            </div>
-          `);
+          if (pathCoords.length > 1) {
+            const endIcon = createCustomIcon(color, 'E');
+            const endMarker = L.marker(pathCoords[pathCoords.length - 1], { icon: endIcon }).addTo(map);
+            endMarker.bindPopup(`
+              <div style="padding: 8px; min-width: 180px;">
+                <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">
+                  ${officerPath['user-name']} - End
+                </h3>
+                <p style="margin: 0; color: #666; font-size: 12px;">
+                  Time: <strong>${officerPath.path[officerPath.path.length - 1]?.timestamp ? new Date(officerPath.path[officerPath.path.length - 1].timestamp).toLocaleTimeString() : 'N/A'}</strong>
+                </p>
+              </div>
+            `);
+            newLayers.push(endMarker);
+          }
 
           // Add intermediate stop markers
-          collector.path.slice(1, -1).forEach((point, stopIndex) => {
+          pathCoords.slice(1, -1).forEach((point, stopIndex) => {
             const stopIcon = L.divIcon({
               className: 'custom-marker',
               html: `<div style="
@@ -184,48 +256,40 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
                 width: 12px;
                 height: 12px;
                 border-radius: 50%;
-                border: 2px solid ${collector.color};
+                border: 2px solid ${color};
                 box-shadow: 0 1px 3px rgba(0,0,0,0.3);
               "></div>`,
               iconSize: [12, 12],
               iconAnchor: [6, 6],
             });
-            const stopMarker = L.marker(point as [number, number], { icon: stopIcon }).addTo(map);
+            const stopMarker = L.marker(point, { icon: stopIcon }).addTo(map);
+            const pathPoint = officerPath.path[stopIndex + 1];
             stopMarker.bindPopup(`
               <div style="padding: 8px;">
                 <p style="margin: 0; font-size: 12px;">
-                  ${collector.name}<br>
-                  Stop ${stopIndex + 2} of ${collector.stops}
+                  <strong>${officerPath['user-name']}</strong><br>
+                  Stop ${stopIndex + 2} of ${pathCoords.length}<br>
+                  ${pathPoint?.timestamp ? new Date(pathPoint.timestamp).toLocaleTimeString() : 'N/A'}
                 </p>
               </div>
             `);
+            newLayers.push(stopMarker);
           });
+
+          // Fit map to bounds
+          if (pathCoords.length > 0) {
+            map.fitBounds(pathCoords);
+          }
         });
 
-        mapInstanceRef.current = { map, tileLayer };
-        
-        if (mounted) {
-          setMapLoaded(true);
-        }
+        mapInstanceRef.current.layers = newLayers;
       } catch (error) {
-        console.error('Error loading map:', error);
+        console.error('Error updating map paths:', error);
       }
     };
 
-    // Load map after component mounts
-    const timer = setTimeout(() => {
-      loadMap();
-    }, 100);
-
-    return () => {
-      mounted = false;
-      clearTimeout(timer);
-      if (mapInstanceRef.current?.map) {
-        mapInstanceRef.current.map.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
+    updateMapPaths();
+  }, [pathData]);
 
   // Handle map type changes
   useEffect(() => {
@@ -251,28 +315,28 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
     }
   }, [mapType]);
 
-  // Mock data for filters
-  const businessCenterOptions = [
-    { value: 'bc1', label: 'Business Center 1' },
-    { value: 'bc2', label: 'Business Center 2' },
-    { value: 'bc3', label: 'Business Center 3' }
-  ];
+  // Convert users to collector options
+  const collectorOptions = users.map(u => ({
+    value: u.id,
+    label: `${u['first-name']} ${u['last-name']}`
+  }));
 
-  const zoneOptions = [
-    { value: 'zone1', label: 'Zone 1' },
-    { value: 'zone2', label: 'Zone 2' },
-    { value: 'zone3', label: 'Zone 3' },
-    { value: 'zone4', label: 'Zone 4' },
-    { value: 'zone5', label: 'Zone 5' },
-    { value: 'zone6', label: 'Zone 6' }
-  ];
+  // Convert zones to zone options
+  const zoneOptions = zones.map(z => ({
+    value: z.id,
+    label: z.name
+  }));
 
-  // GPS statistics
-  const gpsStats = {
-    noGps: 46,
-    withGps: 1559,
-    total: 1605
-  };
+  // Calculate GPS statistics from path data
+  const gpsStats = pathData.reduce((acc, path) => {
+    const pathsWithoutGPS = path.path.filter(p => !p['gps-latitude'] || !p['gps-longitude']).length;
+    const pathsWithGPS = path.path.filter(p => p['gps-latitude'] && p['gps-longitude']).length;
+    return {
+      noGps: acc.noGps + pathsWithoutGPS,
+      withGps: acc.withGps + pathsWithGPS,
+      total: acc.total + path.path.length
+    };
+  }, { noGps: 0, withGps: 0, total: 0 });
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-50">
@@ -282,16 +346,9 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
           {/* Filter Controls */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
             <ModernSelect
-              value={selectedBusinessCenter}
-              onChange={setSelectedBusinessCenter}
-              placeholder="Select Business Center"
-              options={businessCenterOptions}
-              className="w-full sm:w-auto min-w-[200px]"
-            />
-            <ModernSelect
               value={selectedZone}
               onChange={setSelectedZone}
-              placeholder="Zones"
+              placeholder="Zone"
               options={zoneOptions}
               className="w-full sm:w-auto min-w-[150px]"
             />
@@ -370,18 +427,71 @@ export const CollectorPathsPage: React.FC<CollectorPathsPageProps> = () => {
 
         {/* Map Display */}
         <div className="flex-1 relative" style={{ minHeight: 0, overflow: 'hidden', zIndex: 1 }}>
-          <div 
+          <div
             ref={mapRef}
             className="w-full h-full absolute inset-0"
             style={{ zIndex: 1 }}
           />
-          
+
           {!mapLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
                 <p className="text-sm text-gray-600">Loading Map...</p>
                 <p className="text-xs text-gray-500 mt-2">Initializing Google Maps with Leaflet...</p>
+              </div>
+            </div>
+          )}
+
+          {mapLoaded && loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-30 z-10">
+              <div className="bg-white p-6 rounded-lg shadow-xl">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-500 mx-auto mb-3"></div>
+                <p className="text-sm text-gray-700 font-medium">Loading path data...</p>
+              </div>
+            </div>
+          )}
+
+          {mapLoaded && error && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg shadow-lg z-10 max-w-md">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-sm font-medium">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {mapLoaded && !loading && !error && pathData.length === 0 && selectedCollector && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No Path Data</h3>
+                <p className="text-sm text-gray-600">
+                  No GPS path data found for the selected collector and date.
+                  Try selecting a different date or collector.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {mapLoaded && !selectedCollector && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="bg-white p-8 rounded-lg shadow-lg text-center max-w-md">
+                <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Select a Collector</h3>
+                <p className="text-sm text-gray-600">
+                  Please select a collector from the dropdown to view their GPS path data.
+                </p>
               </div>
             </div>
           )}

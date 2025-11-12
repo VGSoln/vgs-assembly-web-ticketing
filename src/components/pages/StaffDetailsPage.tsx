@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { User, Edit, Mail, Send, ChevronLeft, Briefcase, Calendar, Clock } from 'lucide-react';
-import { staffData } from '@/lib/data';
+import React, { useState, useEffect } from 'react';
+import { User, Edit, Mail, Send, ChevronLeft, Briefcase, Calendar, Clock, AlertCircle } from 'lucide-react';
+import { getUser, getZone } from '@/lib/api';
 import { ConfirmationModal } from '../ui/ConfirmationModal';
 import { StaffDeactivationModal } from '../ui/StaffDeactivationModal';
 import { StaffReactivationModal } from '../ui/StaffReactivationModal';
@@ -10,15 +10,64 @@ interface StaffDetailsPageProps {
   staffId: string;
   onEdit?: (staffId: string) => void;
   onBack?: () => void;
+  onZoneSelect?: (zoneId: string) => void;
 }
 
-export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onEdit, onBack }) => {
-  const staff = staffData.find(s => s.id.toString() === staffId);
+type StaffMember = {
+  id: string;
+  'first-name': string;
+  'last-name': string;
+  name: string;
+  phone: string;
+  email?: string;
+  role: string;
+  'zone-id'?: string;
+  'is-active': boolean;
+  'created-at': string;
+  'updated-at'?: string;
+};
+
+export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onEdit, onBack, onZoneSelect }) => {
+  const [staff, setStaff] = useState<StaffMember | null>(null);
+  const [zoneName, setZoneName] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [deactivationModalOpen, setDeactivationModalOpen] = useState(false);
   const [deactivatedModalOpen, setDeactivatedModalOpen] = useState(false);
   const [reactivationModalOpen, setReactivationModalOpen] = useState(false);
+
+  // Fetch staff member from API
+  useEffect(() => {
+    if (staffId) {
+      setLoading(true);
+      getUser(staffId)
+        .then((data) => {
+          setStaff(data);
+          setError(null);
+
+          // Fetch zone name if staff has a zone-id
+          if (data['zone-id']) {
+            getZone(data['zone-id'])
+              .then((zone) => {
+                setZoneName(zone.name || zone['zone-name'] || zone.id);
+              })
+              .catch((err) => {
+                console.error('Failed to fetch zone:', err);
+                setZoneName(data['zone-id']); // Fallback to ID
+              });
+          }
+        })
+        .catch((err) => {
+          console.error('Failed to fetch staff:', err);
+          setError('Failed to load staff member. Please try again.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [staffId]);
 
   const handleSendPassword = () => {
     setPasswordModalOpen(true);
@@ -29,9 +78,9 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
   };
 
   const handleStatusClick = () => {
-    if (staff?.status === 'Active') {
+    if (staff?.['is-active']) {
       setDeactivationModalOpen(true);
-    } else if (staff?.status === 'Inactive') {
+    } else {
       setDeactivatedModalOpen(true);
     }
   };
@@ -55,6 +104,37 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
     setReactivationModalOpen(false);
   };
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Loading staff details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-medium mb-2">Error Loading Staff</p>
+          <p className="text-gray-600 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!staff) {
     return (
       <div className="p-6">
@@ -64,7 +144,7 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Staff Not Found</h2>
           <p className="text-sm text-gray-600 mb-6">The requested staff member could not be found.</p>
-          <button 
+          <button
             onClick={() => {
               if (onBack) {
                 onBack();
@@ -84,7 +164,32 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
 
   // Generate initials for avatar
   const initials = staff.name.split(' ').map(n => n[0]).join('').toUpperCase();
-  const username = staff.name.split(' ').map(n => n.charAt(0)).join('').toLowerCase() + staff.id;
+  const usernamePrefix = staff.name.split(' ').map(n => n.charAt(0)).join('').toLowerCase();
+  const username = usernamePrefix + staff.id;
+  const usernameElided = usernamePrefix + formatGUID(staff.id);
+
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Format GUID to show elided version (e.g., "4444...4446")
+  const formatGUID = (guid: string) => {
+    if (!guid || guid.length <= 8) return guid;
+    return `${guid.slice(0, 4)}...${guid.slice(-4)}`;
+  };
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -107,7 +212,9 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
                 Back
               </button>
               <div className="border-l border-gray-300 pl-3">
-                <p className="text-sm text-gray-600">Staff ID: #{staff.id.toString().padStart(4, '0')}</p>
+                <p className="text-sm text-gray-600" title={`Full ID: ${staff.id}`}>
+                  Staff ID: #{formatGUID(staff.id)}
+                </p>
               </div>
             </div>
             
@@ -115,13 +222,13 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
               <button
                 onClick={handleStatusClick}
                 className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                  staff.status === 'Inactive' 
-                    ? 'bg-red-100 text-red-800 hover:bg-red-200' 
+                  !staff['is-active']
+                    ? 'bg-red-100 text-red-800 hover:bg-red-200'
                     : 'bg-green-100 text-green-800 hover:bg-green-200'
                 }`}
-                title={staff.status === 'Active' ? 'Click to deactivate staff member' : 'Click to view deactivation details'}
+                title={staff['is-active'] ? 'Click to deactivate staff member' : 'Click to view deactivation details'}
               >
-                {staff.status.toUpperCase()}
+                {staff['is-active'] ? 'ACTIVE' : 'INACTIVE'}
               </button>
               <div className="flex items-center gap-2">
                 <button 
@@ -182,7 +289,7 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{staff.name}</p>
-                      <p className="text-xs text-gray-500">@{username}</p>
+                      <p className="text-xs text-gray-500" title={`Full username: @${username}`}>@{usernameElided}</p>
                     </div>
                   </div>
                 </div>
@@ -202,8 +309,11 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
                 {/* Username */}
                 <div>
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">Username</label>
-                  <p className="text-sm font-medium text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded inline-block">
-                    {username}
+                  <p
+                    className="text-sm font-medium text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded inline-block"
+                    title={`Full username: ${username}`}
+                  >
+                    {usernameElided}
                   </p>
                 </div>
               </div>
@@ -216,14 +326,6 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
                 Employment Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Staff Position */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                    Staff Position
-                  </label>
-                  <p className="text-sm font-medium text-gray-900">{staff.position}</p>
-                </div>
-
                 {/* Staff Role */}
                 <div className="bg-gray-50 rounded-lg p-3">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
@@ -232,12 +334,36 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
                   <p className="text-sm font-medium text-gray-900">{staff.role}</p>
                 </div>
 
-                {/* Assigned Zones */}
+                {/* Assigned Zone */}
                 <div className="bg-gray-50 rounded-lg p-3">
                   <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                    Assigned Zones
+                    Assigned Zone
                   </label>
-                  <p className="text-sm font-medium text-gray-900">{staff.assignedZones}</p>
+                  {staff['zone-id'] ? (
+                    onZoneSelect ? (
+                      <button
+                        onClick={() => onZoneSelect(staff['zone-id']!)}
+                        className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                        title={`View zone details: ${zoneName || staff['zone-id']}`}
+                      >
+                        {zoneName || 'Loading...'}
+                      </button>
+                    ) : (
+                      <p className="text-sm font-medium text-gray-900" title={`Zone ID: ${staff['zone-id']}`}>
+                        {zoneName || staff['zone-id']}
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-sm font-medium text-gray-500">Not Assigned</p>
+                  )}
+                </div>
+
+                {/* Status */}
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
+                    Status
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">{staff['is-active'] ? 'Active' : 'Inactive'}</p>
                 </div>
               </div>
             </div>
@@ -268,37 +394,17 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gray-200 rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                        Created
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{staff.created}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                        Created By
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{staff.modifiedBy}</p>
-                    </div>
-                  </div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">
+                    Created
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">{formatDate(staff['created-at'])}</p>
                 </div>
-                
+
                 <div className="border border-gray-200 rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                        Last Modified
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{staff.modified}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">
-                        Last Modified By
-                      </label>
-                      <p className="text-sm font-medium text-gray-900">{staff.modifiedBy}</p>
-                    </div>
-                  </div>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-2">
+                    Last Modified
+                  </label>
+                  <p className="text-sm font-medium text-gray-900">{formatDate(staff['updated-at'])}</p>
                 </div>
               </div>
             </div>
@@ -346,8 +452,8 @@ export const StaffDetailsPage: React.FC<StaffDetailsPageProps> = ({ staffId, onE
         staffName={staff.name}
         staffPhone={staff.phone}
         staffEmail={staff.email}
-        deactivatedDate={staff.modified}
-        deactivatedBy={staff.modifiedBy}
+        deactivatedDate={formatDate(staff['updated-at'])}
+        deactivatedBy="N/A"
         deactivationReason="As per management decision"
         onReactivate={handleReactivateClick}
       />

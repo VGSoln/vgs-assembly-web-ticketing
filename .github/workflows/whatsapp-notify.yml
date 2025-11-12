@@ -1,0 +1,111 @@
+name: WhatsApp Notifications
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Custom message to send'
+        required: false
+        type: string
+      wait_for_response:
+        description: 'Wait for user response (5 min intervals)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  notify-whatsapp:
+    name: Send WhatsApp Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Determine message content
+        id: message
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            WORKFLOW_STATUS="${{ github.event.workflow_run.conclusion }}"
+            WORKFLOW_NAME="${{ github.event.workflow_run.name }}"
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            COMMIT="${{ github.event.workflow_run.head_sha }}"
+            COMMIT_SHORT="${COMMIT:0:7}"
+
+            if [ "$WORKFLOW_STATUS" == "success" ]; then
+              MESSAGE="✅ *CI/CD Pipeline Successful*
+
+*Project:* VGS Assembly Web Ticketing
+*Workflow:* $WORKFLOW_NAME
+*Branch:* $BRANCH
+*Commit:* $COMMIT_SHORT
+*Status:* Success
+
+All checks passed! 🎉
+Build artifacts are ready for deployment.
+
+_View run:_ ${{ github.event.workflow_run.html_url }}"
+            else
+              MESSAGE="❌ *CI/CD Pipeline Failed*
+
+*Project:* VGS Assembly Web Ticketing
+*Workflow:* $WORKFLOW_NAME
+*Branch:* $BRANCH
+*Commit:* $COMMIT_SHORT
+*Status:* Failed
+
+Please check the logs and fix the issues.
+
+_View run:_ ${{ github.event.workflow_run.html_url }}"
+            fi
+          else
+            MESSAGE="${{ github.event.inputs.message }}"
+          fi
+
+          # Save message to file for the notification script
+          echo "$MESSAGE" > /tmp/wa_message.txt
+          echo "message_file=/tmp/wa_message.txt" >> $GITHUB_OUTPUT
+
+      - name: Send WhatsApp notification
+        run: |
+          node .github/scripts/send-whatsapp-notification.js
+        env:
+          WA_MESSAGE_FILE: ${{ steps.message.outputs.message_file }}
+          WA_GROUP_NAME: "Demo"
+          WAIT_FOR_RESPONSE: ${{ github.event.inputs.wait_for_response || 'false' }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  check-response:
+    name: Check for WhatsApp Response
+    runs-on: ubuntu-latest
+    needs: [notify-whatsapp]
+    if: github.event.inputs.wait_for_response == 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait and check for response
+        run: |
+          node .github/scripts/check-whatsapp-response.js
+        env:
+          WA_GROUP_NAME: "Demo"
+          CHECK_INTERVAL_MINUTES: 5
+          MAX_CHECKS: 12  # 12 checks * 5 min = 1 hour max wait

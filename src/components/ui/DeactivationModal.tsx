@@ -144,7 +144,7 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-xs text-red-700 font-medium">
                     <AlertTriangle className="inline w-4 h-4 mr-1" />
-                    Warning: Deactivating this customer will suspend their water service.
+                    Warning: Deactivating this customer will suspend their ticketing service.
                   </p>
                 </div>
 
@@ -289,7 +289,7 @@ export const DeactivationModal: React.FC<DeactivationModalProps> = ({
                 </h3>
                 
                 <p className="text-sm text-gray-600 text-center mb-4">
-                  Are you sure you want to deactivate this customer account? This will suspend their water service.
+                  Are you sure you want to deactivate this customer account? This will suspend their ticketing service.
                 </p>
 
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">

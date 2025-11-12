@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Camera, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Ban } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
@@ -6,184 +6,79 @@ import { DepositReceiptModal } from '../ui/DepositReceiptModal';
 import { VoidDepositModal } from '../ui/VoidDepositModal';
 import { VoidedDepositModal } from '../ui/VoidedDepositModal';
 import { VoidSuccessModal } from '../ui/VoidSuccessModal';
-import { 
-  businessLevelOptions, 
-  zoneOptions, 
-  collectorOptions 
+import {
+  businessLevelOptions,
+  zoneOptions,
+  collectorOptions
 } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
-import { 
-  copyToClipboard, 
-  printData, 
-  exportToExcel, 
-  exportToCSV, 
-  exportToPDF, 
-  formatDataForExport, 
-  exportHeaders 
+import {
+  copyToClipboard,
+  printData,
+  exportToExcel,
+  exportToCSV,
+  exportToPDF
 } from '@/lib/exportUtils';
+import { getDeposits } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Bank deposits data
-const bankDepositsData = [
-  {
-    id: 1782,
-    transId: '1782',
-    dateTime: '20 Aug 2025 06:35 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 153,
-    zone: 'ZONE 9',
-    collector: 'Mabel Tottimeh',
-    collectorPhone: '024-555-0101',
-    depositType: 'eDeposit',
-    created: '20 Aug 2025 06:40 PM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1781,
-    transId: '1781',
-    dateTime: '20 Aug 2025 06:16 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 170,
-    zone: 'ZONE 3',
-    collector: 'Rapheal Kwabena Aboagye',
-    collectorPhone: '024-555-0102',
-    depositType: 'Bank',
-    created: '20 Aug 2025 06:16 PM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1780,
-    transId: '1780',
-    dateTime: '20 Aug 2025 06:11 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 132,
-    zone: 'Stand Pipes',
-    collector: 'Rapheal Kwabena Aboagye',
-    collectorPhone: '024-555-0102',
-    depositType: 'Bank',
-    created: '20 Aug 2025 06:12 PM',
-    status: 'Voided',
-    voidReason: 'Incorrect deposit amount - should have been 232',
-    voidedDate: '21 Aug 2025 09:15 AM',
-    voidedBy: 'Finance Manager',
-    receipt: true
-  },
-  {
-    id: 1778,
-    transId: '1778',
-    dateTime: '20 Aug 2025 06:11 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 120,
-    zone: 'ZONE 1',
-    collector: 'Kubura Abdul Rahman',
-    collectorPhone: '024-555-0103',
-    depositType: 'eDeposit',
-    created: '20 Aug 2025 06:12 PM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1777,
-    transId: '1777',
-    dateTime: '20 Aug 2025 05:41 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 1900,
-    zone: 'ZONE 4',
-    collector: 'Rapheal Kwabena Aboagye',
-    collectorPhone: '024-555-0102',
-    depositType: 'Bank',
-    created: '20 Aug 2025 05:45 PM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1776,
-    transId: '1776',
-    dateTime: '20 Aug 2025 05:13 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 838,
-    zone: 'ZONE 3',
-    collector: 'Francis Seguri',
-    collectorPhone: '024-555-0104',
-    depositType: 'eDeposit',
-    created: '20 Aug 2025 05:14 PM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1775,
-    transId: '1775',
-    dateTime: '20 Aug 2025 10:15 AM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 43,
-    zone: 'ZONE 4',
-    collector: 'Rapheal Kwabena Aboagye',
-    collectorPhone: '024-555-0102',
-    depositType: 'Bank',
-    created: '20 Aug 2025 10:15 AM',
-    status: 'Voided',
-    voidReason: 'Duplicate deposit entry',
-    voidedDate: '20 Aug 2025 02:30 PM',
-    voidedBy: 'CWSA Admin',
-    receipt: true
-  },
-  {
-    id: 1773,
-    transId: '1773',
-    dateTime: '20 Aug 2025 09:53 AM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 155,
-    zone: 'ZONE 4',
-    collector: 'Kubura Abdul Rahman',
-    collectorPhone: '024-555-0103',
-    depositType: 'eDeposit',
-    created: '20 Aug 2025 09:53 AM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1772,
-    transId: '1772',
-    dateTime: '20 Aug 2025 09:51 AM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 150,
-    zone: 'ZONE 1',
-    collector: 'Kubura Abdul Rahman',
-    collectorPhone: '024-555-0103',
-    depositType: 'eDeposit',
-    created: '20 Aug 2025 09:52 AM',
-    status: 'Deposited',
-    receipt: true
-  },
-  {
-    id: 1771,
-    transId: '1771',
-    dateTime: '19 Aug 2025 05:09 PM',
-    bankName: 'National Investment Bank',
-    accountNumber: '1121092684901',
-    depositAmount: 105.5,
-    zone: 'ZONE 8',
-    collector: 'John Adesu Senyo',
-    collectorPhone: '024-555-0105',
-    depositType: 'Bank',
-    created: '19 Aug 2025 05:09 PM',
-    status: 'Voided',
-    voidReason: 'Bank rejected deposit - invalid account details',
-    voidedDate: '21 Aug 2025 11:45 AM',
-    voidedBy: 'Bank Reconciliation Team',
-    receipt: true
-  }
+// Deposit type from API
+interface Deposit {
+  id: string;
+  'trans-id': string;
+  'deposit-date': string;
+  'bank-name': string;
+  'account-number': string;
+  amount: number;
+  'zone-name'?: string;
+  'collector-name': string;
+  'collector-phone'?: string;
+  'deposit-type': string;
+  'created-at': string;
+  status: string;
+  'void-reason'?: string;
+  'voided-date'?: string;
+  'voided-by'?: string;
+  'has-receipt': boolean;
+}
+
+// Export headers for bank deposits
+export const bankDepositsExportHeaders = [
+  'Trans ID',
+  'Date & Time',
+  'Bank Name',
+  'Account Number',
+  'Deposit Amount',
+  'Zone',
+  'Collector',
+  'Collector Phone',
+  'Deposit Type',
+  'Created',
+  'Status',
+  'Void Reason',
+  'Voided Date',
+  'Voided By'
 ];
+
+// Transform function for export
+const transformForExport = (deposits: Deposit[]) => {
+  return deposits.map(deposit => ({
+    'Trans ID': deposit['trans-id'],
+    'Date & Time': deposit['deposit-date'],
+    'Bank Name': deposit['bank-name'],
+    'Account Number': deposit['account-number'],
+    'Deposit Amount': deposit.amount.toFixed(2),
+    'Zone': deposit['zone-name'] || 'N/A',
+    'Collector': deposit['collector-name'],
+    'Collector Phone': deposit['collector-phone'] || 'N/A',
+    'Deposit Type': deposit['deposit-type'],
+    'Created': deposit['created-at'],
+    'Status': deposit.status,
+    'Void Reason': deposit['void-reason'] || '',
+    'Voided Date': deposit['voided-date'] || '',
+    'Voided By': deposit['voided-by'] || ''
+  }));
+};
 
 interface BankDepositsListPageProps {
   selectedDateRange: DateRange;
@@ -211,6 +106,10 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
   onDateRangeChange,
   onDateRangeApply
 }) => {
+  const { user } = useAuth();
+  const [deposits, setDeposits] = useState<Deposit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedCollector, setSelectedCollector] = useState('');
@@ -227,6 +126,35 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
   const [showVoidedDepositModal, setShowVoidedDepositModal] = useState(false);
   const [showVoidSuccessModal, setShowVoidSuccessModal] = useState(false);
   const [voidedTransactionId, setVoidedTransactionId] = useState<string>('');
+
+  // Fetch deposits from API
+  useEffect(() => {
+    const fetchDeposits = async () => {
+      if (!user?.['assembly-id']) {
+        setError('No assembly ID found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getDeposits({
+          'assembly-id': user['assembly-id'],
+          'start-date': selectedDateRange.start,
+          'end-date': selectedDateRange.end
+        });
+        setDeposits(data);
+      } catch (err) {
+        console.error('Error fetching deposits:', err);
+        setError('Failed to load deposits. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDeposits();
+  }, [user, selectedDateRange]);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -260,78 +188,75 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
 
   // Export functions
   const handleExport = async (type: string) => {
-    const exportData = formatDataForExport(filteredAndSortedData);
+    const exportData = transformForExport(filteredAndSortedData);
     setExportStatus(`Exporting ${type}...`);
-    
+
     try {
       switch (type) {
         case 'copy':
-          const success = await copyToClipboard(exportData, exportHeaders);
+          const success = await copyToClipboard(exportData, bankDepositsExportHeaders);
           setExportStatus(success ? 'Copied to clipboard!' : 'Failed to copy');
           break;
         case 'print':
-          printData(exportData, exportHeaders, 'Bank Deposits Report');
+          printData(exportData, bankDepositsExportHeaders, 'Bank Deposits Report');
           setExportStatus('Print dialog opened');
           break;
         case 'excel':
-          exportToExcel(exportData, exportHeaders, 'bank-deposits');
+          exportToExcel(exportData, bankDepositsExportHeaders, 'bank-deposits');
           setExportStatus('Excel file downloaded');
           break;
         case 'csv':
-          exportToCSV(exportData, exportHeaders, 'bank-deposits');
+          exportToCSV(exportData, bankDepositsExportHeaders, 'bank-deposits');
           setExportStatus('CSV file downloaded');
           break;
         case 'pdf':
-          await exportToPDF(exportData, exportHeaders, 'bank-deposits');
+          await exportToPDF(exportData, bankDepositsExportHeaders, 'bank-deposits');
           setExportStatus('PDF export opened');
           break;
       }
     } catch (error) {
       setExportStatus('Export failed');
     }
-    
+
     setTimeout(() => setExportStatus(''), 3000);
   };
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = bankDepositsData;
-    
+    let filtered = deposits;
+
     // Apply search filter
     if (searchTerm.trim()) {
       const search = searchTerm.toLowerCase().trim();
-      
+
       // Special handling for deposit type searches
-      // If user types exactly "bank" (not as part of another word), prioritize deposit type
       const isExactBankSearch = search === 'bank';
-      const isDepositTypeSearch = search === 'bank' || search === 'edeposit' || 
-                                  search === 'edep' || search === 'deposit';
-      
+
       filtered = filtered.filter(deposit => {
         // For exact "bank" search, only match deposit type
         if (isExactBankSearch) {
-          return deposit.depositType.toLowerCase() === 'bank';
+          return deposit['deposit-type'].toLowerCase() === 'bank';
         }
-        
+
         // Check all fields including deposit type
         const matchesId = deposit.id.toString().includes(search);
-        const matchesTransId = deposit.transId.toLowerCase().includes(search);
-        const matchesDateTime = deposit.dateTime.toLowerCase().includes(search);
-        const matchesBankName = deposit.bankName.toLowerCase().includes(search);
-        const matchesAccountNumber = deposit.accountNumber.toLowerCase().includes(search);
-        const matchesAmount = deposit.depositAmount.toString().includes(search);
-        const matchesZone = deposit.zone.toLowerCase().includes(search);
-        const matchesCollector = deposit.collector.toLowerCase().includes(search);
-        const matchesPhone = deposit.collectorPhone ? deposit.collectorPhone.toLowerCase().includes(search) : false;
-        const matchesDepositType = deposit.depositType.toLowerCase().includes(search);
-        const matchesCreated = deposit.created.toLowerCase().includes(search);
+        const matchesTransId = deposit['trans-id'].toLowerCase().includes(search);
+        const matchesDateTime = deposit['deposit-date'].toLowerCase().includes(search);
+        const matchesBankName = deposit['bank-name'].toLowerCase().includes(search);
+        const matchesAccountNumber = deposit['account-number'].toLowerCase().includes(search);
+        const matchesAmount = deposit.amount.toString().includes(search);
+        const matchesZone = deposit['zone-name'] ? deposit['zone-name'].toLowerCase().includes(search) : false;
+        const matchesCollector = deposit['collector-name'].toLowerCase().includes(search);
+        const matchesPhone = deposit['collector-phone'] ? deposit['collector-phone'].toLowerCase().includes(search) : false;
+        const matchesDepositType = deposit['deposit-type'].toLowerCase().includes(search);
+        const matchesCreated = deposit['created-at'].toLowerCase().includes(search);
         const matchesStatus = deposit.status.toLowerCase().includes(search);
-        const matchesVoidReason = (deposit as any).voidReason ? (deposit as any).voidReason.toLowerCase().includes(search) : false;
-        const matchesVoidedDate = (deposit as any).voidedDate ? (deposit as any).voidedDate.toLowerCase().includes(search) : false;
-        const matchesVoidedBy = (deposit as any).voidedBy ? (deposit as any).voidedBy.toLowerCase().includes(search) : false;
-        
-        return matchesId || matchesTransId || matchesDateTime || matchesBankName || 
-               matchesAccountNumber || matchesAmount || matchesZone || matchesCollector || 
+        const matchesVoidReason = deposit['void-reason'] ? deposit['void-reason'].toLowerCase().includes(search) : false;
+        const matchesVoidedDate = deposit['voided-date'] ? deposit['voided-date'].toLowerCase().includes(search) : false;
+        const matchesVoidedBy = deposit['voided-by'] ? deposit['voided-by'].toLowerCase().includes(search) : false;
+
+        return matchesId || matchesTransId || matchesDateTime || matchesBankName ||
+               matchesAccountNumber || matchesAmount || matchesZone || matchesCollector ||
                matchesPhone || matchesDepositType || matchesCreated || matchesStatus ||
                matchesVoidReason || matchesVoidedDate || matchesVoidedBy;
       });
@@ -339,9 +264,52 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
 
     if (sortConfig) {
       filtered.sort((a, b) => {
-        const aValue = a[sortConfig.key as keyof typeof a];
-        const bValue = b[sortConfig.key as keyof typeof b];
-        
+        let aValue: any;
+        let bValue: any;
+
+        // Map sortConfig keys to deposit field names
+        switch (sortConfig.key) {
+          case 'transId':
+            aValue = a['trans-id'];
+            bValue = b['trans-id'];
+            break;
+          case 'dateTime':
+            aValue = a['deposit-date'];
+            bValue = b['deposit-date'];
+            break;
+          case 'bankName':
+            aValue = a['bank-name'];
+            bValue = b['bank-name'];
+            break;
+          case 'accountNumber':
+            aValue = a['account-number'];
+            bValue = b['account-number'];
+            break;
+          case 'depositAmount':
+            aValue = a.amount;
+            bValue = b.amount;
+            break;
+          case 'collector':
+            aValue = a['collector-name'];
+            bValue = b['collector-name'];
+            break;
+          case 'depositType':
+            aValue = a['deposit-type'];
+            bValue = b['deposit-type'];
+            break;
+          case 'created':
+            aValue = a['created-at'];
+            bValue = b['created-at'];
+            break;
+          case 'status':
+            aValue = a.status;
+            bValue = b.status;
+            break;
+          default:
+            aValue = '';
+            bValue = '';
+        }
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -353,16 +321,41 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [deposits, searchTerm, sortConfig]);
 
   const totalEntries = filteredAndSortedData.length;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
   const endEntry = Math.min(currentPage * parseInt(entriesPerPage), totalEntries);
   const totalPages = Math.ceil(totalEntries / parseInt(entriesPerPage));
   const currentData = filteredAndSortedData.slice(startEntry - 1, endEntry);
-  
+
   // Calculate total deposit amount from filtered data
-  const totalDepositAmount = filteredAndSortedData.reduce((sum, deposit) => sum + deposit.depositAmount, 0);
+  const totalDepositAmount = filteredAndSortedData.reduce((sum, deposit) => sum + deposit.amount, 0);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading deposits...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-white rounded-xl p-8 shadow-lg border border-red-200 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Deposits</h3>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -541,42 +534,42 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
               }`}>
                 <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
                   <div className="text-xs font-mono">
-                    {deposit.transId}
+                    {deposit['trans-id']}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
                   <div className="text-xs">
-                    <span className="font-semibold">{deposit.dateTime.split(' ').slice(0, 3).join(' ')}</span>
-                    <span className="font-normal"> {deposit.dateTime.split(' ').slice(3).join(' ')}</span>
+                    <span className="font-semibold">{deposit['deposit-date'].split(' ').slice(0, 3).join(' ')}</span>
+                    <span className="font-normal"> {deposit['deposit-date'].split(' ').slice(3).join(' ')}</span>
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100">
                   <div className="text-xs">
-                    {deposit.bankName}
+                    {deposit['bank-name']}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
                   <div className="font-mono text-xs">
-                    {deposit.accountNumber}
+                    {deposit['account-number']}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs border-r border-gray-100 text-right font-semibold">
-                  {deposit.depositAmount.toFixed(0)}
+                  {deposit.amount.toFixed(0)}
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
                   <div>
-                    {deposit.collector}
+                    {deposit['collector-name']}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-700 border-r border-gray-100">
-                  <div className={deposit.depositType === 'eDeposit' ? 'text-blue-600' : ''}>
-                    {deposit.depositType}
+                  <div className={deposit['deposit-type'] === 'eDeposit' ? 'text-blue-600' : ''}>
+                    {deposit['deposit-type']}
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-slate-800 border-r border-gray-100">
                   <div className="text-xs">
-                    <span className="font-semibold">{deposit.created.split(' ').slice(0, 3).join(' ')}</span>
-                    <span className="font-normal"> {deposit.created.split(' ').slice(3).join(' ')}</span>
+                    <span className="font-semibold">{deposit['created-at'].split(' ').slice(0, 3).join(' ')}</span>
+                    <span className="font-normal"> {deposit['created-at'].split(' ').slice(3).join(' ')}</span>
                   </div>
                 </td>
                 <td className="px-1 py-1 text-xs text-center border-r border-gray-100">
@@ -584,15 +577,15 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                     <button
                       onClick={() => {
                         setVoidedDepositModalData({
-                          transactionId: deposit.transId,
-                          depositDate: deposit.dateTime,
-                          bankName: deposit.bankName,
-                          accountNumber: deposit.accountNumber,
-                          depositAmount: deposit.depositAmount,
-                          collector: deposit.collector,
-                          voidReason: (deposit as any).voidReason || 'Not specified',
-                          voidedDate: (deposit as any).voidedDate || 'Unknown',
-                          voidedBy: (deposit as any).voidedBy || 'Unknown'
+                          transactionId: deposit['trans-id'],
+                          depositDate: deposit['deposit-date'],
+                          bankName: deposit['bank-name'],
+                          accountNumber: deposit['account-number'],
+                          depositAmount: deposit.amount,
+                          collector: deposit['collector-name'],
+                          voidReason: deposit['void-reason'] || 'Not specified',
+                          voidedDate: deposit['voided-date'] || 'Unknown',
+                          voidedBy: deposit['voided-by'] || 'Unknown'
                         });
                         setShowVoidedDepositModal(true);
                       }}
@@ -608,29 +601,29 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                 </td>
                 <td className="px-1 py-2 text-xs text-center">
                   <div className="flex flex-col items-center justify-center gap-1">
-                    {deposit.receipt && (
-                      <button 
+                    {deposit['has-receipt'] && (
+                      <button
                         onClick={() => {
-                          if (deposit.depositType === 'eDeposit') return;
+                          if (deposit['deposit-type'] === 'eDeposit') return;
                           setDepositReceiptModalData({
-                            collectorName: deposit.collector,
-                            collectorPhone: deposit.collectorPhone || 'N/A',
-                            depositDate: deposit.dateTime,
-                            amount: deposit.depositAmount,
-                            bankName: deposit.bankName,
-                            accountNumber: deposit.accountNumber,
-                            transactionId: deposit.transId,
+                            collectorName: deposit['collector-name'],
+                            collectorPhone: deposit['collector-phone'] || 'N/A',
+                            depositDate: deposit['deposit-date'],
+                            amount: deposit.amount,
+                            bankName: deposit['bank-name'],
+                            accountNumber: deposit['account-number'],
+                            transactionId: deposit['trans-id'],
                             receiptImage: '/images/reciept1.jpg'
                           });
                           setShowDepositReceiptModal(true);
                         }}
                         className={`px-1.5 py-0.5 rounded text-xs font-medium w-10 transition-colors ${
-                          deposit.depositType === 'eDeposit' 
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50' 
+                          deposit['deposit-type'] === 'eDeposit'
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
                             : 'bg-orange-500 text-white hover:bg-orange-600'
                         }`}
-                        title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
-                        disabled={deposit.depositType === 'eDeposit'}
+                        title={deposit['deposit-type'] === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
+                        disabled={deposit['deposit-type'] === 'eDeposit'}
                       >
                         Rcpt
                       </button>
@@ -639,16 +632,16 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                       <button
                         onClick={() => {
                           setVoidedDepositModalData({
-                            transactionId: deposit.transId,
-                            depositDate: deposit.dateTime,
-                            bankName: deposit.bankName,
-                            accountNumber: deposit.accountNumber,
-                            depositAmount: deposit.depositAmount,
-                            zone: deposit.zone,
-                            collector: deposit.collector,
-                            voidReason: (deposit as any).voidReason || 'Not specified',
-                            voidedDate: (deposit as any).voidedDate || 'Unknown',
-                            voidedBy: (deposit as any).voidedBy || 'Unknown'
+                            transactionId: deposit['trans-id'],
+                            depositDate: deposit['deposit-date'],
+                            bankName: deposit['bank-name'],
+                            accountNumber: deposit['account-number'],
+                            depositAmount: deposit.amount,
+                            zone: deposit['zone-name'] || 'N/A',
+                            collector: deposit['collector-name'],
+                            voidReason: deposit['void-reason'] || 'Not specified',
+                            voidedDate: deposit['voided-date'] || 'Unknown',
+                            voidedBy: deposit['voided-by'] || 'Unknown'
                           });
                           setShowVoidedDepositModal(true);
                         }}
@@ -661,31 +654,31 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                         </div>
                       </button>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => {
-                          if (deposit.depositType === 'eDeposit') return;
+                          if (deposit['deposit-type'] === 'eDeposit') return;
                           setVoidDepositModalData({
-                            transactionId: deposit.transId,
-                            depositDate: deposit.dateTime,
-                            bankName: deposit.bankName,
-                            accountNumber: deposit.accountNumber,
-                            depositAmount: deposit.depositAmount,
-                            zone: deposit.zone,
-                            collector: deposit.collector
+                            transactionId: deposit['trans-id'],
+                            depositDate: deposit['deposit-date'],
+                            bankName: deposit['bank-name'],
+                            accountNumber: deposit['account-number'],
+                            depositAmount: deposit.amount,
+                            zone: deposit['zone-name'] || 'N/A',
+                            collector: deposit['collector-name']
                           });
                           setShowVoidDepositModal(true);
                         }}
                         className={`p-0.5 rounded-full transition-all duration-200 ${
-                          deposit.depositType === 'eDeposit' 
-                            ? 'cursor-not-allowed opacity-30' 
+                          deposit['deposit-type'] === 'eDeposit'
+                            ? 'cursor-not-allowed opacity-30'
                             : 'hover:bg-gray-50'
                         }`}
-                        title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
-                        disabled={deposit.depositType === 'eDeposit'}
+                        title={deposit['deposit-type'] === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
+                        disabled={deposit['deposit-type'] === 'eDeposit'}
                       >
                         <div className="relative">
-                          <div className={`w-5 h-5 rounded-full ${deposit.depositType === 'eDeposit' ? 'bg-gray-200' : 'bg-gray-100'}`}></div>
-                          <Ban className={`w-5 h-5 absolute inset-0 ${deposit.depositType === 'eDeposit' ? 'text-gray-400' : 'text-gray-300'} opacity-50`} strokeWidth={1.5} />
+                          <div className={`w-5 h-5 rounded-full ${deposit['deposit-type'] === 'eDeposit' ? 'bg-gray-200' : 'bg-gray-100'}`}></div>
+                          <Ban className={`w-5 h-5 absolute inset-0 ${deposit['deposit-type'] === 'eDeposit' ? 'text-gray-400' : 'text-gray-300'} opacity-50`} strokeWidth={1.5} />
                         </div>
                       </button>
                     )}
@@ -744,9 +737,9 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
           <div key={deposit.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Trans ID: {deposit.transId}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Trans ID: {deposit['trans-id']}</h3>
                 <p className="text-blue-600 font-medium">
-                  {deposit.bankName}
+                  {deposit['bank-name']}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -754,16 +747,16 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                   <button
                     onClick={() => {
                       setVoidedDepositModalData({
-                        transactionId: deposit.transId,
-                        depositDate: deposit.dateTime,
-                        bankName: deposit.bankName,
-                        accountNumber: deposit.accountNumber,
-                        depositAmount: deposit.depositAmount,
-                        zone: deposit.zone,
-                        collector: deposit.collector,
-                        voidReason: (deposit as any).voidReason || 'Not specified',
-                        voidedDate: (deposit as any).voidedDate || 'Unknown',
-                        voidedBy: (deposit as any).voidedBy || 'Unknown'
+                        transactionId: deposit['trans-id'],
+                        depositDate: deposit['deposit-date'],
+                        bankName: deposit['bank-name'],
+                        accountNumber: deposit['account-number'],
+                        depositAmount: deposit.amount,
+                        zone: deposit['zone-name'] || 'N/A',
+                        collector: deposit['collector-name'],
+                        voidReason: deposit['void-reason'] || 'Not specified',
+                        voidedDate: deposit['voided-date'] || 'Unknown',
+                        voidedBy: deposit['voided-by'] || 'Unknown'
                       });
                       setShowVoidedDepositModal(true);
                     }}
@@ -778,71 +771,71 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                 )}
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Account Number</label>
-                  <p className="text-sm font-medium text-gray-900">{deposit.accountNumber}</p>
+                  <p className="text-sm font-medium text-gray-900">{deposit['account-number']}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Amount</label>
-                  <p className="text-lg font-bold text-green-600">GHS {deposit.depositAmount.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-green-600">GHS {deposit.amount.toFixed(2)}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Zone</label>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {deposit.zone}
+                    {deposit['zone-name'] || 'N/A'}
                   </span>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Collector</label>
-                  <p className="text-sm text-gray-700">{deposit.collector}</p>
+                  <p className="text-sm text-gray-700">{deposit['collector-name']}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Date & Time</label>
-                  <p className="text-sm font-medium text-gray-900">{deposit.dateTime}</p>
+                  <p className="text-sm font-medium text-gray-900">{deposit['deposit-date']}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Deposit Type</label>
-                  <p className={`text-sm ${deposit.depositType === 'eDeposit' ? 'text-blue-600' : 'text-gray-700'}`}>
-                    {deposit.depositType}
+                  <p className={`text-sm ${deposit['deposit-type'] === 'eDeposit' ? 'text-blue-600' : 'text-gray-700'}`}>
+                    {deposit['deposit-type']}
                   </p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Created</label>
-                  <p className="text-sm text-gray-700">{deposit.created}</p>
+                  <p className="text-sm text-gray-700">{deposit['created-at']}</p>
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-200 flex items-center gap-2">
-              {deposit.receipt && (
-                <button 
+              {deposit['has-receipt'] && (
+                <button
                   onClick={() => {
-                    if (deposit.depositType === 'eDeposit') return;
+                    if (deposit['deposit-type'] === 'eDeposit') return;
                     setDepositReceiptModalData({
-                      collectorName: deposit.collector,
-                      collectorPhone: deposit.collectorPhone || 'N/A',
-                      depositDate: deposit.dateTime,
-                      amount: deposit.depositAmount,
-                      bankName: deposit.bankName,
-                      accountNumber: deposit.accountNumber,
-                      transactionId: deposit.transId,
+                      collectorName: deposit['collector-name'],
+                      collectorPhone: deposit['collector-phone'] || 'N/A',
+                      depositDate: deposit['deposit-date'],
+                      amount: deposit.amount,
+                      bankName: deposit['bank-name'],
+                      accountNumber: deposit['account-number'],
+                      transactionId: deposit['trans-id'],
                       receiptImage: '/images/reciept1.jpg'
                     });
                     setShowDepositReceiptModal(true);
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    deposit.depositType === 'eDeposit'
+                    deposit['deposit-type'] === 'eDeposit'
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
                       : 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                   }`}
-                  title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
-                  disabled={deposit.depositType === 'eDeposit'}
+                  title={deposit['deposit-type'] === 'eDeposit' ? 'Disabled for eDeposit' : 'View Receipt'}
+                  disabled={deposit['deposit-type'] === 'eDeposit'}
                 >
                   View Receipt
                 </button>
@@ -851,16 +844,16 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                 <button
                   onClick={() => {
                     setVoidedDepositModalData({
-                      transactionId: deposit.transId,
-                      depositDate: deposit.dateTime,
-                      bankName: deposit.bankName,
-                      accountNumber: deposit.accountNumber,
-                      depositAmount: deposit.depositAmount,
-                      zone: deposit.zone,
-                      collector: deposit.collector,
-                      voidReason: (deposit as any).voidReason || 'Not specified',
-                      voidedDate: (deposit as any).voidedDate || 'Unknown',
-                      voidedBy: (deposit as any).voidedBy || 'Unknown'
+                      transactionId: deposit['trans-id'],
+                      depositDate: deposit['deposit-date'],
+                      bankName: deposit['bank-name'],
+                      accountNumber: deposit['account-number'],
+                      depositAmount: deposit.amount,
+                      zone: deposit['zone-name'] || 'N/A',
+                      collector: deposit['collector-name'],
+                      voidReason: deposit['void-reason'] || 'Not specified',
+                      voidedDate: deposit['voided-date'] || 'Unknown',
+                      voidedBy: deposit['voided-by'] || 'Unknown'
                     });
                     setShowVoidedDepositModal(true);
                   }}
@@ -869,27 +862,27 @@ export const BankDepositsListPage: React.FC<BankDepositsListPageProps> = ({
                   View Void Details
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => {
-                    if (deposit.depositType === 'eDeposit') return;
+                    if (deposit['deposit-type'] === 'eDeposit') return;
                     setVoidDepositModalData({
-                      transactionId: deposit.transId,
-                      depositDate: deposit.dateTime,
-                      bankName: deposit.bankName,
-                      accountNumber: deposit.accountNumber,
-                      depositAmount: deposit.depositAmount,
-                      zone: deposit.zone,
-                      collector: deposit.collector
+                      transactionId: deposit['trans-id'],
+                      depositDate: deposit['deposit-date'],
+                      bankName: deposit['bank-name'],
+                      accountNumber: deposit['account-number'],
+                      depositAmount: deposit.amount,
+                      zone: deposit['zone-name'] || 'N/A',
+                      collector: deposit['collector-name']
                     });
                     setShowVoidDepositModal(true);
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    deposit.depositType === 'eDeposit'
+                    deposit['deposit-type'] === 'eDeposit'
                       ? 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-50'
                       : 'bg-red-100 text-red-700 hover:bg-red-200'
                   }`}
-                  title={deposit.depositType === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
-                  disabled={deposit.depositType === 'eDeposit'}
+                  title={deposit['deposit-type'] === 'eDeposit' ? 'Disabled for eDeposit' : 'Void Transaction'}
+                  disabled={deposit['deposit-type'] === 'eDeposit'}
                 >
                   Void Transaction
                 </button>

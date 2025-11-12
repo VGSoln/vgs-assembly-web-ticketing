@@ -5,26 +5,29 @@ import { ModernSelect } from '../ui/ModernSelect';
 import { AddCustomerPage } from './AddCustomerPage';
 import { TicketCustomerDetailsPage } from './TicketCustomerDetailsPage';
 import { CustomerLocationModal } from '../ui/CustomerLocationModal';
-import { 
-  businessLevelOptions, 
+import {
+  businessLevelOptions,
   zoneOptions
 } from '@/lib/data';
+import { getCustomers } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Customer {
-  id: number;
-  customerNumber: string;
-  customerPhone: string;
-  customerType: 'Market' | 'Lorry Park';
-  location: string;
-  customerCategory: string; // Stall, Table-Top, Hawker for Market; Taxi, Trotro, Private for Lorry Park
-  traderTypeOrPlate: string; // License plate for Lorry Park, Stall number for Market
-  zone: string;
-  community: string;
-  ticketTransactions: number;
-  lastTicketPaymentDate: string;
-  monthsSinceLastPayment?: number;
-  createdDate: string;
-  status: 'Active' | 'Inactive';
+  'customer-id': string;
+  'customer-number': string;
+  phone: string;
+  'alt-phone'?: string;
+  'ticket-type-name': string;
+  'location-name': string;
+  'customer-type-name': string;
+  identifier?: string;
+  'zone-name'?: string;
+  'transaction-count': number;
+  'last-payment-date'?: string;
+  'created-at': string;
+  'is-active': boolean;
+  'gps-latitude'?: number;
+  'gps-longitude'?: number;
 }
 
 type SortConfig = {
@@ -38,13 +41,44 @@ interface CustomersPageProps {
 }
 
 export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCustomerId, initialShowDetails }) => {
+  const { currentUser } = useAuth();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddCustomer, setShowAddCustomer] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(initialShowDetails || false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialCustomerId || '');
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedCustomerLocation, setSelectedCustomerLocation] = useState<any>(null);
-  
-  
+
+  // Fetch customers from API
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!currentUser?.['assembly-id']) {
+        setError('No assembly ID found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getCustomers({
+          'assembly-id': currentUser['assembly-id'],
+          'active-only': true
+        });
+        setCustomers(data);
+      } catch (err) {
+        console.error('Error fetching customers:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load customers');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, [currentUser]);
+
   // Update document title and body attribute based on view
   useEffect(() => {
     if (showCustomerDetails) {
@@ -54,7 +88,7 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
       document.title = 'AEDA Admin - Ticket Customer List';
       document.body.setAttribute('data-customer-view', 'list');
     }
-    
+
     // Cleanup
     return () => {
       document.body.removeAttribute('data-customer-view');
@@ -102,245 +136,6 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
   const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
   const [exportStatus, setExportStatus] = useState<string>('');
 
-  // Mock data for ticket customers
-  const customersData: Customer[] = [
-    {
-      id: 1,
-      customerNumber: 'MKT-001784',
-      customerPhone: '0244304995',
-      customerType: 'Market',
-      location: 'Central Market',
-      customerCategory: 'Stall',
-      traderTypeOrPlate: 'S-124',
-      zone: 'Zone A',
-      community: 'Adum',
-      ticketTransactions: 45,
-      lastTicketPaymentDate: '25 Aug 2025 2:32 PM',
-      monthsSinceLastPayment: 0,
-      createdDate: '01 Nov 2024 9:15 AM',
-      status: 'Active'
-    },
-    {
-      id: 2,
-      customerNumber: 'LPK-001876',
-      customerPhone: '0243114560',
-      customerType: 'Lorry Park',
-      location: 'Main Station',
-      customerCategory: 'Taxi',
-      traderTypeOrPlate: 'AS-1234-21',
-      zone: 'Zone B',
-      community: 'Asafo',
-      ticketTransactions: 28,
-      lastTicketPaymentDate: '15 Jun 2025 10:15 AM',
-      monthsSinceLastPayment: 2,
-      createdDate: '01 Nov 2024 10:30 AM',
-      status: 'Active'
-    },
-    {
-      id: 3,
-      customerNumber: 'MKT-001733',
-      customerPhone: '0553467420',
-      customerType: 'Market',
-      location: 'Kejetia Market',
-      customerCategory: 'Table-Top',
-      traderTypeOrPlate: 'TT-087',
-      zone: 'Zone A',
-      community: 'Kejetia',
-      ticketTransactions: 62,
-      lastTicketPaymentDate: '24 Jul 2025 4:45 PM',
-      monthsSinceLastPayment: 1,
-      createdDate: '01 Nov 2024 11:20 AM',
-      status: 'Active'
-    },
-    {
-      id: 4,
-      customerNumber: 'MKT-001892',
-      customerPhone: '0208765432',
-      customerType: 'Market',
-      location: 'Adum Market',
-      customerCategory: 'Hawker',
-      traderTypeOrPlate: 'H-456',
-      zone: 'Zone A',
-      community: 'Adum',
-      ticketTransactions: 25,
-      lastTicketPaymentDate: '23 May 2025 9:23 AM',
-      monthsSinceLastPayment: 3,
-      createdDate: '15 Oct 2024 2:45 PM',
-      status: 'Active'
-    },
-    {
-      id: 5,
-      customerNumber: 'LPK-002011',
-      customerPhone: '0245678901',
-      customerType: 'Lorry Park',
-      location: 'Tech Junction',
-      customerCategory: 'Trotro',
-      traderTypeOrPlate: 'GE-4567-23',
-      zone: 'Zone B',
-      community: 'Tech',
-      ticketTransactions: 48,
-      lastTicketPaymentDate: '22 Aug 2025 11:56 AM',
-      monthsSinceLastPayment: 0,
-      createdDate: '10 Sep 2024 8:30 AM',
-      status: 'Active'
-    },
-    {
-      id: 6,
-      customerNumber: 'MKT-001923',
-      customerPhone: '0551234567',
-      customerType: 'Market',
-      location: 'Bantama Market',
-      customerCategory: 'Stall',
-      traderTypeOrPlate: 'S-089',
-      zone: 'Zone C',
-      community: 'Bantama',
-      ticketTransactions: 38,
-      lastTicketPaymentDate: '21 Mar 2025 3:12 PM',
-      monthsSinceLastPayment: 5,
-      createdDate: '05 Aug 2024 4:10 PM',
-      status: 'Active'
-    },
-    {
-      id: 7,
-      customerNumber: 'LPK-001745',
-      customerPhone: '0203456789',
-      customerType: 'Lorry Park',
-      location: 'Suame Station',
-      customerCategory: 'Private',
-      traderTypeOrPlate: 'GT-8765-24',
-      zone: 'Zone D',
-      community: 'Suame',
-      ticketTransactions: 52,
-      lastTicketPaymentDate: '20 Jun 2025 1:28 PM',
-      monthsSinceLastPayment: 2,
-      createdDate: '18 Jul 2024 12:25 PM',
-      status: 'Active'
-    },
-    {
-      id: 8,
-      customerNumber: 'MKT-001856',
-      customerPhone: '0249876543',
-      customerType: 'Market',
-      location: 'Roman Hill Market',
-      customerCategory: 'Table-Top',
-      traderTypeOrPlate: 'TT-234',
-      zone: 'Zone E',
-      community: 'Roman Hill',
-      ticketTransactions: 19,
-      lastTicketPaymentDate: '19 Jan 2025 10:45 AM',
-      monthsSinceLastPayment: 7,
-      createdDate: '25 Jun 2024 9:40 AM',
-      status: 'Active'
-    },
-    {
-      id: 9,
-      customerNumber: 'MKT-001967',
-      customerPhone: '0557654321',
-      customerType: 'Market',
-      location: 'Asafo Market',
-      customerCategory: 'Hawker',
-      traderTypeOrPlate: 'H-789',
-      zone: 'Zone B',
-      community: 'Asafo',
-      ticketTransactions: 67,
-      lastTicketPaymentDate: '18 Aug 2025 8:30 AM',
-      monthsSinceLastPayment: 0,
-      createdDate: '14 May 2024 3:55 PM',
-      status: 'Active'
-    },
-    {
-      id: 10,
-      customerNumber: 'LPK-001812',
-      customerPhone: '0202468135',
-      customerType: 'Lorry Park',
-      location: 'Tafo Terminal',
-      customerCategory: 'Trotro',
-      traderTypeOrPlate: 'AW-2345-23',
-      zone: 'Zone F',
-      community: 'Tafo',
-      ticketTransactions: 44,
-      lastTicketPaymentDate: '17 Apr 2025 2:15 PM',
-      monthsSinceLastPayment: 4,
-      createdDate: '30 Apr 2024 11:20 AM',
-      status: 'Active'
-    },
-    {
-      id: 11,
-      customerNumber: 'MKT-002034',
-      customerPhone: '0246789012',
-      customerType: 'Market',
-      location: 'Ayigya Market',
-      traderTypeOrPlate: 'Stall',
-      zone: 'Zone G',
-      community: 'Ayigya',
-      ticketTransactions: 31,
-      lastTicketPaymentDate: '16 Jul 2025 12:40 PM',
-      monthsSinceLastPayment: 1,
-      createdDate: '12 Mar 2024 10:15 AM',
-      status: 'Active'
-    },
-    {
-      id: 12,
-      customerNumber: 'LPK-001689',
-      customerPhone: '0558901234',
-      customerType: 'Lorry Park',
-      location: 'Kejetia Terminal',
-      traderTypeOrPlate: 'BA-9876-22',
-      zone: 'Zone A',
-      community: 'Kejetia',
-      ticketTransactions: 89,
-      lastTicketPaymentDate: '15 Feb 2025 9:55 AM',
-      monthsSinceLastPayment: 6,
-      createdDate: '22 Feb 2024 2:30 PM',
-      status: 'Active'
-    },
-    {
-      id: 13,
-      customerNumber: 'MKT-002145',
-      customerPhone: '0240987654',
-      customerType: 'Market',
-      location: 'Manhyia Market',
-      traderTypeOrPlate: 'Table-Top',
-      zone: 'Zone H',
-      community: 'Manhyia',
-      ticketTransactions: 23,
-      lastTicketPaymentDate: '14 Aug 2025 4:20 PM',
-      monthsSinceLastPayment: 0,
-      createdDate: '10 Jan 2024 8:45 AM',
-      status: 'Active'
-    },
-    {
-      id: 14,
-      customerNumber: 'LPK-001934',
-      customerPhone: '0554567890',
-      customerType: 'Lorry Park',
-      location: 'Anloga Junction',
-      traderTypeOrPlate: 'KT-5678-24',
-      zone: 'Zone C',
-      community: 'Anloga',
-      ticketTransactions: 76,
-      lastTicketPaymentDate: '13 Dec 2024 11:10 AM',
-      monthsSinceLastPayment: 8,
-      createdDate: '05 Dec 2023 1:25 PM',
-      status: 'Active'
-    },
-    {
-      id: 15,
-      customerNumber: 'MKT-002267',
-      customerPhone: '0201357902',
-      customerType: 'Market',
-      location: 'Oforikrom Market',
-      traderTypeOrPlate: 'Hawker',
-      zone: 'Zone I',
-      community: 'Oforikrom',
-      ticketTransactions: 41,
-      lastTicketPaymentDate: '12 Nov 2024 1:45 PM',
-      monthsSinceLastPayment: 9,
-      createdDate: '20 Nov 2023 9:50 AM',
-      status: 'Active'
-    }
-  ];
-
   const entriesOptions = [
     { value: '10', label: '10' },
     { value: '25', label: '25' },
@@ -357,20 +152,50 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
   ];
 
   const columns = [
-    { key: 'customerNumber', label: 'Customer #', sortable: true, width: '7%' },
-    { key: 'customerPhone', label: 'Phone #', sortable: true, width: '7%' },
-    { key: 'customerType', label: 'Ticket Type', sortable: true, width: '7%' },
-    { key: 'location', label: 'Location', sortable: true, width: '8%' },
-    { key: 'customerCategory', label: 'Customer Type', sortable: true, width: '8%' },
-    { key: 'traderTypeOrPlate', label: 'Identifier', sortable: true, width: '8%' },
-    { key: 'community', label: 'Community', sortable: true, width: '7%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '6%' },
-    { key: 'ticketTransactions', label: '# of Ticket Payments', sortable: true, width: '8%' },
-    { key: 'lastTicketPaymentDate', label: 'Last Ticket Payment', sortable: true, width: '9%' },
-    { key: 'monthsSinceLastPayment', label: 'Months Since Last Payment', sortable: true, width: '8%' },
-    { key: 'createdDate', label: 'Created Date', sortable: true, width: '9%' },
-    { key: 'status', label: 'Status', sortable: true, width: '6%' },
+    { key: 'customer-number', label: 'Customer #', sortable: true, width: '7%' },
+    { key: 'phone', label: 'Phone #', sortable: true, width: '7%' },
+    { key: 'ticket-type-name', label: 'Ticket Type', sortable: true, width: '7%' },
+    { key: 'location-name', label: 'Location', sortable: true, width: '8%' },
+    { key: 'customer-type-name', label: 'Customer Type', sortable: true, width: '8%' },
+    { key: 'identifier', label: 'Identifier', sortable: true, width: '8%' },
+    { key: 'zone-name', label: 'Zone', sortable: true, width: '6%' },
+    { key: 'transaction-count', label: '# of Ticket Payments', sortable: true, width: '8%' },
+    { key: 'last-payment-date', label: 'Last Ticket Payment', sortable: true, width: '9%' },
+    { key: 'created-at', label: 'Created Date', sortable: true, width: '9%' },
+    { key: 'is-active', label: 'Status', sortable: true, width: '6%' },
     { key: 'actions', label: 'Details', sortable: false, width: '6%' }
+  ];
+
+  // Export headers for customers
+  const exportHeaders = [
+    'Customer Number',
+    'Phone',
+    'Alt Phone',
+    'Ticket Type',
+    'Location',
+    'Customer Type',
+    'Identifier',
+    'Zone',
+    'Transaction Count',
+    'Last Payment Date',
+    'Created Date',
+    'Status'
+  ];
+
+  // Transform data for export
+  const transformForExport = (customer: Customer) => [
+    customer['customer-number'],
+    customer.phone,
+    customer['alt-phone'] || '',
+    customer['ticket-type-name'],
+    customer['location-name'],
+    customer['customer-type-name'],
+    customer.identifier || '',
+    customer['zone-name'] || '',
+    customer['transaction-count'],
+    customer['last-payment-date'] || '',
+    new Date(customer['created-at']).toLocaleString(),
+    customer['is-active'] ? 'Active' : 'Inactive'
   ];
 
   // Sorting function
@@ -395,23 +220,20 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = customersData.filter(customer => {
-      const matchesSearch = 
-        customer.id.toString().includes(searchTerm) ||
-        customer.customerNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.customerPhone.includes(searchTerm) ||
-        customer.customerType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.traderTypeOrPlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.community.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.ticketTransactions.toString().includes(searchTerm) ||
-        customer.lastTicketPaymentDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.createdDate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.status.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesZone = !selectedZone || customer.zone === selectedZone;
-      
+    let filtered = customers.filter(customer => {
+      const matchesSearch =
+        customer['customer-number'].toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.phone.includes(searchTerm) ||
+        customer['ticket-type-name'].toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer['location-name'].toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer['customer-type-name'].toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (customer.identifier?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        (customer['zone-name']?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        customer['transaction-count'].toString().includes(searchTerm) ||
+        (customer['last-payment-date']?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
+
+      const matchesZone = !selectedZone || customer['zone-name'] === selectedZone;
+
       return matchesSearch && matchesZone;
     });
 
@@ -419,7 +241,7 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
       filtered.sort((a, b) => {
         const aVal = a[sortConfig.key as keyof Customer];
         const bVal = b[sortConfig.key as keyof Customer];
-        
+
         if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -427,17 +249,39 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
     }
 
     return filtered;
-  }, [searchTerm, selectedZone, sortConfig, customersData]);
+  }, [searchTerm, selectedZone, sortConfig, customers]);
 
   const totalEntries = filteredAndSortedData.length;
-  const twoMonthsNonPaymentCustomers = filteredAndSortedData.filter(customer => 
-    customer.monthsSinceLastPayment !== undefined && customer.monthsSinceLastPayment >= 2
-  ).length;
+  const twoMonthsNonPaymentCustomers = 0; // TODO: Calculate based on last-payment-date
   const percentageNonPayment = totalEntries > 0 ? Math.round((twoMonthsNonPaymentCustomers / totalEntries) * 100) : 0;
   const startEntry = (currentPage - 1) * parseInt(entriesPerPage) + 1;
   const endEntry = Math.min(currentPage * parseInt(entriesPerPage), totalEntries);
   const totalPages = Math.ceil(totalEntries / parseInt(entriesPerPage));
   const currentData = filteredAndSortedData.slice(startEntry - 1, endEntry);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading customers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-2">Error loading customers</div>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show AddCustomerPage if showAddCustomer is true
   if (showAddCustomer) {
@@ -625,99 +469,92 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
               </thead>
             <tbody className="bg-white">
               {currentData.map((customer, index) => (
-                <tr key={customer.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
+                <tr key={customer['customer-id']} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
                   index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                 }`}>
                   <td className="px-2 py-2 text-xs border-r border-gray-100">
-                    <button 
-                      onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerNumber)}
+                    <button
+                      onClick={() => handleViewCustomerDetails(customer['customer-number'], customer['customer-number'])}
                       className="text-blue-600 hover:text-blue-800 break-all leading-tight transition-colors duration-200 hover:underline text-left"
                     >
-                      {customer.customerNumber}
+                      {customer['customer-number']}
                     </button>
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
                     <div className="break-all leading-tight">
-                      {customer.customerPhone}
+                      {customer.phone}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 font-medium">
                     <div className="break-words leading-tight">
-                      {customer.customerType}
+                      {customer['ticket-type-name']}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 font-medium">
                     <div className="break-words leading-tight">
-                      {customer.location}
+                      {customer['location-name']}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 font-medium">
                     <div className="break-words leading-tight">
-                      {customer.customerCategory}
+                      {customer['customer-type-name']}
                     </div>
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-700 border-r border-gray-100">
                     <div className="break-all leading-tight">
-                      {customer.traderTypeOrPlate}
+                      {customer.identifier || '-'}
                     </div>
-                  </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
-                    {customer.community || '-'}
                   </td>
                   <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
                     <span className="text-xs font-semibold text-slate-800">
-                      {customer.zone}
+                      {customer['zone-name'] || '-'}
                     </span>
                   </td>
                   <td className="px-2 py-2 text-xs border-r border-gray-100 text-center font-semibold">
-                    {customer.ticketTransactions}
+                    {customer['transaction-count']}
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
-                    {customer.lastTicketPaymentDate || '-'}
-                  </td>
-                  <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 text-center font-semibold">
-                    {customer.monthsSinceLastPayment !== undefined ? customer.monthsSinceLastPayment : '-'}
+                    {customer['last-payment-date'] ? new Date(customer['last-payment-date']).toLocaleString() : '-'}
                   </td>
                   <td className="px-2 py-2 text-xs text-slate-800 border-r border-gray-100 text-center">
-                    {customer.createdDate || '-'}
+                    {new Date(customer['created-at']).toLocaleString()}
                   </td>
                   <td className="px-2 py-2 text-xs border-r border-gray-100 text-center">
                     <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      customer.status === 'Active' 
-                        ? 'bg-green-100 text-green-800' 
+                      customer['is-active']
+                        ? 'bg-green-100 text-green-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {customer.status}
+                      {customer['is-active'] ? 'Active' : 'Inactive'}
                     </span>
                   </td>
                   <td className="px-2 py-2 text-center">
                     <div className="flex flex-col items-center justify-center gap-1">
-                      <button 
+                      <button
                         type="button"
-                        onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerNumber)}
+                        onClick={() => handleViewCustomerDetails(customer['customer-number'], customer['customer-number'])}
                         className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                        title={`View details for ${customer.customerNumber}`}
+                        title={`View details for ${customer['customer-number']}`}
                       >
                         <Eye className="w-4 h-4 text-white" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedCustomerLocation({
-                            customerNumber: customer.customerNumber,
-                            customerPhone: customer.customerPhone,
-                            traderTypeOrPlate: customer.traderTypeOrPlate,
-                            customerType: customer.customerType,
-                            location: customer.location,
-                            lastTicketPaymentDate: customer.lastTicketPaymentDate,
-                            lastPaidAmount: Math.floor(Math.random() * 50) + 10,
-                            // Add some variation to coordinates for demo
-                            latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
-                            longitude: -0.1870 + (Math.random() - 0.5) * 0.05
+                            customerNumber: customer['customer-number'],
+                            customerPhone: customer.phone,
+                            traderTypeOrPlate: customer.identifier || '',
+                            customerType: customer['ticket-type-name'],
+                            location: customer['location-name'],
+                            lastTicketPaymentDate: customer['last-payment-date'] || '',
+                            lastPaidAmount: 0,
+                            latitude: customer['gps-latitude'] || 5.6037,
+                            longitude: customer['gps-longitude'] || -0.1870
                           });
                           setShowLocationModal(true);
                         }}
                         className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                        title={`View location for ${customer.customerNumber}`}
+                        title={`View location for ${customer['customer-number']}`}
                       >
                         <MapPin className="w-4 h-4 text-white" />
                       </button>
@@ -773,98 +610,95 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
         </div>
         
         {currentData.map((customer, index) => (
-          <div key={customer.id} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
+          <div key={customer['customer-id']} className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow duration-200">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">{customer.customerNumber}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{customer['customer-number']}</h3>
                 <p className="text-sm text-gray-600">
-                  {customer.location}
+                  {customer['location-name']}
                 </p>
               </div>
               <div className="flex flex-col items-center gap-2">
-                <button 
+                <button
                   type="button"
-                  onClick={() => handleViewCustomerDetails(customer.customerNumber, customer.customerNumber)}
+                  onClick={() => handleViewCustomerDetails(customer['customer-number'], customer['customer-number'])}
                   className="bg-gradient-to-r from-teal-500 to-teal-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-teal-600 hover:to-teal-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  title={`View details for ${customer.customerNumber}`}
+                  title={`View details for ${customer['customer-number']}`}
                 >
                   <Eye className="w-5 h-5 text-white" />
                 </button>
-                <button 
+                <button
                   onClick={() => {
                     setSelectedCustomerLocation({
-                      customerNumber: customer.customerNumber,
-                      customerPhone: customer.customerPhone,
-                      traderTypeOrPlate: customer.traderTypeOrPlate,
-                      customerType: customer.customerType,
-                      location: customer.location,
-                      lastTicketPaymentDate: customer.lastTicketPaymentDate,
-                      lastPaidAmount: Math.floor(Math.random() * 50) + 10,
-                      // Add some variation to coordinates for demo
-                      latitude: 5.6037 + (Math.random() - 0.5) * 0.05,
-                      longitude: -0.1870 + (Math.random() - 0.5) * 0.05
+                      customerNumber: customer['customer-number'],
+                      customerPhone: customer.phone,
+                      traderTypeOrPlate: customer.identifier || '',
+                      customerType: customer['ticket-type-name'],
+                      location: customer['location-name'],
+                      lastTicketPaymentDate: customer['last-payment-date'] || '',
+                      lastPaidAmount: 0,
+                      latitude: customer['gps-latitude'] || 5.6037,
+                      longitude: customer['gps-longitude'] || -0.1870
                     });
                     setShowLocationModal(true);
                   }}
                   className="bg-gradient-to-r from-blue-500 to-indigo-600 p-2 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-indigo-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                  title={`View location for ${customer.customerNumber}`}
+                  title={`View location for ${customer['customer-number']}`}
                 >
                   <MapPin className="w-5 h-5 text-white" />
                 </button>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Phone Number</label>
-                  <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.customerPhone}</p>
+                  <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.phone}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket Type</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.customerType}</p>
+                  <p className="text-sm font-medium text-gray-900">{customer['ticket-type-name']}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer Type</label>
-                  <p className="text-sm text-gray-700">{customer.customerCategory}</p>
+                  <p className="text-sm text-gray-700">{customer['customer-type-name']}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Identifier</label>
-                  <p className="text-sm text-gray-700">{customer.traderTypeOrPlate}</p>
+                  <p className="text-sm text-gray-700">{customer.identifier || '-'}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tickets</label>
-                  <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer.ticketTransactions}</p>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Community</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.community}</p>
+                  <p className="text-sm text-gray-700 font-mono bg-slate-100 px-2 py-1 rounded">{customer['transaction-count']}</p>
                 </div>
               </div>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Zone</label>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {customer.zone}
+                    {customer['zone-name'] || '-'}
                   </span>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Ticket Payment</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.lastTicketPaymentDate}</p>
+                  <p className="text-sm font-medium text-gray-900">{customer['last-payment-date'] ? new Date(customer['last-payment-date']).toLocaleString() : '-'}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</label>
-                  <p className="text-sm font-medium text-gray-900">{customer.location}</p>
+                  <p className="text-sm font-medium text-gray-900">{customer['location-name']}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Created Date</label>
-                  <p className="text-sm text-gray-700">{customer.createdDate}</p>
+                  <p className="text-sm text-gray-700">{new Date(customer['created-at']).toLocaleString()}</p>
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</label>
-                  <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                    {customer.status}
+                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                    customer['is-active'] ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                  }`}>
+                    {customer['is-active'] ? 'Active' : 'Inactive'}
                   </span>
                 </div>
               </div>

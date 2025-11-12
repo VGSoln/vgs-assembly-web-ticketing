@@ -2,10 +2,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Map, Satellite, Filter, ExternalLink } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
+import { getCustomers } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CustomerLocationsPageProps {}
 
+interface CustomerLocation {
+  'customer-id': string;
+  'customer-number': string;
+  phone: string;
+  'location-name': string;
+  'customer-type-name': string;
+  'gps-latitude': number;
+  'gps-longitude': number;
+  'last-payment-date'?: string;
+  'transaction-count': number;
+}
+
 export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () => {
+  const { user } = useAuth();
+  const [customers, setCustomers] = useState<CustomerLocation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedBusinessCenter, setSelectedBusinessCenter] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedMonthsOwed, setSelectedMonthsOwed] = useState('');
@@ -14,16 +32,52 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
+  // Fetch customers with GPS coordinates
+  useEffect(() => {
+    const fetchCustomers = async () => {
+      if (!user?.['assembly-id']) {
+        setError('No assembly ID found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getCustomers({
+          'assembly-id': user['assembly-id'],
+          'active-only': true
+        });
+
+        // Filter customers with GPS coordinates
+        const customersWithGPS = data.filter(
+          (customer: any) =>
+            customer['gps-latitude'] != null &&
+            customer['gps-longitude'] != null
+        );
+
+        setCustomers(customersWithGPS);
+      } catch (err) {
+        console.error('Error fetching customers:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load customers');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCustomers();
+  }, [user]);
+
   useEffect(() => {
     let mounted = true;
 
     const loadMap = async () => {
-      if (!mapRef.current || mapInstanceRef.current) return;
+      if (!mapRef.current || mapInstanceRef.current || loading) return;
 
       try {
         // Import Leaflet
         const L = (await import('leaflet')).default;
-        
+
         // Fix default icon paths
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
@@ -32,9 +86,17 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
           shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
         });
 
+        // Calculate center from customers or default to Accra
+        let center: [number, number] = [5.6037, -0.1870];
+        if (customers.length > 0) {
+          const avgLat = customers.reduce((sum, c) => sum + c['gps-latitude'], 0) / customers.length;
+          const avgLng = customers.reduce((sum, c) => sum + c['gps-longitude'], 0) / customers.length;
+          center = [avgLat, avgLng];
+        }
+
         // Create map
         const map = L.map(mapRef.current, {
-          center: [5.6037, -0.1870], // Accra, Ghana
+          center,
           zoom: 13,
           zoomControl: true,
           scrollWheelZoom: true,
@@ -70,20 +132,6 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
           });
         };
 
-        // Customer locations
-        const customerLocations = [
-          { id: 1, lat: 5.6037, lng: -0.1870, status: 'paid', name: 'Customer A', debt: '0 months' },
-          { id: 2, lat: 5.6157, lng: -0.1820, status: 'paid', name: 'Customer B', debt: '0 months' },
-          { id: 3, lat: 5.6087, lng: -0.1750, status: '1-month-debt', name: 'Customer E', debt: '1 month' },
-          { id: 4, lat: 5.5997, lng: -0.1700, status: '1-month-debt', name: 'Customer F', debt: '1 month' },
-          { id: 5, lat: 5.5987, lng: -0.2000, status: '2-month-debt', name: 'Customer I', debt: '2 months' },
-          { id: 6, lat: 5.6057, lng: -0.1600, status: '3-month-debt', name: 'Customer K', debt: '3 months' },
-          { id: 7, lat: 5.6137, lng: -0.1650, status: '4-plus-debt', name: 'Customer M', debt: '4 months' },
-          { id: 8, lat: 5.5937, lng: -0.1950, status: 'paid', name: 'Customer C', debt: '0 months' },
-          { id: 9, lat: 5.5847, lng: -0.1880, status: 'paid', name: 'Customer D', debt: '0 months' },
-          { id: 10, lat: 5.5917, lng: -0.1730, status: '1-month-debt', name: 'Customer G', debt: '1 month' },
-        ];
-
         // Color mapping
         const getMarkerColor = (status: string) => {
           switch (status) {
@@ -96,28 +144,42 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
           }
         };
 
-        // Add markers
-        customerLocations.forEach((location) => {
-          const icon = createCustomIcon(getMarkerColor(location.status));
-          const marker = L.marker([location.lat, location.lng], { icon }).addTo(map);
-          
+        // Add markers for each customer
+        customers.forEach((customer) => {
+          const monthsSince = getMonthsSincePayment(customer['last-payment-date']);
+          const status = getPaymentStatus(monthsSince);
+          const icon = createCustomIcon(getMarkerColor(status));
+          const marker = L.marker(
+            [customer['gps-latitude'], customer['gps-longitude']],
+            { icon }
+          ).addTo(map);
+
           marker.bindPopup(`
             <div style="padding: 8px; min-width: 150px;">
               <h3 style="margin: 0 0 4px 0; font-weight: bold; font-size: 14px;">
-                ${location.name}
+                ${customer['customer-number']}
               </h3>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Status: <strong>${location.status.replace(/-/g, ' ')}</strong>
+                Phone: <strong>${customer.phone}</strong>
               </p>
               <p style="margin: 0; color: #666; font-size: 12px;">
-                Debt: <strong>${location.debt}</strong>
+                Location: <strong>${customer['location-name']}</strong>
+              </p>
+              <p style="margin: 0; color: #666; font-size: 12px;">
+                Type: <strong>${customer['customer-type-name']}</strong>
+              </p>
+              <p style="margin: 0; color: #666; font-size: 12px;">
+                Last Payment: <strong>${customer['last-payment-date'] || 'Never'}</strong>
+              </p>
+              <p style="margin: 0; color: #666; font-size: 12px;">
+                Months Since: <strong>${monthsSince === 99 ? 'Never' : monthsSince}</strong>
               </p>
             </div>
           `);
         });
 
         mapInstanceRef.current = { map, tileLayer };
-        
+
         if (mounted) {
           setMapLoaded(true);
         }
@@ -126,20 +188,26 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
       }
     };
 
-    // Load map after component mounts
-    const timer = setTimeout(() => {
-      loadMap();
-    }, 100);
+    // Load map after component mounts and customers are loaded
+    if (!loading && customers.length > 0) {
+      const timer = setTimeout(() => {
+        loadMap();
+      }, 100);
+
+      return () => {
+        mounted = false;
+        clearTimeout(timer);
+        if (mapInstanceRef.current?.map) {
+          mapInstanceRef.current.map.remove();
+          mapInstanceRef.current = null;
+        }
+      };
+    }
 
     return () => {
       mounted = false;
-      clearTimeout(timer);
-      if (mapInstanceRef.current?.map) {
-        mapInstanceRef.current.map.remove();
-        mapInstanceRef.current = null;
-      }
     };
-  }, []);
+  }, [loading, customers, mapType]);
 
   // Handle map type changes
   useEffect(() => {
@@ -165,7 +233,7 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
     }
   }, [mapType]);
 
-  // Mock data for filters
+  // Mock data for filters (TODO: Replace with real data from API)
   const businessCenterOptions = [
     { value: 'bc1', label: 'Business Center 1' },
     { value: 'bc2', label: 'Business Center 2' },
@@ -189,24 +257,80 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
     { value: '4+', label: '4+ Months' }
   ];
 
-  // GPS statistics
-  const gpsStats = {
-    noGps: 46,
-    withGps: 1559,
-    total: 1605
+  // Helper function to calculate months since last payment
+  const getMonthsSincePayment = (lastPaymentDate?: string): number => {
+    if (!lastPaymentDate) return 99; // No payment ever
+    const lastPayment = new Date(lastPaymentDate);
+    const now = new Date();
+    const months = (now.getFullYear() - lastPayment.getFullYear()) * 12 +
+                  (now.getMonth() - lastPayment.getMonth());
+    return Math.max(0, months);
   };
 
-  // Customer statistics for legend
+  // Helper function to get status based on months since payment
+  const getPaymentStatus = (monthsSince: number): string => {
+    if (monthsSince === 0) return 'paid';
+    if (monthsSince === 1) return '1-month-debt';
+    if (monthsSince === 2) return '2-month-debt';
+    if (monthsSince === 3) return '3-month-debt';
+    return '4-plus-debt';
+  };
+
+  // Calculate GPS statistics from real data (need to fetch all customers)
+  const [allCustomers, setAllCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllCustomers = async () => {
+      if (!user?.['assembly-id']) return;
+
+      try {
+        const data = await getCustomers({
+          'assembly-id': user['assembly-id'],
+          'active-only': true
+        });
+        setAllCustomers(data);
+      } catch (err) {
+        console.error('Error fetching all customers for stats:', err);
+      }
+    };
+
+    fetchAllCustomers();
+  }, [user]);
+
+  // GPS statistics from real data
+  const gpsStats = {
+    noGps: allCustomers.filter(c => !c['gps-latitude'] || !c['gps-longitude']).length,
+    withGps: allCustomers.filter(c => c['gps-latitude'] && c['gps-longitude']).length,
+    total: allCustomers.length
+  };
+
+  // Customer statistics for legend (from customers with GPS)
   const customerStats = {
-    paid: 156,
-    '1-month-debt': 491,
-    '2-month-debt': 307,
-    '3-month-debt': 174,
-    '4-plus-debt': 340
+    paid: customers.filter(c => getPaymentStatus(getMonthsSincePayment(c['last-payment-date'])) === 'paid').length,
+    '1-month-debt': customers.filter(c => getPaymentStatus(getMonthsSincePayment(c['last-payment-date'])) === '1-month-debt').length,
+    '2-month-debt': customers.filter(c => getPaymentStatus(getMonthsSincePayment(c['last-payment-date'])) === '2-month-debt').length,
+    '3-month-debt': customers.filter(c => getPaymentStatus(getMonthsSincePayment(c['last-payment-date'])) === '3-month-debt').length,
+    '4-plus-debt': customers.filter(c => getPaymentStatus(getMonthsSincePayment(c['last-payment-date'])) === '4-plus-debt').length
   };
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-50">
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 m-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Controls */}
       <div className="bg-white shadow-sm border-b border-gray-200 p-4 flex-shrink-0 w-full relative" style={{ zIndex: 1000 }}>
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 max-w-full">
@@ -302,12 +426,31 @@ export const CustomerLocationsPage: React.FC<CustomerLocationsPageProps> = () =>
             style={{ overflow: 'hidden', zIndex: 1 }}
           />
           
-          {!mapLoaded && (
+          {(loading || !mapLoaded) && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                <p className="text-sm text-gray-600">Loading Map...</p>
-                <p className="text-xs text-gray-500 mt-2">Initializing Google Maps with Leaflet...</p>
+                <p className="text-sm text-gray-600">
+                  {loading ? 'Loading customer data...' : 'Loading Map...'}
+                </p>
+                <p className="text-xs text-gray-500 mt-2">
+                  {loading ? 'Fetching GPS coordinates from API...' : 'Initializing Google Maps with Leaflet...'}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!loading && customers.length === 0 && !error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No GPS Data</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  No customers with GPS coordinates found.
+                </p>
               </div>
             </div>
           )}

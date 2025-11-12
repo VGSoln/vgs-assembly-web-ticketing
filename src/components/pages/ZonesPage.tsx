@@ -1,23 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Eye } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddZonePage } from './AddZonePage';
 import { EditZonePage } from './EditZonePage';
-import { 
-  zonesData, 
+import {
   businessLevelOptions
 } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
-import { 
-  copyToClipboard, 
-  printData, 
-  exportToExcel, 
-  exportToCSV, 
-  exportToPDF, 
-  formatDataForExport, 
-  exportHeaders 
+import {
+  copyToClipboard,
+  printData,
+  exportToExcel,
+  exportToCSV,
+  exportToPDF
 } from '@/lib/exportUtils';
+import { getZones } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ZonesPageProps {
   selectedDateRange: DateRange;
@@ -35,6 +34,18 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
+interface Zone {
+  id: string;
+  'assembly-id': string;
+  name: string;
+  description?: string;
+  'is-active': boolean;
+  'created-at': string;
+  'updated-at': string;
+  'created-by': string;
+  'updated-by': string;
+}
+
 export const ZonesPage: React.FC<ZonesPageProps> = ({
   selectedDateRange,
   displayDateRange,
@@ -45,6 +56,10 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
   onDateRangeChange,
   onDateRangeApply
 }) => {
+  const { currentUser } = useAuth();
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [entriesPerPage, setEntriesPerPage] = useState('50');
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +68,32 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
   const [exportStatus, setExportStatus] = useState<string>('');
   const [showAddZone, setShowAddZone] = useState(false);
   const [showEditZone, setShowEditZone] = useState(false);
-  const [selectedZone, setSelectedZone] = useState<any>(null);
+  const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
+
+  // Fetch zones data
+  useEffect(() => {
+    const fetchZones = async () => {
+      if (!currentUser?.['assembly-id']) {
+        setError('No assembly ID found');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const data = await getZones({ 'assembly-id': currentUser['assembly-id'] });
+        setZones(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching zones:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch zones');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchZones();
+  }, [currentUser]);
 
   const entriesOptions = [
     { value: '10', label: '10' },
@@ -63,17 +103,27 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
   ];
 
   const columns = [
-    { key: 'zoneId', label: 'Zone ID', sortable: true, width: '9%' },
-    { key: 'zoneName', label: 'Zone Name', sortable: true, width: '14%' },
-    { key: 'community', label: 'Community', sortable: true, width: '13%' },
-    { key: 'numberOfLocations', label: '# of Locations', sortable: true, width: '9%' },
-    { key: 'status', label: 'Status', sortable: true, width: '8%' },
-    { key: 'createdDate', label: 'Created Date', sortable: true, width: '12%' },
-    { key: 'modifiedDate', label: 'Modified Date', sortable: true, width: '12%' },
-    { key: 'modifiedBy', label: 'Modified by', sortable: true, width: '10%' },
-    { key: 'createdBy', label: 'Created by', sortable: true, width: '10%' },
-    { key: 'actions', label: '', sortable: false, width: '3%' }
+    { key: 'id', label: 'Zone ID', sortable: true, width: '15%' },
+    { key: 'name', label: 'Zone Name', sortable: true, width: '20%' },
+    { key: 'description', label: 'Community', sortable: true, width: '15%' },
+    { key: 'is-active', label: 'Status', sortable: true, width: '10%' },
+    { key: 'created-at', label: 'Created Date', sortable: true, width: '13%' },
+    { key: 'updated-at', label: 'Modified Date', sortable: true, width: '13%' },
+    { key: 'actions', label: '', sortable: false, width: '4%' }
   ];
+
+  // Export headers
+  const exportHeaders = ['Zone ID', 'Zone Name', 'Community', 'Status', 'Created Date', 'Modified Date'];
+
+  // Transform data for export
+  const transformForExport = (zone: Zone) => ({
+    'Zone ID': zone.id,
+    'Zone Name': zone.name,
+    'Community': zone.description || '-',
+    'Status': zone['is-active'] ? 'Active' : 'Inactive',
+    'Created Date': new Date(zone['created-at']).toLocaleString(),
+    'Modified Date': new Date(zone['updated-at']).toLocaleString()
+  });
 
   // Navigation handlers
   const handleAddZone = () => {
@@ -89,7 +139,7 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
     setShowAddZone(false);
   };
 
-  const handleEditZone = (zone: any) => {
+  const handleEditZone = (zone: Zone) => {
     setSelectedZone(zone);
     setShowEditZone(true);
   };
@@ -117,9 +167,9 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
 
   // Export functions
   const handleExport = async (type: string) => {
-    const exportData = formatDataForExport(filteredAndSortedData);
+    const exportData = filteredAndSortedData.map(transformForExport);
     setExportStatus(`Exporting ${type}...`);
-    
+
     try {
       switch (type) {
         case 'copy':
@@ -152,12 +202,10 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = zonesData.filter(zone =>
-      zone.zoneId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.zoneName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.community.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.createdBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      zone.modifiedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    let filtered = zones.filter(zone =>
+      zone.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      zone.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (zone.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
     // Sort
@@ -174,7 +222,7 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [zones, searchTerm, sortConfig]);
 
   // Pagination
   const totalEntries = filteredAndSortedData.length;
@@ -197,11 +245,36 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
   // Show Edit Zone page if state is true
   if (showEditZone && selectedZone) {
     return (
-      <EditZonePage 
-        zoneId={selectedZone.zoneId}
+      <EditZonePage
+        zoneId={selectedZone.id}
         onBack={handleBackFromEdit}
         onSave={handleSaveEdit}
       />
+    );
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading zones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-semibold">Error loading zones</p>
+          <p className="text-gray-600 mt-2">{error}</p>
+        </div>
+      </div>
     );
   }
 
@@ -354,55 +427,40 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
                   }`}>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px font-semibold">
-                        {zone.zoneId}
+                        {zone.id}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="break-words leading-tight group-hover:text-slate-900 text-blue-600 hover:text-blue-800 text-10px">
-                        {zone.zoneName}
+                        {zone.name}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <span className="text-10px">
-                        {zone.community}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100 text-center">
-                      <span className="inline-flex items-center justify-center px-2 py-0.5 text-10px font-bold text-green-800 bg-green-100 rounded-full">
-                        {zone.numberOfLocations || 0}
+                        {zone.description || '-'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-10px border-r border-gray-100 text-center">
                       <span className={`px-2 py-1 text-10px font-semibold rounded-full ${
-                        zone.status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
+                        zone['is-active']
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {zone.status || 'Active'}
+                        {zone['is-active'] ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px">
-                        {zone.createdDate}
+                        {new Date(zone['created-at']).toLocaleString()}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px">
-                        {zone.modifiedDate}
+                        {new Date(zone['updated-at']).toLocaleString()}
                       </div>
-                    </td>
-                    <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
-                      <span className="text-10px">
-                        {zone.modifiedBy}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
-                      <span className="text-10px">
-                        {zone.createdBy}
-                      </span>
                     </td>
                     <td className="px-1 py-2 text-center">
-                      <button 
+                      <button
                         onClick={() => handleEditZone(zone)}
                         className="bg-gradient-to-r from-blue-500 to-blue-600 p-1.5 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
                         title="Edit Zone"
@@ -452,9 +510,9 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <span className="text-xs font-bold text-gray-500">ID:</span>
-                  <span className="text-sm font-semibold ml-1">{zone.zoneId}</span>
+                  <span className="text-sm font-semibold ml-1">{zone.id}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => handleEditZone(zone)}
                   className="bg-blue-500 p-1.5 rounded-full hover:bg-blue-600 transition-colors"
                   title="Edit Zone"
@@ -462,29 +520,25 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
                   <Edit className="w-3 h-3 text-white" />
                 </button>
               </div>
-              <div className="text-sm text-blue-600 font-semibold mb-1">{zone.zoneName}</div>
-              <div className="text-sm text-gray-600 mb-1">Community: {zone.community}</div>
+              <div className="text-sm text-blue-600 font-semibold mb-1">{zone.name}</div>
+              <div className="text-sm text-gray-600 mb-1">Community: {zone.description || '-'}</div>
               <div className="mb-2">
-                <span className="inline-flex items-center px-2 py-0.5 text-xs font-bold text-green-800 bg-green-100 rounded-full">
-                  {zone.numberOfLocations || 0} Locations
+                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-bold rounded-full ${
+                  zone['is-active']
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {zone['is-active'] ? 'Active' : 'Inactive'}
                 </span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-gray-500">Created:</span>
-                  <span className="ml-1">{zone.createdDate}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{zone.createdBy}</span>
+                  <span className="ml-1">{new Date(zone['created-at']).toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Modified:</span>
-                  <span className="ml-1">{zone.modifiedDate}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{zone.modifiedBy}</span>
+                  <span className="ml-1">{new Date(zone['updated-at']).toLocaleString()}</span>
                 </div>
               </div>
             </div>

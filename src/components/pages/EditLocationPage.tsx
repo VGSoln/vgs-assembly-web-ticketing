@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Save, MapPin } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
-import { locationsData, communitiesData, zonesData } from '@/lib/data';
+import { getLocation, updateLocation, getZones } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface EditLocationPageProps {
   locationId?: string;
@@ -9,62 +10,92 @@ interface EditLocationPageProps {
   onBack?: () => void;
 }
 
-export const EditLocationPage: React.FC<EditLocationPageProps> = ({ 
-  locationId, 
-  onSave, 
-  onBack 
+export const EditLocationPage: React.FC<EditLocationPageProps> = ({
+  locationId,
+  onSave,
+  onBack
 }) => {
-  const originalLocation = locationsData.find(l => l.id.toString() === locationId || l.locationId === locationId);
-  
+  const { user } = useAuth();
+  const [originalLocation, setOriginalLocation] = useState<any>(null);
+  const [zones, setZones] = useState<any[]>([]);
+
   const [formData, setFormData] = useState({
-    ticketType: '',
-    locationName: '',
-    community: '',
-    zone: '',
-    description: ''
+    name: '',
+    locationType: '',
+    zoneId: '',
+    gpsLatitude: '',
+    gpsLongitude: ''
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  const ticketTypeOptions = [
-    { value: 'Lorry Park', label: 'Lorry Park' },
-    { value: 'Market', label: 'Market' }
+  const locationTypeOptions = [
+    { value: 'market', label: 'Market' },
+    { value: 'lorry-park', label: 'Lorry Park' },
+    { value: 'community', label: 'Community' },
+    { value: 'other', label: 'Other' }
   ];
 
-  const communityOptions = communitiesData.map(community => ({
-    value: community.communityName,
-    label: community.communityName
-  }));
-
-  const getZoneOptions = () => {
-    if (!formData.community) return [];
-    return zonesData
-      .filter(zone => zone.community === formData.community)
-      .map(zone => ({
-        value: zone.zoneName,
-        label: zone.zoneName
-      }));
-  };
-
   useEffect(() => {
-    if (originalLocation) {
-      setFormData({
-        ticketType: originalLocation.ticketType,
-        locationName: originalLocation.locationName,
-        community: originalLocation.community,
-        zone: originalLocation.zone,
-        description: originalLocation.description
-      });
-    }
-  }, [originalLocation]);
+    const fetchData = async () => {
+      if (!locationId) return;
 
-  if (!originalLocation) {
+      setIsFetching(true);
+      setFetchError(null);
+      try {
+        const assemblyId = user?.['assembly-id'];
+        if (!assemblyId) {
+          throw new Error('Assembly ID not found');
+        }
+
+        const [locationData, zonesData] = await Promise.all([
+          getLocation(locationId),
+          getZones({ 'assembly-id': assemblyId })
+        ]);
+
+        setOriginalLocation(locationData);
+        setZones(zonesData);
+
+        setFormData({
+          name: locationData.name || '',
+          locationType: locationData['location-type'] || '',
+          zoneId: locationData['zone-id'] || '',
+          gpsLatitude: locationData['gps-latitude']?.toString() || '',
+          gpsLongitude: locationData['gps-longitude']?.toString() || ''
+        });
+      } catch (error) {
+        console.error('Error fetching location data:', error);
+        setFetchError('Failed to load location data. Please try again.');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchData();
+  }, [locationId, user]);
+
+  if (isFetching) {
     return (
       <div className="p-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Location Not Found</h2>
-          <button 
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">Loading location data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchError || !originalLocation) {
+    return (
+      <div className="p-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {fetchError || 'Location Not Found'}
+          </h2>
+          <button
             onClick={() => {
               if (onBack) {
                 onBack();
@@ -82,16 +113,13 @@ export const EditLocationPage: React.FC<EditLocationPageProps> = ({
     );
   }
 
+  const zoneOptions = zones.map(zone => ({
+    value: zone.id,
+    label: zone.name
+  }));
+
   const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => {
-      const newData = { ...prev, [field]: value };
-      // Reset zone when community changes
-      if (field === 'community' && value !== prev.community) {
-        newData.zone = '';
-      }
-      return newData;
-    });
-    // Clear error when user starts typing
+    setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -100,20 +128,12 @@ export const EditLocationPage: React.FC<EditLocationPageProps> = ({
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
 
-    if (!formData.ticketType) {
-      newErrors.ticketType = 'Ticket type is required';
+    if (!formData.name.trim()) {
+      newErrors.name = 'Location name is required';
     }
 
-    if (!formData.locationName.trim()) {
-      newErrors.locationName = 'Location name is required';
-    }
-
-    if (!formData.community) {
-      newErrors.community = 'Community is required';
-    }
-
-    if (!formData.zone) {
-      newErrors.zone = 'Zone is required';
+    if (!formData.locationType) {
+      newErrors.locationType = 'Location type is required';
     }
 
     setErrors(newErrors);
@@ -126,30 +146,30 @@ export const EditLocationPage: React.FC<EditLocationPageProps> = ({
     }
 
     setIsLoading(true);
-    
-    // Simulate API call
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const updatedLocation = {
-        ...originalLocation,
-        ...formData,
-        modifiedDate: new Date().toLocaleString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        }).replace(',', ''),
-        modifiedBy: 'AEDA Admin'
+      const apiData: any = {
+        name: formData.name,
+        'location-type': formData.locationType
       };
-      
-      if (onSave) {
-        onSave(updatedLocation);
+
+      if (formData.zoneId) {
+        apiData['zone-id'] = formData.zoneId;
       }
-      
-      console.log('Location updated successfully:', updatedLocation);
+      if (formData.gpsLatitude) {
+        apiData['gps-latitude'] = parseFloat(formData.gpsLatitude);
+      }
+      if (formData.gpsLongitude) {
+        apiData['gps-longitude'] = parseFloat(formData.gpsLongitude);
+      }
+
+      await updateLocation(locationId!, apiData);
+
+      if (onSave) {
+        onSave({ ...originalLocation, ...formData });
+      }
+
+      console.log('Location updated successfully');
       if (onBack) {
         onBack();
       } else {
@@ -157,6 +177,7 @@ export const EditLocationPage: React.FC<EditLocationPageProps> = ({
       }
     } catch (error) {
       console.error('Error updating location:', error);
+      setErrors({ general: 'Failed to update location. Please try again.' });
     } finally {
       setIsLoading(false);
     }

@@ -7,7 +7,6 @@ import { PerformancePage } from './pages/PerformancePage';
 import { DebtPage } from './pages/DebtPage';
 import { RevenueOfficerPerformancePage } from './pages/RevenueOfficerPerformancePage';
 import { DashboardDetailsCustomerDebtPage } from './pages/DashboardDetailsCustomerDebtPage';
-import { DashboardDetailsYearlyWaterConnectionsPage } from './pages/DashboardDetailsYearlyWaterConnectionsPage';
 import { DashboardDetailsPaidCustomersPage } from './pages/DashboardDetailsPaidCustomersPage';
 import { DashboardDetailsNonPaidCustomersPage } from './pages/DashboardDetailsNonPaidCustomersPage';
 import { DashboardDetailsCustomersWithNoPaymentsPage } from './pages/DashboardDetailsCustomersWithNoPaymentsPage';
@@ -21,13 +20,8 @@ import { CustomerPaymentStatusPartialPaymentPage } from './pages/CustomerPayment
 import { CustomerPaymentStatusVisitedNoPaymentPage } from './pages/CustomerPaymentStatusVisitedNoPaymentPage';
 import { CustomerPaymentStatusNotVisitedPage } from './pages/CustomerPaymentStatusNotVisitedPage';
 import { CustomerVisitStatusNoOneHomePage } from './pages/CustomerVisitStatusNoOneHomePage';
-import { CustomerVisitStatusMeterDisconnectedPage } from './pages/CustomerVisitStatusMeterDisconnectedPage';
-import { CustomerVisitStatusWaterSupplyIssuesPage } from './pages/CustomerVisitStatusWaterSupplyIssuesPage';
 import { CustomerVisitStatusCancelledStoppedPage } from './pages/CustomerVisitStatusCancelledStoppedPage';
 import { CustomerVisitStatusExcusesPage } from './pages/CustomerVisitStatusExcusesPage';
-import { CustomerVisitStatusUnreadableMeterPage } from './pages/CustomerVisitStatusUnreadableMeterPage';
-import { CustomerVisitStatusInaccessibleMeterPage } from './pages/CustomerVisitStatusInaccessibleMeterPage';
-import { CustomerVisitStatusFaultyMeterPage } from './pages/CustomerVisitStatusFaultyMeterPage';
 import { CustomerVisitStatusOtherPage } from './pages/CustomerVisitStatusOtherPage';
 import { BillGenerationPage } from './pages/BillGenerationPage';
 import { TicketPaymentsPage } from './pages/TicketPaymentsPage';
@@ -37,8 +31,6 @@ import { ZonesPage } from './pages/ZonesPage';
 import { TicketTypePage } from './pages/TicketTypePage';
 import { LocationPage } from './pages/LocationPage';
 import { CustomerTypePage } from './pages/CustomerTypePage';
-import { StorageTankMeterReadingsPage } from './pages/StorageTankMeterReadingsPage';
-import { CustomerMeterReadingsPage } from './pages/CustomerMeterReadingsPage';
 import { StaffPage } from './pages/StaffPage';
 import { StaffDetailsPage } from './pages/StaffDetailsPage';
 import { EditStaffPage } from './pages/EditStaffPage';
@@ -46,7 +38,6 @@ import { AddStaffPage } from './pages/AddStaffPage';
 import { CustomerLocationsPage } from './pages/CustomerLocationsPage';
 import { CollectorPathsPage } from './pages/CollectorPathsPage';
 import { CollectorLocationsPage } from './pages/CollectorLocationsPage';
-import { StorageTankLocationsPage } from './pages/StorageTankLocationsPage';
 import { TicketCustomersPage } from './pages/TicketCustomersPage';
 import { TicketRatesPage } from './pages/TicketRatesPage';
 import { PageType, DateRange, ActiveYears } from '@/types/dashboard';
@@ -281,23 +272,7 @@ const Dashboard = () => {
             onCustomerClick={handleCustomerNavigation}
           />
         );
-        
-      case 'dashboard-details-yearly-water-connections':
-        return (
-          <DashboardDetailsYearlyWaterConnectionsPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('performance')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
+
       case 'dashboard-details-paid-customers':
         return (
           <DashboardDetailsPaidCustomersPage
@@ -401,39 +376,7 @@ const Dashboard = () => {
             onCustomerClick={handleCustomerNavigation}
           />
         );
-        
-      case 'customer-visit-status-meter-disconnected':
-        return (
-          <CustomerVisitStatusMeterDisconnectedPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
-      case 'customer-visit-status-water-supply-issues':
-        return (
-          <CustomerVisitStatusWaterSupplyIssuesPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
+
       case 'customer-visit-status-cancelled-stopped':
         return (
           <CustomerVisitStatusCancelledStoppedPage
@@ -465,55 +408,7 @@ const Dashboard = () => {
             onCustomerClick={handleCustomerNavigation}
           />
         );
-        
-      case 'customer-visit-status-unreadable-meter':
-        return (
-          <CustomerVisitStatusUnreadableMeterPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
-      case 'customer-visit-status-inaccessible-meter':
-        return (
-          <CustomerVisitStatusInaccessibleMeterPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
-      case 'customer-visit-status-faulty-meter':
-        return (
-          <CustomerVisitStatusFaultyMeterPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
-            onCustomerClick={handleCustomerNavigation}
-          />
-        );
-        
+
       case 'customer-visit-status-other':
         return (
           <CustomerVisitStatusOtherPage
@@ -630,35 +525,7 @@ const Dashboard = () => {
             onDateRangeApply={handleDateRangeSelect}
           />
         );
-        
-      case 'storage-tank-meter-readings':
-        return (
-          <StorageTankMeterReadingsPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-          />
-        );
-        
-      case 'customer-meter-readings':
-        return (
-          <CustomerMeterReadingsPage
-            selectedDateRange={selectedDateRange}
-            displayDateRange={displayDateRange}
-            activePreset={activePreset}
-            dateRangeOpen={dateRangeOpen}
-            onDateRangeToggle={() => setDateRangeOpen(!dateRangeOpen)}
-            onPresetSelect={handlePresetSelect}
-            onDateRangeChange={setSelectedDateRange}
-            onDateRangeApply={handleDateRangeSelect}
-          />
-        );
-        
+
       case 'staff':
         return <StaffPage onStaffSelect={handleStaffSelect} onAddStaff={handleAddStaff} />;
 
@@ -679,9 +546,6 @@ const Dashboard = () => {
 
       case 'collector-paths':
         return <CollectorPathsPage />;
-
-      case 'storage-tank-locations':
-        return <StorageTankLocationsPage />;
 
       case 'customer-details':
         return null; // Page removed
@@ -719,10 +583,9 @@ const Dashboard = () => {
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
-          {currentPage === 'customer-locations' || 
-           currentPage === 'collector-locations' || 
-           currentPage === 'collector-paths' || 
-           currentPage === 'storage-tank-locations' ||
+          {currentPage === 'customer-locations' ||
+           currentPage === 'collector-locations' ||
+           currentPage === 'collector-paths' ||
            currentPage === 'customer-details' ? (
             <>
               <div className="flex-1 overflow-hidden">

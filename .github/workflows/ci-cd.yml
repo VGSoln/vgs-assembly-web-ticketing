@@ -1,0 +1,308 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch: # Allows manual trigger
+
+env:
+  NODE_VERSION: '20.x'
+  NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+jobs:
+  # ============================================================================
+  # QUALITY CHECKS
+  # ============================================================================
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check TypeScript
+        run: npx tsc --noEmit
+
+  format:
+    name: Check Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting with Prettier
+        run: npm run format:check
+
+  # ============================================================================
+  # SECURITY CHECKS
+  # ============================================================================
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true # Don't fail build on audit warnings
+
+      - name: Install Snyk CLI
+        run: npm install -g snyk
+
+      - name: Run Snyk security scan
+        run: snyk test --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true # Don't fail if no Snyk token
+
+      - name: Check for secrets in code
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+
+  # ============================================================================
+  # TESTING
+  # ============================================================================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Generate coverage report
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: Archive coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: romeovs/lcov-reporter-action@v0.4.0
+        with:
+          lcov-file: ./coverage/lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ============================================================================
+  # BUILD
+  # ============================================================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: [lint, format, security, test]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
+
+      - name: Check build size
+        run: |
+          echo "## Build Size Analysis" >> $GITHUB_STEP_SUMMARY
+          du -sh .next >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          du -sh .next/static >> $GITHUB_STEP_SUMMARY
+
+      - name: Archive production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: |
+            .next/
+            public/
+            package.json
+            package-lock.json
+          retention-days: 7
+
+      - name: Create build info
+        run: |
+          cat > build-info.json << EOF
+          {
+            "commit": "${{ github.sha }}",
+            "branch": "${{ github.ref_name }}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "workflow_run": "${{ github.run_number }}",
+            "actor": "${{ github.actor }}"
+          }
+          EOF
+
+      - name: Upload build info
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info
+          path: build-info.json
+
+  # ============================================================================
+  # PREPARE FOR DEPLOYMENT
+  # ============================================================================
+  prepare-deployment:
+    name: Prepare Deployment Package
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-build
+
+      - name: Download build info
+        uses: actions/download-artifact@v4
+        with:
+          name: build-info
+
+      - name: Create deployment package
+        run: |
+          mkdir -p deployment
+          cp -r .next deployment/
+          cp -r public deployment/
+          cp package.json deployment/
+          cp package-lock.json deployment/
+          cp build-info.json deployment/
+          cd deployment
+          tar -czf ../deployment-package.tar.gz .
+          cd ..
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: deployment-package.tar.gz
+          retention-days: 30
+
+      - name: Generate deployment summary
+        run: |
+          echo "## Deployment Package Ready 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Size:** $(du -sh deployment-package.tar.gz | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Download the deployment package artifact" >> $GITHUB_STEP_SUMMARY
+          echo "2. Deploy to your chosen AWS service" >> $GITHUB_STEP_SUMMARY
+          echo "3. See AWS_DEPLOYMENT_OPTIONS.md for recommendations" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================================================
+  # NOTIFICATIONS
+  # ============================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [build, prepare-deployment]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check workflow status
+        id: status
+        run: |
+          if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.prepare-deployment.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=✅ Build and deployment preparation completed successfully!" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Build or deployment preparation failed. Check the logs." >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build notification summary
+        run: |
+          echo "## CI/CD Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Status:** ${{ steps.status.outputs.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Message:** ${{ steps.status.outputs.message }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Job Results:" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint: ${{ needs.lint.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Format: ${{ needs.format.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security: ${{ needs.security.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${{ needs.test.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: ${{ needs.build.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Prepare Deployment: ${{ needs.prepare-deployment.result || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+
+      # This can be extended with WhatsApp notifications via custom webhook
+      # See .github/hooks/whatsapp-notify.yml for implementation

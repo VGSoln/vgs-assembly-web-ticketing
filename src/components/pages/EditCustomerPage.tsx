@@ -3,72 +3,91 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, User, Phone, Mail, MapPin, Calendar, Gauge, Building2, CreditCard, CheckCircle, X } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { CustomerReviewPage } from './CustomerReviewPage';
-import { 
-  businessLevelOptions, 
-  zoneOptions
-} from '@/lib/data';
+import { getCustomer, updateCustomer, getLocations, getCustomerTypes } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CustomerFormData {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  phoneNumber: string;
-  email: string;
-  region: string;
-  zone: string;
-  address: string;
-  city: string;
-  customerType: string;
-  billingCycle: string;
-  meterNumber: string;
-  meterType: string;
-  manufacturer: string;
-  modelNumber: string;
-  installationDate: string;
-  initialReading: string;
+  phone: string;
+  altPhone: string;
+  identifier: string;
+  locationId: string;
+  customerTypeId: string;
+  gpsLatitude: string;
+  gpsLongitude: string;
 }
 
 interface EditCustomerPageProps {
-  customerId?: string;
+  customerId: string;
   onSave?: (customerData: CustomerFormData) => void;
+  onBack?: () => void;
 }
 
-export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({ 
-  customerId = '0525-07-00372',
-  onSave 
+export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({
+  customerId,
+  onSave,
+  onBack
 }) => {
-  const [showReview, setShowReview] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
-  // Initialize with existing customer data
+  const { user } = useAuth();
+  const [originalCustomer, setOriginalCustomer] = useState<any>(null);
+  const [locations, setLocations] = useState<any[]>([]);
+  const [customerTypes, setCustomerTypes] = useState<any[]>([]);
+
   const [formData, setFormData] = useState<CustomerFormData>({
-    firstName: 'ABDALLAH',
-    middleName: '',
-    lastName: 'IBRAHIM',
-    phoneNumber: '0244304995',
-    email: 'abdallah.ibrahim@example.com',
-    region: 'Greater Accra',
-    zone: 'zone4',
-    address: 'BF131 Endive St. Damfa',
-    city: 'Accra',
-    customerType: 'domestic',
-    billingCycle: 'monthly',
-    meterNumber: '200307953',
-    meterType: 'manual',
-    manufacturer: 'Zenner',
-    modelNumber: 'ZN-2021',
-    installationDate: '2024-11-01',
-    initialReading: '0'
+    phone: '',
+    altPhone: '',
+    identifier: '',
+    locationId: '',
+    customerTypeId: '',
+    gpsLatitude: '',
+    gpsLongitude: ''
   });
 
-  const [errors, setErrors] = useState<Partial<CustomerFormData>>({});
+  const [errors, setErrors] = useState<Partial<CustomerFormData> & { general?: string }>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // Load customer data based on customerId
+  // Load customer data and related options
   useEffect(() => {
-    // In a real app, this would fetch data from an API
-    console.log('Loading customer data for ID:', customerId);
-    // The initial state above simulates loading existing customer data
-  }, [customerId]);
+    const fetchData = async () => {
+      setIsFetching(true);
+      setFetchError(null);
+      try {
+        const assemblyId = user?.['assembly-id'];
+        if (!assemblyId) {
+          throw new Error('Assembly ID not found');
+        }
+
+        // Fetch customer data, locations, and customer types in parallel
+        const [customerData, locationsData, customerTypesData] = await Promise.all([
+          getCustomer(customerId),
+          getLocations(assemblyId),
+          getCustomerTypes(assemblyId)
+        ]);
+
+        setOriginalCustomer(customerData);
+        setLocations(locationsData);
+        setCustomerTypes(customerTypesData);
+
+        setFormData({
+          phone: customerData.phone || '',
+          altPhone: customerData['alt-phone'] || '',
+          identifier: customerData.identifier || '',
+          locationId: customerData['location-id'] || '',
+          customerTypeId: customerData['customer-type-id'] || '',
+          gpsLatitude: customerData['gps-latitude']?.toString() || '',
+          gpsLongitude: customerData['gps-longitude']?.toString() || ''
+        });
+      } catch (error) {
+        console.error('Error fetching customer data:', error);
+        setFetchError('Failed to load customer data. Please try again.');
+      } finally {
+        setIsFetching(false);
+      }
+    };
+
+    fetchData();
+  }, [customerId, user]);
 
   const customerTypeOptions = [
     { value: 'domestic', label: 'Domestic' },

@@ -911,7 +911,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                         <tr className="border-b border-gray-100 hover:bg-gray-50">
                           <td className="py-3 px-4 text-sm text-gray-900">Monthly</td>
                           <td className="py-3 px-4 text-sm text-gray-900">Uniform</td>
-                          <td className="py-3 px-4 text-sm text-gray-900">Water Charge</td>
+                          <td className="py-3 px-4 text-sm text-gray-900">Service Charge</td>
                           <td className="py-3 px-4 text-sm text-gray-900 text-right">GHS12.00 per cubic meter</td>
                         </tr>
                         <tr className="border-b border-gray-100 hover:bg-gray-50">

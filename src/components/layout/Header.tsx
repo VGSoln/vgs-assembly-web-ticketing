@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, LogOut, ArrowUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { PageType } from '@/types/dashboard';
 import { AnimatedNumber } from '../charts/AnimatedNumber';
 
@@ -12,24 +14,31 @@ export const Header: React.FC<HeaderProps> = ({
   currentPage,
   onToggleSidebar
 }) => {
+  const router = useRouter();
+  const { logout } = useAuth();
   const [isCustomerDetails, setIsCustomerDetails] = useState(false);
-  
+
   // Check for customer details view
   useEffect(() => {
     const checkCustomerView = () => {
       const viewType = document.body.getAttribute('data-customer-view');
       setIsCustomerDetails(viewType === 'details');
     };
-    
+
     // Initial check
     checkCustomerView();
-    
+
     // Set up observer for attribute changes
     const observer = new MutationObserver(checkCustomerView);
     observer.observe(document.body, { attributes: true, attributeFilter: ['data-customer-view'] });
-    
+
     return () => observer.disconnect();
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
   const getPageTitle = (page: PageType, isDetails: boolean = false) => {
     switch (page) {
       case 'performance':
@@ -48,10 +57,6 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Admin Location';
       case 'customer-type':
         return 'Admin Customer Type';
-      case 'storage-tank-meter-readings':
-        return 'Storage Tank Meter Readings';
-      case 'customer-meter-readings':
-        return 'Customer Meter Readings';
       case 'staff':
         return 'List of Staff Members';
       case 'staff-details':
@@ -66,8 +71,6 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Ticketing Transactions';
       case 'collector-paths':
         return 'Collector Paths';
-      case 'storage-tank-locations':
-        return 'Market Locations';
       case 'ticket-customers':
         return 'Ticket Customer List';
       case 'ticket-rates':
@@ -80,8 +83,6 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Bank Deposit Transactions';
       case 'dashboard-details-customer-debt':
         return 'Customer Debt';
-      case 'dashboard-details-yearly-water-connections':
-        return 'Payment and Months Since Last Payment Information';
       case 'dashboard-details-paid-customers':
         return 'Paid Customers';
       case 'dashboard-details-non-paid-customers':
@@ -108,20 +109,10 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Not Visited';
       case 'customer-visit-status-no-one-home':
         return 'No One Home';
-      case 'customer-visit-status-meter-disconnected':
-        return 'Meter Disconnected';
-      case 'customer-visit-status-water-supply-issues':
-        return 'Water Supply Issues';
       case 'customer-visit-status-cancelled-stopped':
         return 'Cancelled/Stopped';
       case 'customer-visit-status-excuses':
         return 'Excuses';
-      case 'customer-visit-status-unreadable-meter':
-        return 'Unreadable Meter';
-      case 'customer-visit-status-inaccessible-meter':
-        return 'Inaccessible Meter';
-      case 'customer-visit-status-faulty-meter':
-        return 'Faulty Meter';
       case 'customer-visit-status-other':
         return 'Other';
       case 'bill-generation':
@@ -149,10 +140,6 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Admin';
       case 'customer-type':
         return 'Admin';
-      case 'storage-tank-meter-readings':
-        return 'Meter Readings';
-      case 'customer-meter-readings':
-        return 'Meter Readings';
       case 'staff':
         return 'Staff';
       case 'staff-details':
@@ -167,8 +154,6 @@ export const Header: React.FC<HeaderProps> = ({
         return 'GPS';
       case 'collector-paths':
         return 'GPS';
-      case 'storage-tank-locations':
-        return 'GPS';
       case 'ticket-customers':
         return 'Customers';
       case 'ticket-rates':
@@ -180,8 +165,6 @@ export const Header: React.FC<HeaderProps> = ({
       case 'bank-deposits':
         return 'Bank Deposits';
       case 'dashboard-details-customer-debt':
-        return 'Dashboard Details';
-      case 'dashboard-details-yearly-water-connections':
         return 'Dashboard Details';
       case 'dashboard-details-paid-customers':
         return 'Dashboard Details';
@@ -207,19 +190,9 @@ export const Header: React.FC<HeaderProps> = ({
         return 'Customer Payment Status';
       case 'customer-visit-status-no-one-home':
         return 'Customer Visit Status';
-      case 'customer-visit-status-meter-disconnected':
-        return 'Customer Visit Status';
-      case 'customer-visit-status-water-supply-issues':
-        return 'Customer Visit Status';
       case 'customer-visit-status-cancelled-stopped':
         return 'Customer Visit Status';
       case 'customer-visit-status-excuses':
-        return 'Customer Visit Status';
-      case 'customer-visit-status-unreadable-meter':
-        return 'Customer Visit Status';
-      case 'customer-visit-status-inaccessible-meter':
-        return 'Customer Visit Status';
-      case 'customer-visit-status-faulty-meter':
         return 'Customer Visit Status';
       case 'customer-visit-status-other':
         return 'Customer Visit Status';
@@ -248,10 +221,16 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
-            <button className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors">
+            <button
+              onClick={handleLogout}
+              className="text-gray-700 text-sm font-medium hover:text-gray-900 transition-colors"
+            >
               Logout
             </button>
-            <button className="text-gray-600 hover:text-gray-900 hover:bg-white/70 p-2 rounded-lg transition-all">
+            <button
+              onClick={handleLogout}
+              className="text-gray-600 hover:text-gray-900 hover:bg-white/70 p-2 rounded-lg transition-all"
+            >
               <LogOut size={20} />
             </button>
           </div>
@@ -314,14 +293,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="text-sm font-normal text-gray-500">
                   No One Home
                 </span>
-              ) : currentPage === 'customer-visit-status-meter-disconnected' ? (
-                <span className="text-sm font-normal text-gray-500">
-                  Meter Disconnected
-                </span>
-              ) : currentPage === 'customer-visit-status-water-supply-issues' ? (
-                <span className="text-sm font-normal text-gray-500">
-                  Water Supply Issues
-                </span>
               ) : currentPage === 'customer-visit-status-cancelled-stopped' ? (
                 <span className="text-sm font-normal text-gray-500">
                   Cancelled/Stopped
@@ -329,18 +300,6 @@ export const Header: React.FC<HeaderProps> = ({
               ) : currentPage === 'customer-visit-status-excuses' ? (
                 <span className="text-sm font-normal text-gray-500">
                   Excuses
-                </span>
-              ) : currentPage === 'customer-visit-status-unreadable-meter' ? (
-                <span className="text-sm font-normal text-gray-500">
-                  Unreadable Meter
-                </span>
-              ) : currentPage === 'customer-visit-status-inaccessible-meter' ? (
-                <span className="text-sm font-normal text-gray-500">
-                  Inaccessible Meter
-                </span>
-              ) : currentPage === 'customer-visit-status-faulty-meter' ? (
-                <span className="text-sm font-normal text-gray-500">
-                  Faulty Meter
                 </span>
               ) : currentPage === 'customer-visit-status-other' ? (
                 <span className="text-sm font-normal text-gray-500">

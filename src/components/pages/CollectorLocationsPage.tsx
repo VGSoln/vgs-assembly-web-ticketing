@@ -6,10 +6,28 @@ import { DateRangePicker } from '../layout/DateRangePicker';
 import { collectorOptions } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
 import { getDatePresets } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { getGPSTransactions } from '@/lib/api';
 
 interface CollectorLocationsPageProps {}
 
+interface GPSTransaction {
+  id: string;
+  'customer-id': string;
+  'customer-name'?: string;
+  'customer-type-name'?: string;
+  'ticket-type-name'?: string;
+  'location-name'?: string;
+  amount: number;
+  'transaction-date': string;
+  'user-name'?: string;
+  'gps-latitude': number;
+  'gps-longitude': number;
+  'payments-count'?: number;
+}
+
 export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () => {
+  const { user } = useAuth();
   const [selectedBusinessCenter, setSelectedBusinessCenter] = useState('');
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedTicketType, setSelectedTicketType] = useState<'market' | 'lorry-park' | ''>('');
@@ -18,7 +36,7 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
   const [mapLoaded, setMapLoaded] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  
+
   // Date range state - default to today
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange>({
     start: new Date().toISOString().split('T')[0],
@@ -28,17 +46,50 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
   const [activePreset, setActivePreset] = useState('today');
   const [displayDateRange, setDisplayDateRange] = useState('Today');
 
+  // API data state
+  const [gpsTransactions, setGpsTransactions] = useState<GPSTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Fetch GPS transactions from API
+  useEffect(() => {
+    const fetchGPSData = async () => {
+      if (!user?.['assembly-id']) return;
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await getGPSTransactions({
+          'assembly-id': user['assembly-id'],
+          'start-date': selectedDateRange.start,
+          'end-date': selectedDateRange.end,
+          ...(selectedCollector && { 'user-id': selectedCollector }),
+        });
+
+        setGpsTransactions(data);
+      } catch (err) {
+        console.error('Error fetching GPS transactions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch GPS data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGPSData();
+  }, [user, selectedDateRange, selectedCollector]);
+
+  // Map initialization and update with real data
   useEffect(() => {
     let mounted = true;
 
     const loadMap = async () => {
-      if (!mapRef.current || mapInstanceRef.current) return;
+      if (!mapRef.current || mapInstanceRef.current || loading) return;
 
       try {
         // Import Leaflet
         const L = (await import('leaflet')).default;
-        
+
         // Fix default icon paths
         delete (L.Icon.Default.prototype as any)._getIconUrl;
         L.Icon.Default.mergeOptions({
@@ -91,72 +142,66 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
           });
         };
 
-        // Customer transaction locations data with payment history - Today's transactions
-        const todayStr = new Date().toISOString().split('T')[0];
-        const customerTransactions = [
-          // New customers (first time or single payment)
-          { id: 1, lat: 5.6037, lng: -0.1870, customerName: 'Kofi Mensah', customerType: 'Stall', ticketType: 'Market', location: 'Central Market', amount: 6.00, date: todayStr, collector: 'John Doe', paymentsCount: 1, isNew: true },
-          { id: 2, lat: 5.6157, lng: -0.1820, customerName: 'Ama Serwaa', customerType: 'Table-Top', ticketType: 'Market', location: 'Kejetia Market', amount: 3.50, date: todayStr, collector: 'Jane Smith', paymentsCount: 1, isNew: true },
-          { id: 3, lat: 5.6087, lng: -0.1750, customerName: 'Kwame Asante', customerType: 'Hawker', ticketType: 'Market', location: 'Bantama Market', amount: 2.00, date: todayStr, collector: 'Bob Johnson', paymentsCount: 1, isNew: true },
-          { id: 4, lat: 5.5997, lng: -0.1700, customerName: 'Yaw Boateng', customerType: 'Taxi', ticketType: 'Lorry Park', location: 'Main Station', amount: 2.00, date: todayStr, collector: 'Mary Brown', paymentsCount: 1, isNew: true },
-          { id: 5, lat: 5.5987, lng: -0.2000, customerName: 'Akua Darko', customerType: 'Trotro', ticketType: 'Lorry Park', location: 'Tech Junction', amount: 1.50, date: todayStr, collector: 'James Wilson', paymentsCount: 1, isNew: true },
-          
-          // Existing customers (multiple payments)
-          { id: 6, lat: 5.6057, lng: -0.1600, customerName: 'Mohammed Ali', customerType: 'Private', ticketType: 'Lorry Park', location: 'Asafo Station', amount: 2.50, date: todayStr, collector: 'Sarah Davis', paymentsCount: 15, isNew: false },
-          { id: 7, lat: 5.6137, lng: -0.1650, customerName: 'Grace Osei', customerType: 'Stall', ticketType: 'Market', location: 'Adum Market', amount: 6.00, date: todayStr, collector: 'Michael Lee', paymentsCount: 45, isNew: false },
-          { id: 8, lat: 5.5937, lng: -0.1950, customerName: 'Samuel Tetteh', customerType: 'Table-Top', ticketType: 'Market', location: 'Roman Hill Market', amount: 3.50, date: todayStr, collector: 'Emma Garcia', paymentsCount: 23, isNew: false },
-          { id: 9, lat: 5.6107, lng: -0.1920, customerName: 'Abena Mensah', customerType: 'Stall', ticketType: 'Market', location: 'Central Market', amount: 6.00, date: todayStr, collector: 'John Doe', paymentsCount: 67, isNew: false },
-          { id: 10, lat: 5.5977, lng: -0.1850, customerName: 'Isaac Amponsah', customerType: 'Hawker', ticketType: 'Market', location: 'Kejetia Market', amount: 2.00, date: todayStr, collector: 'Jane Smith', paymentsCount: 12, isNew: false },
-          { id: 11, lat: 5.6027, lng: -0.1780, customerName: 'Comfort Adjei', customerType: 'Taxi', ticketType: 'Lorry Park', location: 'Main Station', amount: 2.00, date: todayStr, collector: 'Bob Johnson', paymentsCount: 34, isNew: false },
-          { id: 12, lat: 5.6147, lng: -0.1950, customerName: 'Daniel Owusu', customerType: 'Trotro', ticketType: 'Lorry Park', location: 'Tech Junction', amount: 1.50, date: todayStr, collector: 'Mary Brown', paymentsCount: 89, isNew: false },
-          { id: 13, lat: 5.5947, lng: -0.1730, customerName: 'Patricia Agyeman', customerType: 'Private', ticketType: 'Lorry Park', location: 'Asafo Station', amount: 2.50, date: todayStr, collector: 'James Wilson', paymentsCount: 56, isNew: false },
-          { id: 14, lat: 5.6077, lng: -0.2010, customerName: 'Joseph Badu', customerType: 'Stall', ticketType: 'Market', location: 'Bantama Market', amount: 6.00, date: todayStr, collector: 'Sarah Davis', paymentsCount: 98, isNew: false },
-          { id: 15, lat: 5.6017, lng: -0.1690, customerName: 'Esther Frimpong', customerType: 'Table-Top', ticketType: 'Market', location: 'Adum Market', amount: 3.50, date: todayStr, collector: 'Michael Lee', paymentsCount: 41, isNew: false },
-        ];
+        // Add markers for GPS transactions from API
+        const markers: any[] = [];
+        gpsTransactions.forEach((transaction) => {
+          // Skip transactions without GPS coordinates
+          if (!transaction['gps-latitude'] || !transaction['gps-longitude']) return;
 
-        // Add markers for customer transactions
-        customerTransactions.forEach((transaction) => {
-          // Green for new customers (1 payment), Blue for existing customers (2+ payments)
-          const color = transaction.isNew ? '#10b981' : '#3b82f6';
-          const icon = createCustomIcon(color, transaction.isNew);
-          const marker = L.marker([transaction.lat, transaction.lng], { icon }).addTo(map);
-          
+          // Determine if customer is new (payments-count <= 1)
+          const isNew = (transaction['payments-count'] || 1) <= 1;
+          const color = isNew ? '#10b981' : '#3b82f6';
+          const icon = createCustomIcon(color, isNew);
+
+          const marker = L.marker(
+            [transaction['gps-latitude'], transaction['gps-longitude']],
+            { icon }
+          ).addTo(map);
+
           marker.bindPopup(`
             <div style="padding: 10px; min-width: 200px;">
-              <div style="background: ${transaction.isNew ? '#10b981' : '#3b82f6'}; color: white; padding: 6px; border-radius: 4px 4px 0 0; margin: -10px -10px 8px -10px;">
+              <div style="background: ${color}; color: white; padding: 6px; border-radius: 4px 4px 0 0; margin: -10px -10px 8px -10px;">
                 <h3 style="margin: 0; font-weight: bold; font-size: 14px;">
-                  ${transaction.customerName}
+                  ${transaction['customer-name'] || 'Unknown Customer'}
                 </h3>
                 <span style="font-size: 11px; opacity: 0.9;">
-                  ${transaction.isNew ? 'New Customer' : `Existing Customer (${transaction.paymentsCount} payments)`}
+                  ${isNew ? 'New Customer' : `Existing Customer (${transaction['payments-count'] || 0} payments)`}
                 </span>
               </div>
               <div style="padding-top: 4px;">
-                <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                  <strong>Type:</strong> ${transaction.customerType}
-                </p>
-                <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                  <strong>Ticket:</strong> ${transaction.ticketType}
-                </p>
-                <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                  <strong>Location:</strong> ${transaction.location}
-                </p>
+                ${transaction['customer-type-name'] ? `<p style="margin: 2px 0; color: #666; font-size: 12px;">
+                  <strong>Type:</strong> ${transaction['customer-type-name']}
+                </p>` : ''}
+                ${transaction['ticket-type-name'] ? `<p style="margin: 2px 0; color: #666; font-size: 12px;">
+                  <strong>Ticket:</strong> ${transaction['ticket-type-name']}
+                </p>` : ''}
+                ${transaction['location-name'] ? `<p style="margin: 2px 0; color: #666; font-size: 12px;">
+                  <strong>Location:</strong> ${transaction['location-name']}
+                </p>` : ''}
                 <p style="margin: 2px 0; color: #666; font-size: 12px;">
                   <strong>Amount:</strong> GHS ${transaction.amount.toFixed(2)}
                 </p>
                 <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                  <strong>Date:</strong> ${transaction.date}
+                  <strong>Date:</strong> ${transaction['transaction-date']}
                 </p>
-                <p style="margin: 2px 0; color: #666; font-size: 12px;">
-                  <strong>Collector:</strong> ${transaction.collector}
-                </p>
+                ${transaction['user-name'] ? `<p style="margin: 2px 0; color: #666; font-size: 12px;">
+                  <strong>Collector:</strong> ${transaction['user-name']}
+                </p>` : ''}
               </div>
             </div>
           `);
+
+          markers.push(marker);
         });
 
-        mapInstanceRef.current = { map, tileLayer };
-        
+        // Auto-fit bounds to show all markers if there are any
+        if (markers.length > 0) {
+          const group = L.featureGroup(markers);
+          map.fitBounds(group.getBounds().pad(0.1));
+        }
+
+        mapInstanceRef.current = { map, tileLayer, markers };
+
         if (mounted) {
           setMapLoaded(true);
         }
@@ -165,7 +210,7 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
       }
     };
 
-    // Load map after component mounts
+    // Load map after component mounts and data is loaded
     const timer = setTimeout(() => {
       loadMap();
     }, 100);
@@ -178,7 +223,7 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [loading, gpsTransactions]);
 
   // Handle map type changes
   useEffect(() => {
@@ -225,11 +270,11 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
     { value: 'lorry-park', label: 'Lorry Park' }
   ];
 
-  // Transaction statistics
+  // Transaction statistics from real data
   const transactionStats = {
-    newCustomers: 5,
-    existingCustomers: 10,
-    total: 15
+    newCustomers: gpsTransactions.filter(t => (t['payments-count'] || 1) <= 1).length,
+    existingCustomers: gpsTransactions.filter(t => (t['payments-count'] || 1) > 1).length,
+    total: gpsTransactions.length
   };
 
   return (
@@ -370,18 +415,64 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
 
         {/* Map Display */}
         <div className="flex-1 relative" style={{ minHeight: 0, overflow: 'hidden', zIndex: 1 }}>
-          <div 
+          <div
             ref={mapRef}
             className="w-full h-full absolute inset-0"
             style={{ zIndex: 1 }}
           />
-          
-          {!mapLoaded && (
+
+          {/* Loading State */}
+          {loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-sm text-gray-600">Loading GPS Data...</p>
+                <p className="text-xs text-gray-500 mt-2">Fetching transaction locations...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+              <div className="text-center p-6 max-w-md">
+                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading GPS Data</h3>
+                <p className="text-sm text-gray-600 mb-4">{error}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Map Loading State */}
+          {!loading && !error && !mapLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
                 <p className="text-sm text-gray-600">Loading Map...</p>
                 <p className="text-xs text-gray-500 mt-2">Initializing Google Maps with Leaflet...</p>
+              </div>
+            </div>
+          )}
+
+          {/* No Data State */}
+          {!loading && !error && mapLoaded && gpsTransactions.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/90 pointer-events-none">
+              <div className="text-center p-6">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Map className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No GPS Data Available</h3>
+                <p className="text-sm text-gray-600">No transactions with GPS coordinates found for the selected date range.</p>
               </div>
             </div>
           )}

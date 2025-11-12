@@ -1,23 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp, Users, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Eye } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddCustomerTypePage } from './AddCustomerTypePage';
 import { EditCustomerTypePage } from './EditCustomerTypePage';
-import { 
-  customerTypesData, 
+import {
   businessLevelOptions
 } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
-import { 
-  copyToClipboard, 
-  printData, 
-  exportToExcel, 
-  exportToCSV, 
-  exportToPDF, 
-  formatDataForExport, 
-  exportHeaders 
+import {
+  copyToClipboard,
+  printData,
+  exportToExcel,
+  exportToCSV,
+  exportToPDF
 } from '@/lib/exportUtils';
+import { useAuth } from '@/contexts/AuthContext';
+import { getCustomerTypes } from '@/lib/api';
 
 interface CustomerTypePageProps {
   selectedDateRange: DateRange;
@@ -35,6 +34,19 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
+type CustomerType = {
+  id: string;
+  'assembly-id': string;
+  'ticket-type-id': string;
+  name: string;
+  description?: string;
+  'is-active': boolean;
+  'created-at': string;
+  'updated-at'?: string;
+  'created-by'?: string;
+  'modified-by'?: string;
+};
+
 export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   selectedDateRange,
   displayDateRange,
@@ -45,6 +57,11 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   onDateRangeChange,
   onDateRangeApply
 }) => {
+  const { user: currentUser } = useAuth();
+  const [customerTypes, setCustomerTypes] = useState<CustomerType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [entriesPerPage, setEntriesPerPage] = useState('50');
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +72,25 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   const [showEditCustomerType, setShowEditCustomerType] = useState(false);
   const [selectedCustomerType, setSelectedCustomerType] = useState<any>(null);
 
+  // Fetch customer types from API
+  useEffect(() => {
+    if (currentUser) {
+      setLoading(true);
+      getCustomerTypes(currentUser['assembly-id'])
+        .then((data) => {
+          setCustomerTypes(data);
+          setError(null);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch customer types:', err);
+          setError('Failed to load customer types. Please try again.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [currentUser]);
+
   const entriesOptions = [
     { value: '10', label: '10' },
     { value: '25', label: '25' },
@@ -63,15 +99,15 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   ];
 
   const columns = [
-    { key: 'customerTypeId', label: 'Customer Type ID', sortable: true, width: '11%' },
-    { key: 'ticketType', label: 'Ticket Type', sortable: true, width: '9%' },
-    { key: 'customerTypeName', label: 'Customer Type Name', sortable: true, width: '16%' },
+    { key: 'id', label: 'Customer Type ID', sortable: true, width: '11%' },
+    { key: 'ticket-type-id', label: 'Ticket Type', sortable: true, width: '9%' },
+    { key: 'name', label: 'Customer Type Name', sortable: true, width: '16%' },
     { key: 'description', label: 'Description', sortable: false, width: '20%' },
-    { key: 'status', label: 'Status', sortable: true, width: '8%' },
-    { key: 'createdDate', label: 'Created Date', sortable: true, width: '11%' },
-    { key: 'modifiedDate', label: 'Modified Date', sortable: true, width: '11%' },
-    { key: 'modifiedBy', label: 'Modified by', sortable: true, width: '9%' },
-    { key: 'createdBy', label: 'Created by', sortable: true, width: '9%' },
+    { key: 'is-active', label: 'Status', sortable: true, width: '8%' },
+    { key: 'created-at', label: 'Created Date', sortable: true, width: '11%' },
+    { key: 'updated-at', label: 'Modified Date', sortable: true, width: '11%' },
+    { key: 'modified-by', label: 'Modified by', sortable: true, width: '9%' },
+    { key: 'created-by', label: 'Created by', sortable: true, width: '9%' },
     { key: 'actions', label: '', sortable: false, width: '3%' }
   ];
 
@@ -115,59 +151,107 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
     setCurrentPage(1);
   };
 
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Customer Type-specific export headers
+  const customerTypeExportHeaders = [
+    'Customer Type ID',
+    'Ticket Type',
+    'Customer Type Name',
+    'Description',
+    'Status',
+    'Created Date',
+    'Modified Date'
+  ];
+
+  // Transform API data to export format
+  const transformForExport = (customerTypes: CustomerType[]) => {
+    return customerTypes.map(customerType => ({
+      'Customer Type ID': customerType.id,
+      'Ticket Type': customerType['ticket-type-id'],
+      'Customer Type Name': customerType.name,
+      'Description': customerType.description || 'N/A',
+      'Status': customerType['is-active'] ? 'Active' : 'Inactive',
+      'Created Date': formatDate(customerType['created-at']),
+      'Modified Date': formatDate(customerType['updated-at'])
+    }));
+  };
+
   // Export functions
   const handleExport = async (type: string) => {
-    const exportData = formatDataForExport(filteredAndSortedData);
+    // Transform data directly
+    const exportData = transformForExport(filteredAndSortedData);
     setExportStatus(`Exporting ${type}...`);
-    
+
     try {
       switch (type) {
         case 'copy':
-          const success = await copyToClipboard(exportData, exportHeaders);
+          const success = await copyToClipboard(exportData, customerTypeExportHeaders);
           setExportStatus(success ? 'Copied to clipboard!' : 'Failed to copy');
           break;
         case 'print':
-          printData(exportData, exportHeaders, 'Customer Types Report');
+          printData(exportData, customerTypeExportHeaders, 'Customer Types Report');
           setExportStatus('Print dialog opened');
           break;
         case 'excel':
-          await exportToExcel(exportData, exportHeaders, 'customer-types');
+          await exportToExcel(exportData, customerTypeExportHeaders, 'customer-types');
           setExportStatus('Excel file downloaded');
           break;
         case 'csv':
-          exportToCSV(exportData, exportHeaders, 'customer-types');
+          exportToCSV(exportData, customerTypeExportHeaders, 'customer-types');
           setExportStatus('CSV file downloaded');
           break;
         case 'pdf':
-          await exportToPDF(exportData, exportHeaders, 'customer-types');
-          setExportStatus('PDF file downloaded');
+          await exportToPDF(exportData, customerTypeExportHeaders, 'customer-types');
+          setExportStatus('PDF export initiated');
           break;
       }
-      setTimeout(() => setExportStatus(''), 3000);
     } catch (error) {
-      console.error('Export error:', error);
       setExportStatus('Export failed');
     }
+
+    setTimeout(() => setExportStatus(''), 3000);
   };
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = customerTypesData.filter(customerType =>
-      customerType.customerTypeId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerType.customerTypeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerType.ticketType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerType.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerType.createdBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customerType.modifiedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    let filtered = customerTypes.filter(customerType =>
+      customerType.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerType.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customerType['ticket-type-id'].toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customerType.description && customerType.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (customerType['created-by'] && customerType['created-by'].toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (customerType['modified-by'] && customerType['modified-by'].toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     // Sort
     if (sortConfig) {
-      filtered.sort((a: any, b: any) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+      filtered.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof CustomerType];
+        const bValue = b[sortConfig.key as keyof CustomerType];
+
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+
+        if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (aValue > bValue) {
           return sortConfig.direction === 'asc' ? 1 : -1;
         }
         return 0;
@@ -175,7 +259,7 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [customerTypes, searchTerm, sortConfig]);
 
   // Pagination
   const totalEntries = filteredAndSortedData.length;
@@ -198,11 +282,42 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   // Show Edit Customer Type page if state is true
   if (showEditCustomerType && selectedCustomerType) {
     return (
-      <EditCustomerTypePage 
-        customerTypeId={selectedCustomerType.customerTypeId}
+      <EditCustomerTypePage
+        customerTypeId={selectedCustomerType.id}
         onBack={handleBackFromEdit}
         onSave={handleSaveEdit}
       />
+    );
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Loading customer types...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-medium mb-2">Error Loading Customer Types</p>
+          <p className="text-gray-600 text-sm">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -322,7 +437,7 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
                     style={{ width: column.width }}
                     className={`px-2 py-3 text-left text-xs font-bold text-white border-r border-slate-600 last:border-r-0 relative ${
                       column.sortable ? 'cursor-pointer hover:bg-slate-600 transition-all duration-300 hover:shadow-lg' : ''
-                    } ${column.key === 'customerTypeId' ? 'rounded-tl-xl' : ''} ${column.key === 'actions' ? 'rounded-tr-xl' : ''}`}
+                    } ${column.key === 'id' ? 'rounded-tl-xl' : ''} ${column.key === 'actions' ? 'rounded-tr-xl' : ''}`}
                     onClick={() => column.sortable && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-2 relative z-10">
@@ -355,55 +470,55 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
                   }`}>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px font-semibold">
-                        {customerType.customerTypeId}
+                        {customerType.id}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <span className={`inline-flex items-center px-2 py-0.5 text-10px font-medium rounded-full ${
-                        customerType.ticketType === 'Lorry Park' 
-                          ? 'bg-purple-100 text-purple-800' 
+                        customerType['ticket-type-id'] === 'Lorry Park'
+                          ? 'bg-purple-100 text-purple-800'
                           : 'bg-orange-100 text-orange-800'
                       }`}>
-                        {customerType.ticketType}
+                        {customerType['ticket-type-id']}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="break-words leading-tight group-hover:text-slate-900 text-blue-600 hover:text-blue-800 text-10px">
-                        {customerType.customerTypeName}
+                        {customerType.name}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px truncate" title={customerType.description}>
-                        {customerType.description}
+                        {customerType.description || 'N/A'}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px border-r border-gray-100 text-center">
                       <span className={`px-2 py-1 text-10px font-semibold rounded-full ${
-                        customerType.status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
+                        customerType['is-active']
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {customerType.status || 'Active'}
+                        {customerType['is-active'] ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px">
-                        {customerType.createdDate}
+                        {formatDate(customerType['created-at'])}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <div className="text-10px">
-                        {customerType.modifiedDate}
+                        {formatDate(customerType['updated-at'])}
                       </div>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <span className="text-10px">
-                        {customerType.modifiedBy}
+                        {customerType['modified-by'] || 'N/A'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-10px text-slate-800 border-r border-gray-100">
                       <span className="text-10px">
-                        {customerType.createdBy}
+                        {customerType['created-by'] || 'N/A'}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center">
@@ -457,9 +572,9 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <span className="text-xs font-bold text-gray-500">ID:</span>
-                  <span className="text-sm font-semibold ml-1">{customerType.customerTypeId}</span>
+                  <span className="text-sm font-semibold ml-1">{customerType.id}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => handleEditCustomerType(customerType)}
                   className="bg-blue-500 p-1.5 rounded-full hover:bg-blue-600 transition-colors"
                   title="Edit Customer Type"
@@ -467,42 +582,42 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
                   <Edit className="w-3 h-3 text-white" />
                 </button>
               </div>
-              <div className="text-sm text-blue-600 font-semibold mb-1">{customerType.customerTypeName}</div>
+              <div className="text-sm text-blue-600 font-semibold mb-1">{customerType.name}</div>
               <div className="mb-2">
                 <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                  customerType.ticketType === 'Lorry Park' 
-                    ? 'bg-purple-100 text-purple-800' 
+                  customerType['ticket-type-id'] === 'Lorry Park'
+                    ? 'bg-purple-100 text-purple-800'
                     : 'bg-orange-100 text-orange-800'
                 }`}>
-                  {customerType.ticketType}
+                  {customerType['ticket-type-id']}
                 </span>
               </div>
               <div className="mb-2">
                 <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                  customerType.status === 'Active' 
-                    ? 'bg-green-100 text-green-800' 
+                  customerType['is-active']
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {customerType.status || 'Active'}
+                  {customerType['is-active'] ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <div className="text-xs text-gray-600 mb-2">{customerType.description}</div>
+              <div className="text-xs text-gray-600 mb-2">{customerType.description || 'N/A'}</div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-gray-500">Created:</span>
-                  <span className="ml-1">{customerType.createdDate}</span>
+                  <span className="ml-1">{formatDate(customerType['created-at'])}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{customerType.createdBy}</span>
+                  <span className="ml-1">{customerType['created-by'] || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Modified:</span>
-                  <span className="ml-1">{customerType.modifiedDate}</span>
+                  <span className="ml-1">{formatDate(customerType['updated-at'])}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{customerType.modifiedBy}</span>
+                  <span className="ml-1">{customerType['modified-by'] || 'N/A'}</span>
                 </div>
               </div>
             </div>

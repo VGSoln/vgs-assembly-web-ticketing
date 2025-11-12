@@ -1,4 +1,4 @@
-import { Calendar, TrendingUp, Users, DollarSign, CreditCard, AlertTriangle, ChevronDown, ChevronRight, Menu, X, Activity, ArrowUp, ArrowDown, MoreVertical, CalendarDays, FileText, Droplet, LayoutDashboard, MapPin, Database, Banknote, LogOut, Eye, Shield } from 'lucide-react';
+import { Calendar, TrendingUp, Users, DollarSign, CreditCard, AlertTriangle, ChevronDown, ChevronRight, Menu, X, Activity, ArrowUp, ArrowDown, MoreVertical, CalendarDays, FileText, LayoutDashboard, MapPin, Database, Banknote, LogOut, Eye, Shield } from 'lucide-react';
 
 export const menuItems = [
   { 
@@ -42,15 +42,14 @@ export const menuItems = [
       { label: 'Ticketing Rates', page: 'ticket-rates' },
     ]
   },
-  { 
-    icon: MapPin, 
-    label: 'GPS', 
+  {
+    icon: MapPin,
+    label: 'GPS',
     color: 'text-blue-400',
     subItems: [
       { label: 'Customer Locations', page: 'customer-locations' },
       { label: 'Ticketing Transactions', page: 'collector-locations' },
-      { label: 'Collector Paths', page: 'collector-paths' },
-      { label: 'Market Locations', page: 'storage-tank-locations' }
+      { label: 'Collector Paths', page: 'collector-paths' }
     ]
   },
   { 
@@ -100,14 +99,9 @@ export const customerPaymentStatusData = [
 
 export const defaulterReasonsData = [
   { name: 'No One Home', value: 0, color: '#3b82f6' },
-  { name: 'Meter Disconnected', value: 1, color: '#dc2626' },
-  { name: 'Water Supply Issues', value: 0, color: '#10b981' },
   { name: 'Cancelled/Stopped', value: 0, color: '#8b5cf6' },
   { name: 'Excuses', value: 0, color: '#f59e0b' },
-  { name: 'Unreadable Meter', value: 0, color: '#f97316' },
-  { name: 'Inaccessible Meter', value: 0, color: '#06b6d4' },
-  { name: 'Faulty Meter', value: 0, color: '#1f2937' },
-  { name: 'Other', value: 1, color: '#6b7280' }
+  { name: 'Other', value: 2, color: '#6b7280' }
 ];
 
 export const monthlyVisitData = [
@@ -334,276 +328,6 @@ export const communitiesData = [
   }
 ];
 
-export const storageTanksData = [
-  {
-    id: 2,
-    storageTankNumber: '2',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    storageTankName: 'Storage Tank 2',
-    throughput: 60,
-    meterNumber: '80881111846',
-    lastReadingDate: '',
-    daysSinceLastReading: 0,
-    lastReading: 0,
-    location: 'Location 2',
-    gps: true
-  },
-  {
-    id: 1,
-    storageTankNumber: '1',
-    waterSystemName: 'Kweiman-Danfa Water System',
-    storageTankName: 'Storage Tank 1',
-    throughput: 60,
-    meterNumber: '80887541785',
-    lastReadingDate: '',
-    daysSinceLastReading: 0,
-    lastReading: 0,
-    location: 'Location 1',
-    gps: true
-  }
-];
-
-export const businessLevelOptions = [
-  { value: 'level1', label: 'Business Level 1' },
-  { value: 'level2', label: 'Business Level 2' },
-  { value: 'level3', label: 'Business Level 3' }
-];
-
-export const zoneOptions = [
-  { value: 'zone1', label: 'ZONE 1' },
-  { value: 'zone2', label: 'ZONE 2' },
-  { value: 'zone3', label: 'ZONE 3' },
-  { value: 'zone4', label: 'ZONE 4' },
-  { value: 'zone5', label: 'ZONE 5' },
-  { value: 'zone6', label: 'ZONE 6' }
-];
-
-export const collectorOptions = [
-  { value: 'lydia', label: 'Lydia Apanatinga' },
-  { value: 'francis', label: 'Francis Seguri' },
-  { value: 'kubura', label: 'Kubura Abdul Rahman' },
-  { value: 'rapheal', label: 'Rapheal Kwabena Aboagye' },
-  { value: 'michael', label: 'MICHAEL OPOKU' }
-];
-
-
-export const storageTankMeterReadingsData = [
-  {
-    id: 1,
-    storageTankMeterNumber: 'STM001',
-    storageTankName: 'Storage Tank 1',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    staffName: 'Francis Seguri',
-    readingDate: '15 Aug 2025',
-    serverDate: '15 Aug 2025',
-    reading: 2500,
-    fieldReading: 2500,
-    picture: true
-  },
-  {
-    id: 2,
-    storageTankMeterNumber: 'STM002',
-    storageTankName: 'Storage Tank 2',
-    meterType: 'Analog',
-    system: 'Kweiman-Danfa',
-    staffName: 'Lydia Apanatinga',
-    readingDate: '14 Aug 2025',
-    serverDate: '14 Aug 2025',
-    reading: 42300,
-    fieldReading: 42300,
-    picture: true
-  },
-  {
-    id: 3,
-    storageTankMeterNumber: 'STM003',
-    storageTankName: 'Storage Tank 3',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    staffName: 'Kubura Abdul Rahman',
-    readingDate: '13 Aug 2025',
-    serverDate: '13 Aug 2025',
-    reading: 156800,
-    fieldReading: 156800,
-    picture: true
-  },
-  {
-    id: 4,
-    storageTankMeterNumber: 'STM004',
-    storageTankName: 'Storage Tank 4',
-    meterType: 'Digital',
-    system: 'Kweiman-Danfa',
-    staffName: 'Rapheal Kwabena Aboagye',
-    readingDate: '12 Aug 2025',
-    serverDate: '12 Aug 2025',
-    reading: 78900,
-    fieldReading: 78900,
-    picture: true
-  }
-];
-
-export const customerMeterReadingsData = [
-  {
-    id: 13686,
-    customerNumber: '0525-07-00837',
-    customerName: 'RITA KOJO .',
-    customerPhone: '0244630552',
-    customerType: 'Domestic',
-    meterNumber: 'O4968',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 4:55 PM',
-    reading: 162,
-    fieldReading: 162,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13685,
-    customerNumber: '0504-07-002061',
-    customerName: 'DR. JONATHAN LLOYD WAYNE KPOH .',
-    customerPhone: '0548961557',
-    customerType: 'Domestic',
-    meterNumber: '2201505104',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 4:05 PM',
-    reading: 50,
-    fieldReading: 50,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13684,
-    customerNumber: '0504-07-001758',
-    customerName: 'OFOSUHENE MAAKAMAY .',
-    customerPhone: '0541487935',
-    customerType: 'Non-Residential',
-    meterNumber: '2201513722',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 4:00 PM',
-    reading: 1050,
-    fieldReading: 1050,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13683,
-    customerNumber: '0504-07-001605',
-    customerName: 'HARUNA SAANA SUMAILA .',
-    customerPhone: '0207911881',
-    customerType: 'Domestic',
-    meterNumber: '200508369',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:58 PM',
-    reading: 63,
-    fieldReading: 63,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13682,
-    customerNumber: '0525-07-00850',
-    customerName: 'ALFRED KRAH .',
-    customerPhone: '0249854568',
-    customerType: 'Domestic',
-    meterNumber: '25169567',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:52 PM',
-    reading: 2272,
-    fieldReading: 2272,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13681,
-    customerNumber: '0525-07-00954',
-    customerName: 'BEATRICE BOATEMAA .',
-    customerPhone: '0248072263',
-    customerType: 'Domestic',
-    meterNumber: '200307959',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:43 PM',
-    reading: 527,
-    fieldReading: 527,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13680,
-    customerNumber: '0525-07-00857',
-    customerName: 'MR. & MRS TSATSU .',
-    customerPhone: '0242960425',
-    customerType: 'Domestic',
-    meterNumber: '130806398',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:42 PM',
-    reading: 1327,
-    fieldReading: 1327,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13679,
-    customerNumber: '0525-07-00910',
-    customerName: 'GABRIEL NIIQUAYE .',
-    customerPhone: '0545810564',
-    customerType: 'Domestic',
-    meterNumber: '1042',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:38 PM',
-    reading: 1312,
-    fieldReading: 1312,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13678,
-    customerNumber: '0504-07-001898',
-    customerName: 'CAINSPR.BRIGHT ANNOR SACKITEY .',
-    customerPhone: '0244746984',
-    customerType: 'Domestic',
-    meterNumber: '2201508140',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:34 PM',
-    reading: 239,
-    fieldReading: 239,
-    picture: true,
-    gps: true
-  },
-  {
-    id: 13677,
-    customerNumber: '0525-07-00859',
-    customerName: 'MR. MENSAH AFHIN .',
-    customerPhone: '0553587665',
-    customerType: 'Domestic',
-    meterNumber: 'RO14052730',
-    zone: 'ZONE 6',
-    staffName: 'Lydia Afuyle',
-    readingDate: '14 August , 2025',
-    serverDate: '14 August , 2025 3:31 PM',
-    reading: 1274,
-    fieldReading: 1274,
-    picture: true,
-    gps: true
-  }
-];
 
 export const staffData = [
   {
@@ -613,7 +337,7 @@ export const staffData = [
     email: 'kwesiamako1000@gmail.com',
     assignedZones: '10',
     role: 'Management',
-    position: 'Water System Manager',
+    position: 'Revenue Operations Manager',
     created: 'Sun, 01 Dec 2024, 12:00:00 am',
     modified: '01 Dec 2024 12:12 AM',
     modifiedBy: 'AEDA Admin',
@@ -662,7 +386,7 @@ export const staffData = [
     id: 5,
     name: 'Elizabeth Okine',
     phone: '0244371204',
-    email: 'elizabeth.okine@cwsa.gov.gh',
+    email: 'elizabeth.okine@assembly.gov.gh',
     assignedZones: '10',
     role: 'Management',
     position: 'Chief Accountant',
@@ -688,7 +412,7 @@ export const staffData = [
     id: 7,
     name: 'Esinu Tsagbey',
     phone: '0206248797',
-    email: 'esinu.tsagbey@cwsa.gov.gh',
+    email: 'esinu.tsagbey@assembly.gov.gh',
     assignedZones: '10',
     role: 'Management',
     position: 'Information Technology Coordinator',
@@ -1009,3 +733,24 @@ export const customerTypesData = [
     status: 'Active'
   }
 ];
+
+// Dropdown options for forms
+export const businessLevelOptions = [
+  { value: 'small', label: 'Small Business' },
+  { value: 'medium', label: 'Medium Business' },
+  { value: 'large', label: 'Large Business' }
+];
+
+export const zoneOptions = zonesData
+  .filter(zone => zone.status === 'Active')
+  .map(zone => ({
+    value: zone.zoneId,
+    label: zone.zoneName
+  }));
+
+export const collectorOptions = staffData
+  .filter(staff => staff.role.includes('Collector') && staff.status === 'Active')
+  .map(staff => ({
+    value: staff.id.toString(),
+    label: staff.name
+  }));

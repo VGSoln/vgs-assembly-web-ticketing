@@ -1,23 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronUp, MapPin, Search, Copy, FileText, Download, FileSpreadsheet, File, Printer, Check, AlertCircle, ArrowUpDown, ArrowUp, ArrowDown, Plus, Edit, Eye } from 'lucide-react';
 import { ModernSelect } from '../ui/ModernSelect';
 import { DateRangePicker } from '../layout/DateRangePicker';
 import { AddLocationPage } from './AddLocationPage';
 import { EditLocationPage } from './EditLocationPage';
-import { 
-  locationsData, 
+import {
   businessLevelOptions
 } from '@/lib/data';
 import { DateRange } from '@/types/dashboard';
-import { 
-  copyToClipboard, 
-  printData, 
-  exportToExcel, 
-  exportToCSV, 
-  exportToPDF, 
-  formatDataForExport, 
-  exportHeaders 
+import {
+  copyToClipboard,
+  printData,
+  exportToExcel,
+  exportToCSV,
+  exportToPDF
 } from '@/lib/exportUtils';
+import { useAuth } from '@/contexts/AuthContext';
+import { getLocations } from '@/lib/api';
 
 interface LocationPageProps {
   selectedDateRange: DateRange;
@@ -35,6 +34,23 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
+type Location = {
+  id: string;
+  'assembly-id': string;
+  'ticket-type-id': string;
+  'ticket-type-name': string;
+  name: string;
+  community?: string;
+  'zone-id'?: string;
+  'zone-name'?: string;
+  description?: string;
+  'is-active': boolean;
+  'created-at': string;
+  'updated-at'?: string;
+  'created-by'?: string;
+  'modified-by'?: string;
+};
+
 export const LocationPage: React.FC<LocationPageProps> = ({
   selectedDateRange,
   displayDateRange,
@@ -45,6 +61,11 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   onDateRangeChange,
   onDateRangeApply
 }) => {
+  const { user: currentUser } = useAuth();
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [selectedBusinessLevel, setSelectedBusinessLevel] = useState('');
   const [entriesPerPage, setEntriesPerPage] = useState('50');
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,6 +76,25 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   const [showEditLocation, setShowEditLocation] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
 
+  // Fetch locations from API
+  useEffect(() => {
+    if (currentUser) {
+      setLoading(true);
+      getLocations(currentUser['assembly-id'])
+        .then((data) => {
+          setLocations(data);
+          setError(null);
+        })
+        .catch((err) => {
+          console.error('Failed to fetch locations:', err);
+          setError('Failed to load locations. Please try again.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [currentUser]);
+
   const entriesOptions = [
     { value: '10', label: '10' },
     { value: '25', label: '25' },
@@ -63,17 +103,17 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   ];
 
   const columns = [
-    { key: 'locationId', label: 'Location ID', sortable: true, width: '9%' },
-    { key: 'ticketType', label: 'Ticket Type', sortable: true, width: '9%' },
-    { key: 'locationName', label: 'Location Name', sortable: true, width: '14%' },
+    { key: 'id', label: 'Location ID', sortable: true, width: '9%' },
+    { key: 'ticket-type-name', label: 'Ticket Type', sortable: true, width: '9%' },
+    { key: 'name', label: 'Location Name', sortable: true, width: '14%' },
     { key: 'community', label: 'Community', sortable: true, width: '11%' },
-    { key: 'zone', label: 'Zone', sortable: true, width: '11%' },
+    { key: 'zone-name', label: 'Zone', sortable: true, width: '11%' },
     { key: 'description', label: 'Description', sortable: false, width: '14%' },
-    { key: 'status', label: 'Status', sortable: true, width: '8%' },
-    { key: 'createdDate', label: 'Created Date', sortable: true, width: '9%' },
-    { key: 'modifiedDate', label: 'Modified Date', sortable: true, width: '9%' },
-    { key: 'modifiedBy', label: 'Modified by', sortable: true, width: '7%' },
-    { key: 'createdBy', label: 'Created by', sortable: true, width: '7%' },
+    { key: 'is-active', label: 'Status', sortable: true, width: '8%' },
+    { key: 'created-at', label: 'Created Date', sortable: true, width: '9%' },
+    { key: 'updated-at', label: 'Modified Date', sortable: true, width: '9%' },
+    { key: 'modified-by', label: 'Modified by', sortable: true, width: '7%' },
+    { key: 'created-by', label: 'Created by', sortable: true, width: '7%' },
     { key: 'actions', label: '', sortable: false, width: '2%' }
   ];
 
@@ -117,60 +157,112 @@ export const LocationPage: React.FC<LocationPageProps> = ({
     setCurrentPage(1);
   };
 
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Location-specific export headers
+  const locationExportHeaders = [
+    'Location ID',
+    'Ticket Type',
+    'Location Name',
+    'Community',
+    'Zone',
+    'Description',
+    'Status',
+    'Created Date',
+    'Modified Date'
+  ];
+
+  // Transform API data to export format
+  const transformForExport = (locations: Location[]) => {
+    return locations.map(location => ({
+      'Location ID': location.id,
+      'Ticket Type': location['ticket-type-name'] || 'N/A',
+      'Location Name': location.name,
+      'Community': location.community || 'N/A',
+      'Zone': location['zone-name'] || 'N/A',
+      'Description': location.description || 'N/A',
+      'Status': location['is-active'] ? 'Active' : 'Inactive',
+      'Created Date': formatDate(location['created-at']),
+      'Modified Date': formatDate(location['updated-at'])
+    }));
+  };
+
   // Export functions
   const handleExport = async (type: string) => {
-    const exportData = formatDataForExport(filteredAndSortedData);
+    // Transform data directly
+    const exportData = transformForExport(filteredAndSortedData);
     setExportStatus(`Exporting ${type}...`);
-    
+
     try {
       switch (type) {
         case 'copy':
-          const success = await copyToClipboard(exportData, exportHeaders);
+          const success = await copyToClipboard(exportData, locationExportHeaders);
           setExportStatus(success ? 'Copied to clipboard!' : 'Failed to copy');
           break;
         case 'print':
-          printData(exportData, exportHeaders, 'Locations Report');
+          printData(exportData, locationExportHeaders, 'Locations Report');
           setExportStatus('Print dialog opened');
           break;
         case 'excel':
-          await exportToExcel(exportData, exportHeaders, 'locations');
+          await exportToExcel(exportData, locationExportHeaders, 'locations');
           setExportStatus('Excel file downloaded');
           break;
         case 'csv':
-          exportToCSV(exportData, exportHeaders, 'locations');
+          exportToCSV(exportData, locationExportHeaders, 'locations');
           setExportStatus('CSV file downloaded');
           break;
         case 'pdf':
-          await exportToPDF(exportData, exportHeaders, 'locations');
-          setExportStatus('PDF file downloaded');
+          await exportToPDF(exportData, locationExportHeaders, 'locations');
+          setExportStatus('PDF export initiated');
           break;
       }
-      setTimeout(() => setExportStatus(''), 3000);
     } catch (error) {
-      console.error('Export error:', error);
       setExportStatus('Export failed');
     }
+
+    setTimeout(() => setExportStatus(''), 3000);
   };
 
   // Filter and sort data
   const filteredAndSortedData = useMemo(() => {
-    let filtered = locationsData.filter(location =>
-      location.locationId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.locationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.ticketType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.community.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.createdBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      location.modifiedBy.toLowerCase().includes(searchTerm.toLowerCase())
+    let filtered = locations.filter(location =>
+      location.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (location['ticket-type-name'] && location['ticket-type-name'].toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (location.community && location.community.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (location['zone-name'] && location['zone-name'].toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (location['created-by'] && location['created-by'].toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (location['modified-by'] && location['modified-by'].toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     // Sort
     if (sortConfig) {
-      filtered.sort((a: any, b: any) => {
-        if (a[sortConfig.key] < b[sortConfig.key]) {
+      filtered.sort((a, b) => {
+        const aValue = a[sortConfig.key as keyof Location];
+        const bValue = b[sortConfig.key as keyof Location];
+
+        if (aValue === undefined || aValue === null) return 1;
+        if (bValue === undefined || bValue === null) return -1;
+
+        if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
-        if (a[sortConfig.key] > b[sortConfig.key]) {
+        if (aValue > bValue) {
           return sortConfig.direction === 'asc' ? 1 : -1;
         }
         return 0;
@@ -178,7 +270,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({
     }
 
     return filtered;
-  }, [searchTerm, sortConfig]);
+  }, [locations, searchTerm, sortConfig]);
 
   // Pagination
   const totalEntries = filteredAndSortedData.length;
@@ -191,7 +283,7 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   // Show Add Location page if state is true
   if (showAddLocation) {
     return (
-      <AddLocationPage 
+      <AddLocationPage
         onBack={handleBackFromAdd}
         onSave={handleSaveLocation}
       />
@@ -201,11 +293,42 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   // Show Edit Location page if state is true
   if (showEditLocation && selectedLocation) {
     return (
-      <EditLocationPage 
-        locationId={selectedLocation.locationId}
+      <EditLocationPage
+        locationId={selectedLocation.id}
         onBack={handleBackFromEdit}
         onSave={handleSaveEdit}
       />
+    );
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">Loading locations...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-medium mb-2">Error Loading Locations</p>
+          <p className="text-gray-600 text-sm">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -317,15 +440,15 @@ export const LocationPage: React.FC<LocationPageProps> = ({
         <div className="bg-white rounded-xl overflow-hidden">
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
             <table className="w-full table-fixed border-collapse min-w-[1200px]">
-              <thead className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 rounded-t-xl">
+              <thead className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800">
               <tr>
                 {columns.map((column) => (
-                  <th 
+                  <th
                     key={column.key}
                     style={{ width: column.width }}
                     className={`px-1 py-3 text-left text-xs font-bold text-white border-r border-slate-600 last:border-r-0 relative ${
                       column.sortable ? 'cursor-pointer hover:bg-slate-600 transition-all duration-300 hover:shadow-lg' : ''
-                    } ${column.key === 'locationId' ? 'rounded-tl-xl' : ''} ${column.key === 'actions' ? 'rounded-tr-xl' : ''}`}
+                    }`}
                     onClick={() => column.sortable && handleSort(column.key)}
                   >
                     <div className="flex items-center gap-1 relative z-10">
@@ -352,84 +475,92 @@ export const LocationPage: React.FC<LocationPageProps> = ({
               </tr>
             </thead>
               <tbody className="bg-white">
-                {currentData.map((location, index) => (
-                  <tr key={location.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
-                    index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                  }`}>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <div className="text-[10px] font-semibold">
-                        {location.locationId}
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
-                        location.ticketType === 'Lorry Park' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : 'bg-orange-100 text-orange-800'
-                      }`}>
-                        {location.ticketType}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <div className="break-words leading-tight group-hover:text-slate-900 text-blue-600 hover:text-blue-800 text-[10px]">
-                        {location.locationName}
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <span className="text-[10px]">
-                        {location.community}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <span className="text-[10px]">
-                        {location.zone}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <div className="text-[10px] truncate" title={location.description}>
-                        {location.description}
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 text-10px border-r border-gray-100 text-center">
-                      <span className={`px-2 py-1 text-10px font-semibold rounded-full ${
-                        location.status === 'Active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {location.status || 'Active'}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <div className="text-[10px]">
-                        {location.createdDate}
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <div className="text-[10px]">
-                        {location.modifiedDate}
-                      </div>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <span className="text-[10px]">
-                        {location.modifiedBy}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
-                      <span className="text-[10px]">
-                        {location.createdBy}
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-center">
-                      <button 
-                        onClick={() => handleEditLocation(location)}
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 p-1.5 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
-                        title="Edit Location"
-                      >
-                        <Edit className="w-3 h-3 text-white" />
-                      </button>
+                {currentData.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500">
+                      No locations found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  currentData.map((location, index) => (
+                    <tr key={location.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200 group ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                    }`}>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <div className="text-[10px] font-semibold">
+                          {location.id}
+                        </div>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <span className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded-full ${
+                          location['ticket-type-name'] === 'Lorry Park'
+                            ? 'bg-purple-100 text-purple-800'
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {location['ticket-type-name'] || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <div className="break-words leading-tight group-hover:text-slate-900 text-blue-600 hover:text-blue-800 text-[10px]">
+                          {location.name}
+                        </div>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <span className="text-[10px]">
+                          {location.community || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <span className="text-[10px]">
+                          {location['zone-name'] || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <div className="text-[10px] truncate" title={location.description || ''}>
+                          {location.description || 'N/A'}
+                        </div>
+                      </td>
+                      <td className="px-1 py-2 text-10px border-r border-gray-100 text-center">
+                        <span className={`px-2 py-1 text-10px font-semibold rounded-full ${
+                          location['is-active']
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {location['is-active'] ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <div className="text-[10px]">
+                          {formatDate(location['created-at'])}
+                        </div>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <div className="text-[10px]">
+                          {formatDate(location['updated-at'])}
+                        </div>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <span className="text-[10px]">
+                          {location['modified-by'] || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-[10px] text-slate-800 border-r border-gray-100">
+                        <span className="text-[10px]">
+                          {location['created-by'] || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="px-1 py-2 text-center">
+                        <button
+                          onClick={() => handleEditLocation(location)}
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 p-1.5 rounded-full shadow-sm group-hover:shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                          title="Edit Location"
+                        >
+                          <Edit className="w-3 h-3 text-white" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -470,9 +601,9 @@ export const LocationPage: React.FC<LocationPageProps> = ({
               <div className="flex justify-between items-start mb-2">
                 <div>
                   <span className="text-xs font-bold text-gray-500">ID:</span>
-                  <span className="text-sm font-semibold ml-1">{location.locationId}</span>
+                  <span className="text-sm font-semibold ml-1">{location.id}</span>
                 </div>
-                <button 
+                <button
                   onClick={() => handleEditLocation(location)}
                   className="bg-blue-500 p-1.5 rounded-full hover:bg-blue-600 transition-colors"
                   title="Edit Location"
@@ -480,50 +611,50 @@ export const LocationPage: React.FC<LocationPageProps> = ({
                   <Edit className="w-3 h-3 text-white" />
                 </button>
               </div>
-              <div className="text-sm text-blue-600 font-semibold mb-1">{location.locationName}</div>
+              <div className="text-sm text-blue-600 font-semibold mb-1">{location.name}</div>
               <div className="mb-2">
                 <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                  location.ticketType === 'Lorry Park' 
-                    ? 'bg-purple-100 text-purple-800' 
+                  location['ticket-type-name'] === 'Lorry Park'
+                    ? 'bg-purple-100 text-purple-800'
                     : 'bg-orange-100 text-orange-800'
                 }`}>
-                  {location.ticketType}
+                  {location['ticket-type-name'] || 'N/A'}
                 </span>
               </div>
               <div className="mb-2">
                 <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${
-                  location.status === 'Active' 
-                    ? 'bg-green-100 text-green-800' 
+                  location['is-active']
+                    ? 'bg-green-100 text-green-800'
                     : 'bg-red-100 text-red-800'
                 }`}>
-                  {location.status || 'Active'}
+                  {location['is-active'] ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <div className="text-xs text-gray-600 mb-1">Community: {location.community}</div>
-              <div className="text-xs text-gray-600 mb-1">Zone: {location.zone}</div>
-              <div className="text-xs text-gray-600 mb-2">{location.description}</div>
+              <div className="text-xs text-gray-600 mb-1">Community: {location.community || 'N/A'}</div>
+              <div className="text-xs text-gray-600 mb-1">Zone: {location['zone-name'] || 'N/A'}</div>
+              <div className="text-xs text-gray-600 mb-2">{location.description || 'N/A'}</div>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-gray-500">Created:</span>
-                  <span className="ml-1">{location.createdDate}</span>
+                  <span className="ml-1">{formatDate(location['created-at'])}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{location.createdBy}</span>
+                  <span className="ml-1">{location['created-by'] || 'N/A'}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">Modified:</span>
-                  <span className="ml-1">{location.modifiedDate}</span>
+                  <span className="ml-1">{formatDate(location['updated-at'])}</span>
                 </div>
                 <div>
                   <span className="text-gray-500">By:</span>
-                  <span className="ml-1">{location.modifiedBy}</span>
+                  <span className="ml-1">{location['modified-by'] || 'N/A'}</span>
                 </div>
               </div>
             </div>
           ))}
         </div>
-        
+
         {/* Mobile Footer */}
         <div className="mt-4 text-center text-sm text-gray-600">
           Showing {startIndex + 1} to {endIndex} of {totalEntries} entries
