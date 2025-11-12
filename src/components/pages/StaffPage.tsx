@@ -14,6 +14,7 @@ import {
 interface StaffPageProps {
   onStaffSelect?: (staffId: string) => void;
   onAddStaff?: () => void;
+  key?: number;  // For triggering re-fetches
 }
 
 type SortConfig = {

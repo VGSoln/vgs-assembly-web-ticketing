@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Sidebar } from './layout/Sidebar';
 import { Header } from './layout/Header';
 import { Footer } from './layout/Footer';
@@ -45,6 +46,9 @@ import { formatDate } from '@/lib/utils';
 import { menuItems } from '@/lib/data';
 
 const Dashboard = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   // Layout state
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
@@ -52,6 +56,7 @@ const Dashboard = () => {
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [showCustomerDetails, setShowCustomerDetails] = useState<boolean>(false);
+  const [staffRefreshKey, setStaffRefreshKey] = useState(0);
 
   // Date range state (Performance page)
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
@@ -79,6 +84,56 @@ const Dashboard = () => {
   const [bankDepositsMonthYearPickerOpen, setBankDepositsMonthYearPickerOpen] = useState(false);
   const [selectedBankDepositsMonth, setSelectedBankDepositsMonth] = useState('August');
   const [selectedBankDepositsYear, setSelectedBankDepositsYear] = useState('2025');
+
+  // Initialize page from URL on mount
+  useEffect(() => {
+    const pageParam = searchParams.get('page');
+    const staffIdParam = searchParams.get('staffId');
+
+    if (pageParam && pageParam !== currentPage) {
+      setCurrentPage(pageParam as PageType);
+    }
+
+    if (staffIdParam) {
+      setSelectedStaffId(staffIdParam);
+    }
+  }, []); // Run only on mount
+
+  // Update URL when page changes
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', currentPage);
+
+    if (selectedStaffId) {
+      params.set('staffId', selectedStaffId);
+    } else {
+      params.delete('staffId');
+    }
+
+    router.push(`/dashboard?${params.toString()}`, { scroll: false });
+  }, [currentPage, selectedStaffId]);
+
+  // Listen for browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageParam = urlParams.get('page');
+      const staffIdParam = urlParams.get('staffId');
+
+      if (pageParam) {
+        setCurrentPage(pageParam as PageType);
+      }
+
+      if (staffIdParam) {
+        setSelectedStaffId(staffIdParam);
+      } else {
+        setSelectedStaffId('');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Click outside handler for dropdowns
   useEffect(() => {
@@ -185,6 +240,8 @@ const Dashboard = () => {
   const handleBackToStaffFromAdd = () => {
     setCurrentPage('staff');
     setSelectedStaffId('');
+    // Increment refresh key to trigger StaffPage to refetch data
+    setStaffRefreshKey(prev => prev + 1);
   };
 
   // Customer navigation handler
@@ -527,7 +584,7 @@ const Dashboard = () => {
         );
 
       case 'staff':
-        return <StaffPage onStaffSelect={handleStaffSelect} onAddStaff={handleAddStaff} />;
+        return <StaffPage key={staffRefreshKey} onStaffSelect={handleStaffSelect} onAddStaff={handleAddStaff} />;
 
       case 'staff-details':
         return <StaffDetailsPage staffId={selectedStaffId} onBack={handleBackToStaff} onEdit={handleEditStaff} />;

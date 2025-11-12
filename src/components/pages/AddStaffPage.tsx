@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { User, Save, X, ChevronLeft, Upload } from 'lucide-react';
 import { HierarchicalAccess } from '../ui/HierarchicalAccess';
 import { ModernSelect } from '../ui/ModernSelect';
+import { createUser } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AddStaffPageProps {
   onSave?: (staffData: any) => void;
@@ -9,6 +11,7 @@ interface AddStaffPageProps {
 }
 
 export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,6 +22,9 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
     businessLevel: '',
     accessPermissions: null,
     role: '',
+    zoneId: '',
+    pin: '',
+    password: '',
     picture: null as File | null,
     status: 'Active',
     depositBankAccounts: false
@@ -26,6 +32,7 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -62,30 +69,14 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
       newErrors.phone = 'Please enter a valid 10-digit phone number';
     }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required';
-    }
-
-    if (!formData.position) {
-      newErrors.position = 'Position is required';
-    }
-
-    if (!formData.businessLevel) {
-      newErrors.businessLevel = 'Business level is required';
-    }
-
-    if (!formData.accessPermissions) {
-      newErrors.accessPermissions = 'Access permissions are required';
-    }
-
     if (!formData.role) {
       newErrors.role = 'Role is required';
+    }
+
+    if (!formData.pin.trim()) {
+      newErrors.pin = 'PIN is required (4-6 digits)';
+    } else if (!/^\d{4,6}$/.test(formData.pin)) {
+      newErrors.pin = 'PIN must be 4-6 digits';
     }
 
     setErrors(newErrors);
@@ -97,19 +88,39 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
       return;
     }
 
+    if (!user?.['assembly-id']) {
+      setApiError('Assembly ID not found. Please log in again.');
+      return;
+    }
+
     setIsLoading(true);
-    
+    setApiError(null);
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Map form data to API format
+      const userData = {
+        'assembly-id': user['assembly-id'],
+        'first-name': formData.firstName,
+        'last-name': formData.lastName,
+        phone: formData.phone,
+        pin: formData.pin,
+        role: formData.role.toLowerCase() as 'officer' | 'supervisor' | 'admin',
+        ...(formData.email && { email: formData.email }),
+        ...(formData.password && { password: formData.password }),
+        ...(formData.zoneId && { 'zone-id': formData.zoneId }),
+      };
+
+      const newUser = await createUser(userData);
+      console.log('Staff created successfully:', newUser);
+
       if (onSave) {
-        onSave(formData);
+        onSave(newUser);
       }
-      
-      console.log('Staff created successfully:', formData);
-      onBack();
+
+      onBack?.();
     } catch (error) {
       console.error('Error creating staff:', error);
+      setApiError(error instanceof Error ? error.message : 'Failed to create staff. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -126,11 +137,15 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
       businessLevel: '',
       accessPermissions: null,
       role: '',
+      zoneId: '',
+      pin: '',
+      password: '',
       picture: null,
       status: 'Active',
       depositBankAccounts: false
     });
     setErrors({});
+    setApiError(null);
   };
 
   const positionOptions = [
@@ -153,12 +168,9 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
   ];
 
   const roleOptions = [
-    { value: 'Management', label: 'Management' },
-    { value: 'Data_Admin', label: 'Data Admin' },
-    { value: 'System_Admin', label: 'System Admin' },
-    { value: 'Collector', label: 'Collector' },
-    { value: 'Field_Officer', label: 'Field Officer' },
-    { value: 'Technician', label: 'Technician' }
+    { value: 'admin', label: 'Admin' },
+    { value: 'supervisor', label: 'Supervisor' },
+    { value: 'officer', label: 'Officer' }
   ];
 
   const statusOptions = [
@@ -196,7 +208,14 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
       {/* Add Staff Form */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative z-10 overflow-visible">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Add Staff</h2>
-        
+
+        {/* API Error Message */}
+        {apiError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-600">{apiError}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* First Name */}
           <div>
@@ -252,7 +271,7 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
           {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email <span className="text-red-500">*</span>
+              Email (Optional)
             </label>
             <input
               type="email"
@@ -266,51 +285,39 @@ export const AddStaffPage: React.FC<AddStaffPageProps> = ({ onSave, onBack }) =>
             {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
           </div>
 
-          {/* Username */}
+          {/* PIN */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Username <span className="text-red-500">*</span>
+              PIN (4-6 digits) <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              value={formData.username}
-              onChange={(e) => handleInputChange('username', e.target.value)}
+              value={formData.pin}
+              onChange={(e) => handleInputChange('pin', e.target.value)}
               className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-                errors.username ? 'border-red-500' : 'border-gray-300'
+                errors.pin ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholder="Enter username"
+              placeholder="1234"
+              maxLength={6}
             />
-            {errors.username && <p className="mt-1 text-sm text-red-600">{errors.username}</p>}
+            {errors.pin && <p className="mt-1 text-sm text-red-600">{errors.pin}</p>}
           </div>
 
-          {/* Position */}
+          {/* Password (Optional) */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Position <span className="text-red-500">*</span>
+              Password (Optional - for web login)
             </label>
-            <ModernSelect
-              value={formData.position}
-              onChange={(value) => handleInputChange('position', value)}
-              placeholder="Select Position"
-              options={positionOptions}
-              className="w-full"
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
+                errors.password ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholder="Enter password"
             />
-            {errors.position && <p className="mt-1 text-sm text-red-600">{errors.position}</p>}
-          </div>
-
-          {/* Business Level */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Business Level <span className="text-red-500">*</span>
-            </label>
-            <ModernSelect
-              value={formData.businessLevel}
-              onChange={(value) => handleInputChange('businessLevel', value)}
-              placeholder="Select Business Level"
-              options={businessLevelOptions}
-              className="w-full"
-            />
-            {errors.businessLevel && <p className="mt-1 text-sm text-red-600">{errors.businessLevel}</p>}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
           </div>
 
           {/* Role */}
