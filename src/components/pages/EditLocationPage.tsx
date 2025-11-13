@@ -24,7 +24,12 @@ export const EditLocationPage: React.FC<EditLocationPageProps> = ({
     locationType: '',
     zoneId: '',
     gpsLatitude: '',
-    gpsLongitude: ''
+    gpsLongitude: '',
+    ticketType: '',
+    locationName: '',
+    community: '',
+    zone: '',
+    description: ''
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
