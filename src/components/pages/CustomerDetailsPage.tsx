@@ -1120,7 +1120,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                                   onClick={() => {
                                     setReceiptModalData({
                                       customerName: customerData.name,
-                                      customerNumber: customerData.accountNumber,
+                                      customerNumber: customerData.customerNumber,
                                       phoneNumber: customerData.phone,
                                       transactionId: `PAY-${payment.id}`,
                                       amount: payment.amount,
@@ -1136,7 +1136,7 @@ GPS: ${v.hasGPS ? 'Available' : 'Not Available'}
                                   onClick={() => {
                                     setLocationModalData({
                                       customerName: customerData.name,
-                                      customerNumber: customerData.accountNumber,
+                                      customerNumber: customerData.customerNumber,
                                       phoneNumber: customerData.phone,
                                       transactionId: `PAY-${payment.id}`,
                                       amount: payment.amount,

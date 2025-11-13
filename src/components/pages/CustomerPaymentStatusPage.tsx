@@ -143,9 +143,9 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
   const filteredAndSortedData = useMemo(() => {
     let filtered = customerDebtData.filter(debt => {
       // Date range filter - filter by lastPaidDate or lastVisit
-      if (selectedDateRange.startDate && selectedDateRange.endDate) {
-        const startDate = new Date(selectedDateRange.startDate);
-        const endDate = new Date(selectedDateRange.endDate);
+      if (selectedDateRange.start && selectedDateRange.end) {
+        const startDate = new Date(selectedDateRange.start);
+        const endDate = new Date(selectedDateRange.end);
         
         // Try to parse lastPaidDate (format may vary)
         let dateToCheck: Date | null = null;
@@ -200,7 +200,11 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
       filtered.sort((a, b) => {
         const aValue = a[sortConfig.key as keyof typeof a];
         const bValue = b[sortConfig.key as keyof typeof b];
-        
+
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return 1;
+        if (bValue === undefined) return -1;
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -575,7 +579,7 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
                       setLogCallModalData({
                         customerName: debt.customerName,
                         customerNumber: debt.customerNumber,
-                        staffName: debt.staffName
+                        staffName: ''
                       });
                       setShowLogCallModal(true);
                     }}
@@ -725,8 +729,13 @@ export const CustomerPaymentStatusPage: React.FC<CustomerPaymentStatusPageProps>
             setShowLogCallModal(false);
             setLogCallModalData(null);
           }}
+          onSave={(data) => {
+            console.log('Call log saved:', data);
+            // TODO: Send call log data to API
+            setShowLogCallModal(false);
+            setLogCallModalData(null);
+          }}
           customerName={logCallModalData.customerName}
-          customerNumber={logCallModalData.customerNumber}
         />
       )}
     </div>

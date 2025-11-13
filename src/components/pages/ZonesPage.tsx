@@ -236,7 +236,6 @@ export const ZonesPage: React.FC<ZonesPageProps> = ({
   if (showAddZone) {
     return (
       <AddZonePage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveZone}
       />
     );

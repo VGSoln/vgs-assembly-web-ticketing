@@ -287,7 +287,6 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
   if (showAddCustomer) {
     return (
       <AddCustomerPage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCustomer}
       />
     );
@@ -298,7 +297,6 @@ export const TicketCustomersPage: React.FC<CustomersPageProps> = ({ initialCusto
     return (
       <TicketCustomerDetailsPage
         customerId={selectedCustomerId}
-        onBack={handleBackFromDetails}
         onEdit={handleEditCustomer}
       />
     );

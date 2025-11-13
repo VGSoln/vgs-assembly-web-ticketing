@@ -227,7 +227,11 @@ export const DashboardDetailsPaidCustomersPage: React.FC<DashboardDetailsPaidCus
       filtered.sort((a, b) => {
         const aValue = a[sortConfig.key as keyof typeof a];
         const bValue = b[sortConfig.key as keyof typeof b];
-        
+
+        if (aValue === undefined && bValue === undefined) return 0;
+        if (aValue === undefined) return 1;
+        if (bValue === undefined) return -1;
+
         if (aValue < bValue) {
           return sortConfig.direction === 'asc' ? -1 : 1;
         }
@@ -745,8 +749,13 @@ export const DashboardDetailsPaidCustomersPage: React.FC<DashboardDetailsPaidCus
             setShowLogCallModal(false);
             setLogCallModalData(null);
           }}
+          onSave={(data) => {
+            console.log('Call log saved:', data);
+            // TODO: Send call log data to API
+            setShowLogCallModal(false);
+            setLogCallModalData(null);
+          }}
           customerName={logCallModalData.customerName}
-          customerNumber={logCallModalData.customerNumber}
         />
       )}
     </div>

@@ -273,7 +273,6 @@ export const CustomerTypePage: React.FC<CustomerTypePageProps> = ({
   if (showAddCustomerType) {
     return (
       <AddCustomerTypePage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCustomerType}
       />
     );

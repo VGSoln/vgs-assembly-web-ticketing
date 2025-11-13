@@ -393,7 +393,6 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
   if (showAddCustomer) {
     return (
       <AddCustomerPage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCustomer}
       />
     );
@@ -404,7 +403,6 @@ export const DashboardDetailsCustomersInactiveThisYearPage: React.FC<DashboardDe
     return (
       <CustomerDetailsPage
         customerId={selectedCustomerId}
-        onBack={handleBackFromDetails}
         onEdit={handleEditCustomer}
       />
     );

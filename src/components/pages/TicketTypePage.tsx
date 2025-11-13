@@ -269,7 +269,6 @@ export const TicketTypePage: React.FC<TicketTypePageProps> = ({
   if (showAddTicketType) {
     return (
       <AddTicketTypePage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveTicketType}
       />
     );

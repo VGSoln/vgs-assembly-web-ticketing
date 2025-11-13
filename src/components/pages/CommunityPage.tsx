@@ -186,7 +186,6 @@ export const CommunityPage: React.FC<CommunityPageProps> = ({
   if (showAddCommunity) {
     return (
       <AddCommunityPage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCommunity}
       />
     );

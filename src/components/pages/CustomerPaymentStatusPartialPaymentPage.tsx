@@ -482,7 +482,6 @@ export const CustomerPaymentStatusPartialPaymentPage: React.FC<CustomerPaymentSt
   if (showAddCustomer) {
     return (
       <AddCustomerPage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCustomer}
       />
     );
@@ -493,7 +492,6 @@ export const CustomerPaymentStatusPartialPaymentPage: React.FC<CustomerPaymentSt
     return (
       <CustomerDetailsPage
         customerId={selectedCustomerId}
-        onBack={handleBackFromDetails}
         onEdit={handleEditCustomer}
       />
     );

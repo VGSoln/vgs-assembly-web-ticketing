@@ -314,9 +314,9 @@ export const CustomerVisitStatusOtherPage: React.FC<CustomerVisitStatusOtherPage
     
     let filtered = baseData.filter(customer => {
       // Date range filter - filter by lastVisit or lastPaidDate
-      if (selectedDateRange.startDate && selectedDateRange.endDate) {
-        const startDate = new Date(selectedDateRange.startDate);
-        const endDate = new Date(selectedDateRange.endDate);
+      if (selectedDateRange.start && selectedDateRange.end) {
+        const startDate = new Date(selectedDateRange.start);
+        const endDate = new Date(selectedDateRange.end);
         
         // Try to parse lastVisit date (ISO format)
         let dateToCheck: Date | null = null;

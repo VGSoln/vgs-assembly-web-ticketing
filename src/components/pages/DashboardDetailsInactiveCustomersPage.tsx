@@ -393,7 +393,6 @@ export const DashboardDetailsInactiveCustomersPage: React.FC<DashboardDetailsIna
   if (showAddCustomer) {
     return (
       <AddCustomerPage 
-        onBack={handleBackFromAdd}
         onSave={handleSaveCustomer}
       />
     );
@@ -404,7 +403,6 @@ export const DashboardDetailsInactiveCustomersPage: React.FC<DashboardDetailsIna
     return (
       <CustomerDetailsPage
         customerId={selectedCustomerId}
-        onBack={handleBackFromDetails}
         onEdit={handleEditCustomer}
       />
     );

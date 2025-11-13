@@ -284,7 +284,6 @@ export const LocationPage: React.FC<LocationPageProps> = ({
   if (showAddLocation) {
     return (
       <AddLocationPage
-        onBack={handleBackFromAdd}
         onSave={handleSaveLocation}
       />
     );

@@ -340,7 +340,7 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
             />
             <ModernSelect
               value={selectedTicketType}
-              onChange={setSelectedTicketType}
+              onChange={(value) => setSelectedTicketType(value as 'market' | 'lorry-park' | '')}
               placeholder="Ticket Type"
               options={ticketTypeOptions}
               className="w-full sm:w-auto min-w-[130px]"
