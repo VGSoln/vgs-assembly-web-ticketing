@@ -38,3 +38,7 @@ next-env.d.ts
 # WhatsApp notification logs
 .wa-notifications.log
 .wa-notifications.log.old
+.wwebjs_cache/
+
+# temporary tracking files
+gitcommittracker.csv
