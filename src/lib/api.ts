@@ -1,7 +1,7 @@
 /**
  * API client for VGS Assembly Backend
  * Multi-tenant backend with subdomain-based routing
- * Auto-detects subdomain from browser URL (e.g., demo.localhost:3004 -> demo.localhost:3000)
+ * Auto-detects subdomain from browser URL (e.g., demo.localhost:3005 -> demo.localhost:3006)
  */
 
 /**
@@ -10,11 +10,11 @@
 function getAPIBaseURL(): string {
   if (typeof window === 'undefined') {
     // Server-side: use default
-    return 'http://localhost:3000';
+    return 'http://localhost:3006';
   }
 
   const protocol = process.env.NEXT_PUBLIC_API_PROTOCOL || 'http';
-  const port = process.env.NEXT_PUBLIC_API_PORT || '3000';
+  const port = process.env.NEXT_PUBLIC_API_PORT || '3006';
   const hostname = window.location.hostname;
 
   // Construct API URL using the same subdomain as the current page
