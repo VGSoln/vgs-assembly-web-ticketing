@@ -70,7 +70,7 @@ export const PieChartCard: React.FC<PieChartCardProps> = ({
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const handlePieEnter = useCallback((_, index: number) => {
+  const handlePieEnter = useCallback((_: any, index: number) => {
     setActiveIndex(index);
   }, []);
 

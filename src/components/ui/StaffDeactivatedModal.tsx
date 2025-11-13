@@ -132,7 +132,7 @@ export const StaffDeactivatedModal: React.FC<StaffDeactivatedModalProps> = ({
             {/* Reactivation Notice */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p className="text-xs text-blue-700">
-                Use the reactivation button below to restore this staff's system access.
+                Use the reactivation button below to restore this staff&apos;s system access.
               </p>
             </div>
           </div>

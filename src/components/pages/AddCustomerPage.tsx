@@ -239,9 +239,9 @@ export const AddCustomerPage: React.FC<AddCustomerPageProps> = ({ onSave }) => {
         {/* Success Modal */}
         {showSuccessModal && <SuccessModal />}
         
-        <CustomerReviewPage 
+        <CustomerReviewPage
           customerData={formData}
-          onBack={() => setShowReview(false)}
+          onEdit={() => setShowReview(false)}
           onConfirm={handleConfirmSave}
         />
       </>

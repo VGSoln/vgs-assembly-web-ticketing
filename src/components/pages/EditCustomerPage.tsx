@@ -251,7 +251,7 @@ export const EditCustomerPage: React.FC<EditCustomerPageProps> = ({
         
         <CustomerReviewPage 
           customerData={formData}
-          onBack={() => setShowReview(false)}
+          onEdit={() => setShowReview(false)}
           onConfirm={handleConfirmSave}
           isEditMode={true}
         />

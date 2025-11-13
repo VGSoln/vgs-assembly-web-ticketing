@@ -161,7 +161,7 @@ export default function LoginPage() {
               size="lg"
               className="w-full"
               disabled={loading}
-              onClick={handleSubmit}
+              onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>

@@ -18,6 +18,7 @@ interface ModernSelectProps {
   onChange?: (value: string) => void;
   className?: string;
   showClear?: boolean;
+  disabled?: boolean;
 }
 
 export const ModernSelect: React.FC<ModernSelectProps> = ({
@@ -26,7 +27,8 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
   value,
   onChange,
   className = '',
-  showClear = true
+  showClear = true,
+  disabled = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<Option | null>(
@@ -61,12 +63,13 @@ export const ModernSelect: React.FC<ModernSelectProps> = ({
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         className={`
-          w-full flex items-center justify-between px-4 py-3 
+          w-full flex items-center justify-between px-4 py-3
           bg-white border border-gray-200 rounded-xl
           text-left text-sm transition-all duration-200
-          hover:border-blue-300 hover:shadow-md hover:bg-blue-50/30
+          ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'hover:border-blue-300 hover:shadow-md hover:bg-blue-50/30'}
           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
           ${isOpen ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md bg-blue-50/20' : ''}
           ${selectedOption ? 'text-gray-900 font-medium' : 'text-gray-500'}

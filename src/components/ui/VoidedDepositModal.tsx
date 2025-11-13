@@ -10,6 +10,7 @@ interface VoidedDepositModalProps {
   bankName: string;
   accountNumber: string;
   depositAmount: number;
+  zone?: string;
   collector: string;
   voidReason: string;
   voidedDate: string;
@@ -24,6 +25,7 @@ export const VoidedDepositModal: React.FC<VoidedDepositModalProps> = ({
   bankName,
   accountNumber,
   depositAmount,
+  zone,
   collector,
   voidReason,
   voidedDate,

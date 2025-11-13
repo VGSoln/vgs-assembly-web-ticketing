@@ -214,7 +214,7 @@ export const BillGenerationPage: React.FC<BillGenerationPageProps> = () => {
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
               <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Select parameters and click "Run Report" to generate</p>
+              <p className="text-gray-500 text-lg">Select parameters and click &quot;Run Report&quot; to generate</p>
             </div>
           </div>
         ) : (

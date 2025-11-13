@@ -292,7 +292,7 @@ export const CollectorLocationsPage: React.FC<CollectorLocationsPageProps> = () 
               activePreset={activePreset}
               onToggle={() => setDateRangeOpen(!dateRangeOpen)}
               onPresetSelect={(preset: string) => {
-                const presets = getDatePresets();
+                const presets = getDatePresets() as Record<string, any>;
                 if (presets[preset]) {
                   setSelectedDateRange({ start: presets[preset].start, end: presets[preset].end });
                   setActivePreset(preset);

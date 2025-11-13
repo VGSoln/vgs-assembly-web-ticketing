@@ -248,16 +248,21 @@ const Dashboard = () => {
   const handleCustomerNavigation = (customerId: string) => {
     setSelectedCustomerId(customerId);
     setShowCustomerDetails(true);
-    setCurrentPage('customers');
+    setCurrentPage('ticket-customers');
   };
 
   // Reset customer navigation state when leaving customers page
   useEffect(() => {
-    if (currentPage !== 'customers' && currentPage !== 'customer-details') {
+    if (currentPage !== 'ticket-customers' && currentPage !== 'customer-details') {
       setSelectedCustomerId('');
       setShowCustomerDetails(false);
     }
   }, [currentPage]);
+
+  // Helper function to navigate to a page (with type casting)
+  const navigateToPage = (page: string) => {
+    setCurrentPage(page as PageType);
+  };
 
   // Render page content based on current page
   const renderPageContent = () => {
@@ -379,13 +384,13 @@ const Dashboard = () => {
         );
         
       case 'dashboard-details-inactive-customers':
-        return <DashboardDetailsInactiveCustomersPage onNavigate={setCurrentPage} />;
-        
+        return <DashboardDetailsInactiveCustomersPage onNavigate={navigateToPage} />;
+
       case 'dashboard-details-customers-inactive-this-year':
-        return <DashboardDetailsCustomersInactiveThisYearPage onNavigate={setCurrentPage} />;
-        
+        return <DashboardDetailsCustomersInactiveThisYearPage onNavigate={navigateToPage} />;
+
       case 'dashboard-details-counterfeited-tickets':
-        return <DashboardDetailsCounterfeitedTicketsPage onNavigate={setCurrentPage} />;
+        return <DashboardDetailsCounterfeitedTicketsPage onNavigate={navigateToPage} />;
         
       case 'customer-payment-status':
         return (
@@ -429,7 +434,7 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
+            onNavigateBack={() => setCurrentPage('customer-payment-status')}
             onCustomerClick={handleCustomerNavigation}
           />
         );
@@ -445,7 +450,7 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
+            onNavigateBack={() => setCurrentPage('customer-payment-status')}
             onCustomerClick={handleCustomerNavigation}
           />
         );
@@ -461,7 +466,7 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
+            onNavigateBack={() => setCurrentPage('customer-payment-status')}
             onCustomerClick={handleCustomerNavigation}
           />
         );
@@ -477,7 +482,7 @@ const Dashboard = () => {
             onPresetSelect={handlePresetSelect}
             onDateRangeChange={setSelectedDateRange}
             onDateRangeApply={handleDateRangeSelect}
-            onNavigateBack={() => setCurrentPage('visits')}
+            onNavigateBack={() => setCurrentPage('customer-payment-status')}
             onCustomerClick={handleCustomerNavigation}
           />
         );

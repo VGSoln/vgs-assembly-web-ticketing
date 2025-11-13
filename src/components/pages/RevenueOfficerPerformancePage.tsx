@@ -645,7 +645,7 @@ export const RevenueOfficerPerformancePage: React.FC<RevenueOfficerPerformancePa
                   onClick={() => handleSort('todayStatus')}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>Today's Status</span>
+                    <span>Today&apos;s Status</span>
                     {sortField === 'todayStatus' && (
                       sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
                     )}
